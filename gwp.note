@@ -1,0 +1,414 @@
+#+TITLE: 个人文本交互系统(based on doom-emacs)
+#+SETUPFILE: ~/Notes/common.org
+
+* 参考
+- [[https://github.com/daviwil/emacs-from-scratch/tree/master][daviwil/emacs-from-scratch: An example of a fully custom Emacs configuration developed live on YouTube!]]
+
+
+* Memo [0/1]
+** TODO [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
+
+* init.el
+:PROPERTIES:
+:header-args: :tangle init.el
+:END:
+#+name: 158fcd0c
+#+begin_src elisp
+;; Load path
+(push (expand-file-name "site-lisp" user-emacs-directory) load-path)
+(push (expand-file-name "user-lisp" user-emacs-directory) load-path)
+
+;; Packages
+(require 'package)
+;; (setq package-archives
+;;       '(("gnu"   . "http://elpa.gnu.org/packages/")
+;;         ("melpa" . "http://melpa.org/packages/")))
+(setq package-archives
+      '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
+        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
+        ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
+        ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
+
+(package-initialize)
+(unless package-archive-contents
+ (package-refresh-contents))
+
+;; Initialize use-package on non-Linux platforms
+(unless (package-installed-p 'use-package)
+   (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+(use-package command-log-mode)
+
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+
+(use-package general
+  :after evil
+  :config)
+
+(require 'init-ui)
+(require 'init-edit)
+(require 'init-org)
+(require 'init-develop)
+#+end_src
+
+* user-lisp
+** init-ui.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-ui.el
+:END:
+*** core
+#+name: 2f79944b
+#+begin_src elisp
+(setq inhibit-startup-message t)
+;; 禁用不必要的界面元素
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(menu-bar-mode -1)            ; Disable the menu bar
+
+;; 默认会bee bee
+(setq visible-bell t)
+
+;; (tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
+
+(use-package doom-themes
+  :init (load-theme 'doom-nova t))
+#+end_src
+
+*** chinese font
+#+name: 91a3ef0e
+#+begin_src elisp
+(when (display-graphic-p)
+  (setq user-font
+        (cond
+         ((find-font (font-spec :name  "Sarasa Fixed SC")) "Sarasa Fixed SC")
+         ((find-font (font-spec :name  "Iosevka")) "Iosevka")
+         ((find-font (font-spec :name  "Inconsolata Nerd Font")) "Inconsolata Nerd Font")
+         ((find-font (font-spec :name  "Ubuntu Mono")) "Ubuntu Mono")))
+  ;; (setq resolution-factor 2)
+  ;; (setq ideal-font-size (eval (* 15 resolution-factor)))
+
+  (setq default-font-height 100)
+  (set-face-attribute 'default nil :font user-font :height default-font-height)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font user-font :height default-font-height)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font user-font :height default-font-height :weight 'regular))
+#+end_src
+
+*** chinese input/rime
+可以用TAB来临时输入英文. 可以用Ctrl-.来临时切换中英文标点. 在输入过程中, 按z键临时拼音模式.
+#+name: 5a1d21e9
+#+begin_src elisp
+(use-package rime
+  :custom
+  (default-input-method "rime")
+  :config
+  (setq rime-user-data-dir "~/.local/share/fcitx5/rime")
+  ;;; support shift-l, shift-r, control-l, control-r
+  (setq rime-inline-ascii-trigger 'shift-l)
+  ;; 临时英文中阻止标点直接上屏
+  (setq rime-inline-ascii-holder ?x)      ; Any single character that not trigger auto commit
+  ;; 添加C-.快捷键, 方便切换中英文标点(需要在rime输入时有效)
+  (setq rime-translate-keybindings
+        '("C-f" "C-b" "C-n" "C-p" "C-g" "C-."))
+  ;; 在输入且有码上屏的状态下, 可用TAB临时切换英文.
+  ;; (map! :map rime-active-mode-map :after ivy [tab] 'rime-inline-ascii)
+  ;; NOTE: 以下有时会让emacs crash
+  ;; (setq rime-posframe-properties
+  ;;       (list :background-color "#333333"
+  ;;             :foreground-color "#dcdccc"
+  ;;             :font "WenQuanYi Micro Hei Mono-14"
+  ;;             :internal-border-width 10))
+  ;; (setq default-input-method "rime"
+  ;;       rime-show-candidate 'posframe)
+  )
+;; 这里需要与fcitx配合: 去掉GTK_IM_MODULE, XMODIFIERS等FCITX输入法设置变量.
+;; (map! :nieg "C-SPC" 'toggle-input-method)
+;; NOTE: 因为与ivy的默认绑定有冲突, minibuffer下不能切换
+;; ivy-call-and-recenter
+;; 2021-10-13: 直接map不太有效, 时灵不灵的
+;; (map! :map ivy-minibuffer-map "C-SPC" #'toggle-input-method)
+;; NOTE: 可用M-RET来预览选中条目, 而不退出ivy窗口
+;; (map! :after ivy :map ivy-minibuffer-map [remap ivy-call-and-recenter] 'toggle-input-method)
+#+end_src
+
+*** highlight
+- [[https://emacs-china.org/t/package-symbol-overlay-symbol/7706][论坛讨论]]
+
+要点:
+- 光标置于symbol左右, symbol-overlay-put 可切换高亮状态. 切n/p可跳转至前后高亮的位置.
+- 可同时高亮多组symbols. 每组独立控制.
+- 当光标在symbol外时, 可用 symbol-overlay-switch-forward 来跳回到最近那组高亮的
+  symbols. 要跳回起跳位置可按e键.
+#+name: 3d5eeec1
+#+begin_src elisp
+;; symbol-overlay
+;;;  a highlight-symbol replacement.
+(use-package symbol-overlay
+  :config
+  ;; 用 transient 不如下面的好. 下面的可以用"."命令来重做上次的操作.
+  (general-define-key :prefix-map 'gwp::symbol-overlay-map
+                      "h" 'symbol-overlay-put
+                      "r" 'symbol-overlay-rename
+                      "t" 'symbol-overlay-toggle-in-scope
+                      "n" 'symbol-overlay-switch-forward ; 当在高亮的字符外时, 可快速返回.
+                      "p" 'symbol-overlay-switch-backward
+                      "d" 'symbol-overlay-remove-all
+                      "R" 'symbol-overlay-query-replace)
+  ;; 等价设置; 备忘
+  ;; (setq symbol-overlay-map (make-sparse-keymap))
+  ;; (setq gwp::symbol-overlay-map (make-sparse-keymap))
+  ;; (define-key gwp::symbol-overlay-map (kbd "h") 'symbol-overlay-put)
+  ;; (define-key gwp::symbol-overlay-map (kbd "n") 'symbol-overlay-jump-next)
+  ;; (define-key gwp::symbol-overlay-map (kbd "p") 'symbol-overlay-jump-prev)
+  ;; (define-key gwp::symbol-overlay-map (kbd "w") 'symbol-overlay-save-symbol)
+  ;; (define-key gwp::symbol-overlay-map (kbd "t") 'symbol-overlay-toggle-in-scope)
+  ;; (define-key gwp::symbol-overlay-map (kbd "e") 'symbol-overlay-echo-mark)
+  ;; (define-key gwp::symbol-overlay-map (kbd "d") 'symbol-overlay-jump-to-definition)
+  ;; (define-key gwp::symbol-overlay-map (kbd "s") 'symbol-overlay-isearch-literally)
+  ;; (define-key gwp::symbol-overlay-map (kbd "q") 'symbol-overlay-query-replace)
+  ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
+  )
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-ui)
+#+end_src
+** init-org.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-org.el
+:END:
+*** 基本设置
+#+name: e2f6b646
+#+begin_src elisp
+(use-package org
+  :config
+  ;; treat .note files as org-mode
+  (add-to-list 'auto-mode-alist '("\\.note\\'" . org-mode))
+  (add-to-list 'auto-mode-alist '("NOTE" . org-mode))
+
+  (setq org-blank-before-new-entry nil)
+  (setq org-default-notes-file (concat org-directory "/life.note"))
+
+  ;; 保留以前的 Alt-Return 键行为, Alt-Return
+  (org-defkey org-mode-map [(meta return)] 'org-meta-return)
+
+  ;; https://orgmode.org/manual/Clean-view.html
+  (setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
+  (with-eval-after-load 'org-indent
+    (setq org-indent-indentation-per-level 1)) ;; default = 2
+
+  ;; 对齐headline中的TAGs
+  (setq org-tags-column -80)
+
+  ;; 避免误编辑
+  (setq org-catch-invisible-edits 'show-and-error))
+
+(use-package org-superstar
+  :init
+  ;; ◉ ○ ◆ » ◇ ▶ ▷
+  (setq org-superstar-headline-bullets-list '("◉" "▶" "▷" "»"))
+  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-org)
+#+end_src
+** init-develop.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-develop.el
+:END:
+#+name: 8970c514
+#+begin_src elisp
+(use-package magit
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read)
+  :bind
+  ("C-x g s" . magit-status)
+  ("C-x g x" . magit-checkout)
+  ("C-x g c" . magit-commit)
+  ("C-x g p" . magit-push)
+  ("C-x g u" . magit-pull)
+  ("C-x g e" . magit-ediff-resolve)
+  ("C-x g r" . magit-rebase-interactive))
+
+(use-package magit-popup)
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-develop)
+#+end_src
+
+** init-edit.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-edit.el
+:END:
+*** meow
+- [[https://github.com/DogLooksGood/meow][DogLooksGood/meow: modular Emacs on wish / 猫态编辑]]
+- [[https://emacs-china.org/t/meow/15679][猫态编辑：Meow - Emacs-general - Emacs China]]
+
+#+name: 9a723a5b
+#+begin_src elisp
+(defun meow-setup ()
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow-motion-overwrite-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev))
+  (meow-leader-define-key
+   ;; SPC j/k will run the original command in MOTION state.
+   '("j" . meow-motion-origin-command)
+   '("k" . meow-motion-origin-command)
+   ;; Use SPC (0-9) for digit arguments.
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("/" . meow-keypad-describe-key)
+   '("?" . meow-cheatsheet))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("C" . meow-change-save)
+   '("d" . meow-C-d)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("F" . meow-find-expand)
+   '("g" . meow-cancel)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("N" . meow-pop-search)
+   '("o" . meow-block)
+   '("O" . meow-block-expand)
+   '("p" . meow-yank)
+   '("P" . meow-yank-pop)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("T" . meow-till-expand)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("V" . meow-kmacro-matches)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-kmacro-lines)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("Z" . meow-pop-all-selection)
+   '("&" . meow-query-replace)
+   '("%" . meow-query-replace-regexp)
+   '("'" . repeat)
+   '("\\" . quoted-insert)
+   '("<escape>" . meow-last-buffer)))
+
+(use-package meow
+  :demand t
+  :init
+  (meow-global-mode 1)
+  :config
+  ;; meow-setup 用于自定义按键绑定，可以直接使用下文中的示例
+  (meow-setup)
+  ;; 如果你需要在 NORMAL 下使用相对行号（基于 display-line-numbers-mode）
+  (meow-setup-line-number)
+  ;; 如果你需要自动的 mode-line 设置（如果需要自定义见下文对 `meow-indicator' 说明）
+  (meow-setup-indicator))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-edit)
+#+end_src
+
+* Local variables
+# Emacs:
+# Local Variables:
+# mode: org
+# end:
