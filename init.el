@@ -1,4 +1,4 @@
-;; [[file:gwp.note::158fcd0c][158fcd0c]]
+;; [[file:gwp-scratch.note::158fcd0c][158fcd0c]]
 ;; Load path
 (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
 (push (expand-file-name "user-lisp" user-emacs-directory) load-path)
@@ -62,12 +62,22 @@
          :map minibuffer-local-map
          ("C-r" . 'counsel-minibuffer-history)))
 
-(use-package general
-  :after evil
-  :config)
-
 (require 'init-ui)
 (require 'init-edit)
 (require 'init-org)
 (require 'init-develop)
 ;; 158fcd0c ends here
+
+;; [[file:gwp-scratch.note::f1b9d1b9][f1b9d1b9]]
+(defun add-subdirs-to-load-path (dir)
+  "Recursive add directories to `load-path'."
+  (let ((default-directory (file-name-as-directory dir)))
+    (add-to-list 'load-path dir)
+    (normal-top-level-add-subdirs-to-load-path)))
+;; (add-subdirs-to-load-path "~/.emacs.d/site-lisp/emacs-application-framework")
+(add-subdirs-to-load-path "~/.emacs.d/")
+;; (require 'eaf-browser)
+;; (require 'eaf-pdf-viewer)
+
+(require 'eaf)
+;; f1b9d1b9 ends here

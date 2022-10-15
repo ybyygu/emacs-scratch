@@ -1,4 +1,4 @@
-;; [[file:../gwp.note::e2f6b646][e2f6b646]]
+;; [[file:../gwp-scratch.note::e2f6b646][e2f6b646]]
 (use-package org
   :config
   ;; treat .note files as org-mode
@@ -21,14 +21,16 @@
 
   ;; 避免误编辑
   (setq org-catch-invisible-edits 'show-and-error))
+;; e2f6b646 ends here
 
+;; [[file:../gwp-scratch.note::0caa1907][0caa1907]]
 (use-package org-superstar
   :init
   ;; ◉ ○ ◆ » ◇ ▶ ▷
-  (setq org-superstar-headline-bullets-list '("◉" "▶" "▷" "»"))
+  (setq org-superstar-headline-bullets-list '("☰" "▶" "▷" "»"))
   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
-;; e2f6b646 ends here
+;; 0caa1907 ends here
 
-;; [[file:../gwp.note::*provide][provide:1]]
+;; [[file:../gwp-scratch.note::183d2d8f][183d2d8f]]
 (provide 'init-org)
-;; provide:1 ends here
+;; 183d2d8f ends here
