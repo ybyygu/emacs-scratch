@@ -171,6 +171,212 @@
   )
 ;; 3d5eeec1 ends here
 
+;; [[file:../gwp-scratch.note::2b13453c][2b13453c]]
+(use-package helpful
+  :demand t
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+;; 2b13453c ends here
+
+;; [[file:../gwp-scratch.note::34bcfc6f][34bcfc6f]]
+(use-package ace-window
+  :custom
+  ;; 仅当多于两个窗口时才提示选择
+  (aw-scope 'frame)
+  (aw-dispatch-always nil)
+  (aw-dispatch-when-more-than 2)
+  (aw-ignore-current t)
+  ;; Set window selection keys to the home row ones.
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+;;;###autoload
+(defun gwp::ace-select-window ()
+  "选取某窗口放入当前窗口位置"
+  (interactive)
+  (call-interactively #'ace-swap-window)
+  (call-interactively #'aw-flip-window)
+  )
+
+(use-package avy
+  :config
+  (setq avy-all-windows t))
+;; 34bcfc6f ends here
+
+;; [[file:../gwp-scratch.note::a207c706][a207c706]]
+(use-package burly)
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "S" #'burly-bookmark-windows
+ "C-s" #'burly-bookmark-windows
+ )
+;; a207c706 ends here
+
+;; [[file:../gwp-scratch.note::19e08aef][19e08aef]]
+(defun gwp::display-current-buffer-other-frame ()
+  "在其它 frame 中显式当前 buffer"
+  (interactive)
+  (switch-to-buffer-other-frame (current-buffer)))
+;; 19e08aef ends here
+
+;; [[file:../gwp-scratch.note::bf66c13f][bf66c13f]]
+(require 'ivy)
+
+(defvar gwp::ivy-buffer-actions
+  '(("j" switch-to-buffer-other-window "other window")
+    ("x" counsel-open-buffer-file-externally "open externally")
+    ("k" ivy--kill-buffer-action "kill")
+    ("r" ivy--rename-buffer-action "rename")
+    ("t" switch-to-buffer-other-tab "other tab")     ; 默认没有
+    ("f" switch-to-buffer-other-frame "other frame") ; 默认没有
+    )
+  "Default ivy actions for files.")
+(ivy-set-actions 'ivy-switch-buffer gwp::ivy-buffer-actions)
+;; bf66c13f ends here
+
+;; [[file:../gwp-scratch.note::bfacbb8e][bfacbb8e]]
+(use-package golden-ratio)
+;; bfacbb8e ends here
+
+;; [[file:../gwp-scratch.note::9a32eb12][9a32eb12]]
+;; 新建frame时最大化窗口
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; 切换窗口最大化状态
+;; ;; from https://gist.github.com/3402786
+;; (defun gwp::toggle-maximize-window ()
+;;   (interactive)
+;;   (save-excursion
+;;     (if (and (= 1 (length (window-list)))
+;;              (assoc ?_ register-alist))
+;;         (jump-to-register ?_)
+;;       (progn
+;;         (window-configuration-to-register ?_)
+;;         (delete-other-windows)))))
+
+;;;###autoload
+(defun gwp::toggle-maximize-window ()
+  "仅显示当前窗口?"
+  (interactive)
+  ;; (if (= 1 (length (window-list)))
+  ;;     (winner-undo)
+  ;;   (delete-other-windows))
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+
+(defun gwp::maximize-window-vertically ()
+  "纵向仅显示当前窗口"
+  (interactive)
+  (require 'windmove)
+  (let* ((w1 (window-in-direction 'below))
+         (w2 (window-in-direction 'above)))
+    (cond ((or w1 w2)
+           (save-excursion
+             (while (ignore-errors (windmove-up)) (delete-window))
+             (while (ignore-errors (windmove-down)) (delete-window))))
+          ((and (not w1) (not w2))
+           ;; 手动 undo 更合适些
+           ;; (winner-undo)
+           ))))
+
+;; https://github.com/purcell/emacs.d/blob/master/lisp/init-windows.el
+(defun sanityinc/split-window()
+  "Split the window to see the most recent buffer in the other window.
+Call a second time to restore the original window configuration."
+  (interactive)
+  (if (eq last-command 'sanityinc/split-window)
+      (progn
+        (jump-to-register :sanityinc/split-window)
+        (setq this-command 'sanityinc/unsplit-window))
+    (window-configuration-to-register :sanityinc/split-window)
+    (switch-to-buffer-other-window nil)
+    ))
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "z"       #'golden-ratio
+ "1"       #'gwp::toggle-maximize-window
+ "o"       #'gwp::toggle-maximize-window     ; show "only"
+ "t"       #'gwp::maximize-window-vertically ; show top
+ "`"       #'sanityinc/split-window
+ )
+;; 9a32eb12 ends here
+
+;; [[file:../gwp-scratch.note::1429fad5][1429fad5]]
+(setq split-width-threshold 200)        ; default is 160
+;; 1429fad5 ends here
+
+;; [[file:../gwp-scratch.note::f07dc327][f07dc327]]
+(defhydra gwp/adjust-window-size ()
+  "resize-window"
+  ("h" enlarge-window-horizontally "decrease width")
+  ("l" shrink-window-horizontally "decrease height")
+  ("k" enlarge-window "increase height")
+  ("j" shrink-window "increase width")
+  ("q" nil "quit")
+  )
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "a" #'gwp/adjust-window-size/body ; adjust
+ )
+;; f07dc327 ends here
+
+;; [[file:../gwp-scratch.note::44d5ec48][44d5ec48]]
+;; keymaps for leader key
+(use-package winner)
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "s" #'split-window-below
+ "v" #'split-window-right
+ "h" #'windmove-left
+ "j" #'windmove-down
+ "k" #'windmove-up
+ "l" #'windmove-right
+ "d" #'delete-window
+ "q" #'delete-window
+ "=" #'balance-windows
+ "u" #'winner-undo            ; 撤销窗口变动
+ "w" #'ace-window             ; 替代 SPC-w-w
+ "r" #'gwp::ace-select-window ; rotate
+ "R" #'ace-swap-window        ; rotate
+ "c" #'ace-delete-window      ; close other windows
+ "f" #'tear-off-window        ; 类似于firefox中的标签变窗口 (float, move to new frame)
+ "F" #'follow-mode            ; 同步滚动窗口, 可用于双窗口内容对比等
+ )
+;; 44d5ec48 ends here
+
+;; [[file:../gwp-scratch.note::bf455395][bf455395]]
+(use-package ivy-hydra)
+
+(use-package swiper
+  :after ivy
+  :bind
+  (
+   ;; ("C-s"   . swiper-isearch)
+   ;; ("C-r"   . swiper-isearch-backward)
+   ;; ("C-c v p" . ivy-push-view)
+   ;; ("C-c v o" . ivy-pop-view)
+   ;; ("C-c v ." . ivy-switch-view)
+   :map swiper-map
+   ("M-s" . swiper-isearch-toggle)
+   :map isearch-mode-map
+   ("M-s" . swiper-isearch-toggle)
+   :map ctl-x-4-map
+   ("C-s" . ivy-push-view)
+   ))
+;; bf455395 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-ui)
 ;; provide:1 ends here

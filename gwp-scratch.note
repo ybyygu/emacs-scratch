@@ -34,11 +34,11 @@
 
 (package-initialize)
 (unless package-archive-contents
- (package-refresh-contents))
+  (package-refresh-contents))
 
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
-   (package-install 'use-package))
+  (package-install 'use-package))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -64,10 +64,13 @@
   (ivy-mode 1))
 
 (use-package which-key
-  :init (which-key-mode)
+  :ensure t
+  :init
+  (which-key-mode)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 1))
+  (setq which-key-idle-delay 1
+        which-key-sort-uppercase-first nil))
 
 (use-package ivy-rich
   :init
@@ -80,8 +83,10 @@
          :map minibuffer-local-map
          ("C-r" . 'counsel-minibuffer-history)))
 
-(require 'init-ui)
+;; (use-package hydra)
+
 (require 'init-edit)
+(require 'init-ui)
 (require 'init-org)
 (require 'init-develop)
 #+end_src
@@ -89,21 +94,695 @@
 [[https://github.com/emacs-eaf/emacs-application-framework/wiki/Chemacs][Chemacs · emacs-eaf/emacs-application-framework Wiki]]
 #+name: f1b9d1b9
 #+begin_src elisp
-(defun add-subdirs-to-load-path (dir)
-  "Recursive add directories to `load-path'."
-  (let ((default-directory (file-name-as-directory dir)))
-    (add-to-list 'load-path dir)
-    (normal-top-level-add-subdirs-to-load-path)))
-;; (add-subdirs-to-load-path "~/.emacs.d/site-lisp/emacs-application-framework")
-(add-subdirs-to-load-path "~/.emacs.d/")
-;; (require 'eaf-browser)
-;; (require 'eaf-pdf-viewer)
+(use-package eaf
+  :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
+  :after org
+  :config
+  ;; (require 'eaf-file-manager)
+  (require 'eaf-browser)
+  (require 'eaf-image-viewer)
+  (require 'eaf-pdf-viewer)
+  (require 'eaf-demo)
+  (require 'eaf-org)
+  ;; (require 'eaf-interleave)
+  ;; (require 'eaf-terminal)
+  ;; (require 'eaf-evil)
 
-(require 'eaf)
+  ;; 按键绑定等
+  (defalias 'browse-web #'eaf-open-browser)
+  (eaf-bind-key close_buffer "q" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_highlight "d"  eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_underline "a" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_squiggly "s" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key undo_annot_action "u" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key nil "SPC" eaf-pdf-viewer-keybinding) ;; unbind, see more in the Wiki
+  (eaf-bind-key zoom_in "=" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key zoom_out "-" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key jump_to_page "p" eaf-pdf-viewer-keybinding)
+  ;; (define-key eaf-mode-map* (kbd "C-c B") #'eaf-open-bookmark)
+
+
+  (defun eaf-org-open-file (file &optional link)
+    "An wrapper function on `eaf-open'."
+    (eaf-open file))
+
+  ;; use `emacs-application-framework' to open PDF file: link
+  (add-to-list 'org-file-apps '("\\.pdf\\'" . eaf-org-open-file))
+
+  ;; 修复 evil 按键问题. 这里需要启用 eaf-browser 支持, 不然会报错
+  ;; (require 'eaf-evil)
+  ;; (define-key key-translation-map (kbd "SPC")
+  ;;   (lambda (prompt)
+  ;;     (if (derived-mode-p 'eaf-mode)
+  ;;         (pcase eaf--buffer-app-name
+  ;;           ("pdf-viewer" (kbd eaf-evil-leader-key))
+  ;;           (_  (kbd "SPC")))
+  ;;       (kbd "SPC"))))
+
+  :custom
+  ;; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
+  ;; (eaf-browser-continue-where-left-off t)
+  ;; (eaf-browser-enable-adblocker t)
+  (eaf-pdf-dark-mode nil)
+  (confirm-kill-processes nil)	; 退出不需要确认杀死进程
+  ;; (browse-url-browser-function 'eaf-open-browser)
+  )
 #+end_src
 
 
 * user-lisp
+** init-edit.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-edit.el
+:END:
+*** docs
+*** constants
+#+name: 0894dac2
+#+begin_src elisp
+(defconst gwp::dwim-leader-key "s-w")
+(defconst gwp::goto-leader-key "s-g")
+(defconst gwp::local-leader-key "s-,")
+#+end_src
+
+*** general keybindings
+#+name: f3f75fec
+#+begin_src elisp
+(use-package general
+  :demand t
+  :after meow
+  :config
+  ;;  prevent Key sequence starts with a non-prefix key errors
+  (general-auto-unbind-keys)
+  ;; 定义 "," 及 "g", "w" 开头的按键序列.
+  (general-create-definer gwp::goto-leader-def
+    :keymaps 'general-override-mode-map
+    :prefix gwp::goto-leader-key)
+  (general-create-definer gwp::local-leader-def
+    :keymaps 'general-override-mode-map
+    :prefix gwp::local-leader-key)
+  (general-create-definer gwp::dwim-leader-def
+    :keymaps 'meow-normal-state-keymap
+    :prefix gwp::dwim-leader-key)
+
+  ;; 方便定义在 Insert 状态下的一些编辑命令
+  (general-create-definer gwp::text-edit-def
+    ;; :prefix "C-c"
+    :keymaps '(meow-insert-state-keymap))
+
+  ;; 用于 help 及只读类文件
+  (general-create-definer gwp::text-view-def
+    :keymaps '(meow-motion-state-keymap meow-normal-state-keymap))
+
+  ;; 高优先级
+  ;; (general-create-definer gwp::local-def :keymaps 'local)
+
+  ;; space leader key
+  (general-create-definer gwp::leader-def
+    :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+    :prefix "SPC"
+    )
+
+  ;; 取消某些容易误按, 不习惯的键
+  (general-unbind "C-v" "C-z" "C-x C-z"))
+#+end_src
+
+*** meow undo
+感觉emacs的undo比evil的强
+
+默认绑定:
+C-x u, C-_ C-/
+
+C-u C-/ 如果选中区域, 则仅撤销当前内容.
+
+#+name: 9f41280c
+#+begin_src elisp
+(defun gwp::undo-dwim ()
+  (interactive)
+  (if (region-active-p)
+      (let ((current-prefix-arg '(4)))     ; C-u
+        (call-interactively #'undo))
+    (call-interactively #'undo)))
+
+;; 默认evil的undo会将多个小操作合并为一个大的, undo时很不适应.
+;; (setq evil-want-fine-undo t)
+#+end_src
+
+*** meow utils
+#+name: 4e63ecbf
+#+begin_src elisp
+;;; editor/core/config.el -*- lexical-binding: t; -*-
+
+;;;###autoload
+;; https://www.emacswiki.org/emacs/CopyingWholeLines
+(defun gwp::copy-current-line (&optional arg)
+  (interactive "p")
+  (let ((buffer-read-only t)
+        (kill-read-only-ok t))
+    (kill-whole-line arg)))
+
+;;;###autoload
+(defun gwp::meow-insert-at-the-beginning ()
+  (interactive)
+  (if mark-active
+      (call-interactively #'meow-insert-mode)
+    (meow-join 1)
+    (meow-append)))
+
+;;;###autoload
+(defun gwp::meow-insert-at-the-end ()
+  (interactive)
+  (if mark-active
+      (call-interactively #'meow-insert-mode)
+    (meow-line 1)
+    (meow-append)))
+
+;;;###autoload
+;; https://www.gnu.org/software/emacs/manual/html_node/efaq/Matching-parentheses.html
+(defun gwp::match-paren (arg)
+  (interactive "p")
+  (cond ((looking-at "\\s(") (forward-list 1) (backward-char 1))
+        ((looking-at "\\s)") (forward-char 1) (backward-list 1))
+        (t (call-interactively #'meow-block))))
+
+;;;###autoload
+(defun gwp::meow-change-to-the-end ()
+  (interactive)
+  (meow-insert)
+  (kill-line))
+
+;;;###autoload
+(defun gwp::meow-change-whole-line ()
+  (interactive)
+  (call-interactively #'crux-move-beginning-of-line)
+  (call-interactively #'gwp::meow-change-to-the-end))
+#+end_src
+*** TODO meow states
+[[https://github.com/krdzo/dotemacs/blob/master/init-kr.org#custom-states][meow-define-state]]
+
+*** meow setup normal
+#+name: 672c2d79
+#+begin_src elisp
+(defun meow/setup-normal ()
+  ;; normal commands
+  (meow-normal-define-key
+   ;; (cons "SPC" meow-space-keymap)
+   '("<escape>" . keyboard-quit)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("0" . meow-expand-0)
+   '("-" . negative-argument)
+   ;; 常规移动操作
+   '("h" . meow-left)
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("l" . meow-right)
+   '("^" . meow-back-to-indentation)
+   ;; 常规编辑操作
+   '("i" . meow-insert)
+   '("I" . gwp::meow-insert-at-the-beginning)
+   '("a" . meow-append)
+   '("A" . gwp::meow-insert-at-the-end)
+   '("x" . meow-kill)                   ; 同 vi, 剪入 king-ring, 无选区时等效于 C-x 按键
+   '("y" . meow-save)                   ; 同 vi, 复制到 king-ring, 无选区时复制当前行
+   '("c" . meow-change)                 ; 同 vi, 删除选区内容, 无选区时等效于 C-c 按键
+   '("C" . gwp::meow-change-whole-line) ; 同 vi, 修改整行
+   '("K" . gwp::meow-change-to-the-end) ; 像 C-k, 但进入 insert mode
+   '("p" . meow-yank)
+   '("O" . meow-open-above)
+   '("J" . crux-top-join-line)      ; 同vi, 合并下一行至当前行
+   '("r" . meow-change-char)        ; 删除当前字符或选区(不进入 kill-ring), 同时进入 insert state
+   '("d" . meow-delete)             ; 删除当前字符或选区(不进入 kill-ring)
+   '("DEL" . meow-backward-delete)
+   '("D" . meow-kill-whole-line)
+   ;; 选区扩展操作
+   '("." . meow-line)                ; 向下扩选一行, 按 "-." 向上扩选
+   '("e" . meow-next-word)           ; 向前扩选, 以 word 为单位
+   '("E" . meow-next-symbol)         ; 向前扩选, 以 symbol 为单位 (包括连字符等)
+   '("b" . meow-back-word)           ; 反向操作, 等效于 "-e"
+   '("B" . meow-back-symbol)         ; 反向操作, 等效于 "-E"
+   '("o" . meow-reverse)             ; 反转选区方向. 若无选区, 则相当于 vi 中为 o
+   '("u" . gwp::undo-dwim)
+   '("U" . meow-pop-selection)       ; 撤销选择
+   ;; 搜索与跳转
+   '("/" . meow-visit)            ; 快速搜索, 按C-M-j 搜索任意字串
+   '("n" . meow-search)           ; 向选区方向搜索, 可按 o 键改变当前选区方向
+   '("f" . meow-find)             ; 含搜索字符
+   '("t" . meow-till)             ; 不含搜索字符
+   '("m" . point-to-register)
+   '("`" . jump-to-register)
+   ;; 常规选择
+   '("%" . gwp::match-paren)
+   '("*" . meow-mark-symbol)
+   ;; '("q" . meow-mark-word)
+   '("s" . meow-inner-of-thing)
+   '("S" . meow-bounds-of-thing)
+   '("(" . meow-beginning-of-thing)
+   '(")" . meow-end-of-thing)
+   '(";" . meow-cancel-selection)
+   '("v" . meow-cancel-selection) ; 仿 vi
+   '("V" . meow-block)            ; 逐级扩选, 按U 回退, 可替代 expand-region
+   '("G" . meow-grab)             ; 相当于 vi 中的 visual mode
+   '("C-v" . meow-grab)
+   ;; 特殊功能
+   '("]" . sp-unwrap-sexp)
+   '("R" . sp-unwrap-sexp)                         ; 比] 容易按一些
+   '("$" . ispell-word)
+   '("'" . repeat)                      ; 重复上一个命令
+   '("=" . meow-goto-line)
+   ;; '("z" . avy-goto-char-in-line)
+   '("z" . meow-pop-selection)
+   '("Z" . repeat-complex-command)      ; 重复上一个需要 minibuffer 输入的命令
+   )
+
+  ;; 当无选区时执行的功能
+  (setq
+   meow-selection-command-fallback
+   '(
+     (meow-reverse . meow-open-below)
+     (meow-kill . meow-keypad-start)    ; for C-x
+     (meow-change . meow-keypad-start)  ; for C-c
+     (meow-save . gwp::copy-current-line)
+     ;; (meow-pop-selection . meow-pop-grab)
+     (meow-beacon-change . meow-beacon-change-char)
+     (meow-cancel-selection . meow-right-expand) ; 仿vi, 取消选择或扩选
+     )))
+#+end_src
+
+*** meow setup leader
+相当于 Ctrl-c 对应的按键.
+
+问题: meow 中的 keypad 与 which-key 配合不好
+
+#+name: f4be1bd9
+#+begin_src elisp
+;; Leader Key
+(defun meow/setup-leader ()
+  ;; 与 which-key 集成度不高
+  ;; (meow-leader-define-key
+  ;;  '("/" . meow-keypad-describe-key)
+  ;;  '("?" . meow-cheatsheet))
+  ;; (meow-normal-define-key
+  ;;  '("," . "s-,")
+  ;;  '("g" . "s-g")
+  ;;  '("w" . "s-w")
+  ;;  )
+
+  (general-define-key
+   :keymaps 'meow-normal-state-keymap
+   "," (general-simulate-key "s-," :which-key "local")
+   "g" (general-simulate-key "s-g" :which-key "goto")
+   "w" (general-simulate-key "s-w" :which-key "dwim")
+   :keymaps 'meow-motion-state-keymap
+   "," (general-simulate-key "s-,")
+   "g" (general-simulate-key "s-g")
+   "w" (general-simulate-key "s-w")
+   "j" (general-simulate-key "C-n")
+   "k" (general-simulate-key "C-p")
+   "h" (general-simulate-key "C-b")
+   "l" (general-simulate-key "C-f")
+   "y" #'meow-save
+   "v" #'meow-cancel-selection
+   ))
+#+end_src
+
+*** meow setup motion
+用于 dired 等 mode
+
+#+name: 60483a2d
+#+begin_src elisp
+;; 比如 dired, magit 生成的 buffer, 也许单独处理更好?
+(defun meow/setup-motion ()
+  (meow-motion-overwrite-define-key
+   '("j"  "meow-next")
+   '("k"  "meow-prev")
+   '("<escape>" . ignore)
+   )
+  (meow-motion-overwrite-define-key
+   '("," . "s-,")
+   '("g" . "s-g")
+   '("w" . "s-w")
+   ))
+#+end_src
+
+*** meow setup keypad
+KEYPAD is the state used for executing commands without modifier keys.
+
+Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
+
+*** meow install
+#+name: 9a723a5b
+#+begin_src elisp
+(use-package meow
+  :demand t
+  :init
+  (meow-global-mode 1)
+  :custom
+  ;; 扩选指示字符显示延时
+  (meow-expand-hint-remove-delay 5.0)
+  ;; 默认在 org 中不显示扩选指示字符
+  (meow-expand-exclude-mode-list nil)
+  ;; (meow-cursor-type-normal 'hbar)  :config
+  :config
+  (setq meow-cursor-type-normal '(box . 2))
+  (setq meow-cursor-type-insert '(bar . 2))
+  ;; (setq meow-cursor-type-region-cursor 'bar)
+  ;; https://github.com/meow-edit/meow/discussions/87
+  ;; 选择文字区域时光标位置与 vim 及其它软件一致
+  ;; 2022-03-19: 会出一些怪问题, 禁用
+  ;; (setq meow-use-cursor-position-hack t)
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow/setup-normal)
+  (meow/setup-leader)
+  (meow/setup-motion)
+  ;; If you want relative line number in NORMAL s tate(for display-line-numbers-mode)
+  (meow-setup-line-number)
+  ;; If you need setup indicator, see `meow-indicator' for customizing  hand.
+  (meow-setup-indicator))
+#+end_src
+*** mark ring
+mark-ring用于保存上次标记或选择的位置, 用于跳转很有用.
+
+emacs 的 mark ring [[http://www.gnu.org/software/emacs/manual/html_node/emacs/Mark-Ring.html#Mark-Ring][doc]]. emacs 会自动记录标记, 称为 mark ring. 鼠标选择, shift 选
+择都算C-x C-x: 交换当前光标位置和 mark, 这样会跳转到上前 mark 的位置上, 不过会有
+高亮, 按 C-g 取消
+
+: set-mark-command
+C-x C-@: 这是轮换全局 mark
+C-u C-@: 这是轮换当前的 mark ring
+
+- [[https://github.com/rolandwalker/back-button][rolandwalker/back-button: Visual navigation through mark rings in Emacs]]
+- [[https://stackoverflow.com/questions/3393834/how-to-move-forward-and-backward-in-emacs-mark-ring][How to move forward and backward in Emacs' mark ring - Stack Overflow]]
+- https://github.com/rolandwalker/back-button/blob/master/back-button.el
+- [[https://github.com/slewsys/emacs-extensions/blob/main/mark-navigation.el][emacs-extensions/mark-navigation.el]]
+- [[https://github.com/rolandwalker/back-button][rolandwalker/back-button: Visual navigation through mark rings in Emacs]]
+
+**** core
+#+name: e4fc036b
+#+begin_src elisp
+;; 要保证 C-u C-@ 连续调用有效
+(setq set-mark-command-repeat-pop nil)
+
+(defun gwp::jump-to-previous-mark ()
+  (interactive)
+  (let ((current-prefix-arg '(4)))     ; C-u
+    (call-interactively #'set-mark-command)))
+
+;; 根据手册: C-SPC C-SPC两次
+;; 仅标记当前位置(push to mark ring), 但不选择
+(defun gwp::mark-current-position ()
+  (interactive)
+  (call-interactively #'set-mark-command)
+  (deactivate-mark)
+  )
+
+(defun gwp::mark-and-save-buffer()
+  "标记光标所在位置, 并保存buffer"
+  (interactive)
+  (call-interactively #'gwp::mark-current-position)
+  (save-buffer))
+
+(setq global-mark-ring-max 99
+      mark-ring-max 99)
+#+end_src
+
+**** global mark ring
+#+name: e48dc36a
+#+begin_src elisp
+;; https://stackoverflow.com/a/27661338
+(defun marker-is-point-p (marker)
+  "test if marker is current point"
+  (and (eq (marker-buffer marker) (current-buffer))
+       (= (marker-position marker) (point))))
+
+(defun push-mark-maybe ()
+  "push mark onto `global-mark-ring' if mark head or tail is not current location"
+  (if (not global-mark-ring) (error "global-mark-ring empty")
+    (unless (or (marker-is-point-p (car global-mark-ring))
+                (marker-is-point-p (car (reverse global-mark-ring))))
+      (push-mark))))
+
+
+(defun backward-global-mark ()
+  "use `pop-global-mark', pushing current point if not on ring."
+  (interactive)
+  (push-mark-maybe)
+  (when (marker-is-point-p (car global-mark-ring))
+    (call-interactively 'pop-global-mark))
+  (call-interactively 'pop-global-mark))
+
+(defun forward-global-mark ()
+  "hack `pop-global-mark' to go in reverse, pushing current point if not on ring."
+  (interactive)
+  (push-mark-maybe)
+  (setq global-mark-ring (nreverse global-mark-ring))
+  (when (marker-is-point-p (car global-mark-ring))
+    (call-interactively 'pop-global-mark))
+  (call-interactively 'pop-global-mark)
+  (setq global-mark-ring (nreverse global-mark-ring)))
+#+end_src
+
+**** marker-visit.el
+#+name: ebb32bb1
+#+begin_src elisp
+;; https://github.com/deestan/emacs/blob/master/emacs-goodies-el/marker-visit.el
+;;
+;;; marker-visit.el --- navigate through a buffer's marks in order
+
+;; Copyright (C) 2001 Benjamin Rutt
+;;
+;; Maintainer: Benjamin Rutt <brutt@bloomington.in.us>
+;; Version: 1.1
+
+;; This file is not part of GNU Emacs.
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation; either version 2, or (at your
+;; option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, send e-mail to
+;; this program's maintainer or write to the Free Software Foundation,
+;; Inc., 59 Temple Place, Suite 330; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; This file provides a simple way to navigate among marks in a
+;; buffer.  C-u C-SPC is similar, but takes you haphazardly around the
+;; buffer.  Setting bookmarks is a lot of extra work if you just want
+;; to jump around your buffer quickly; plus, you have to come up with
+;; a name for every bookmark.
+
+;; All the marks you've left while editing a buffer serve as bread
+;; crumb trails of areas in the buffer you've edited.  It is
+;; convenient to navigate back and forth among these marks in order.
+;; This file provides two methods to do just that, marker-visit-prev
+;; and marker-visit-next.  These two functions will take you, from
+;; point, to the nearest mark in either direction.  The function
+;; marker-visit-truncate-mark-ring will truncate the mark ring.
+
+;; The marks you can visit in a buffer consist of: "the mark" plus the
+;; contents of the mark-ring.
+
+;;; Usage:
+
+;; put this file in your load-path and add the line
+;;
+;; (require 'marker-visit)
+;;
+;; to your ~/.emacs file.
+;;
+;; This package is most useful when some easy-to-press keys are bound
+;; to the functions marker-visit-prev and marker-visit-next.  See C-h
+;; i m Emacs RET m Key Bindings RET for info on emacs key bindings.
+
+;;; History:
+
+;; 1.0 -> 1.1 Incorporated patch from Colin Walters to make the code
+;; consistent with elisp code conventions mentioned in
+;; (Info-goto-node "(elisp) Coding Conventions").
+
+;;; Code:
+
+;;utility remove-dupes function
+(defun marker-visit-remove-dupes (ls)
+  (cond
+   ((null ls) '())
+   ((member (car ls) (cdr ls)) (marker-visit-remove-dupes (cdr ls)))
+   (t (cons (car ls) (marker-visit-remove-dupes (cdr ls))))))
+
+;;create a sorted list of marks, including the point as mark, the
+;;mark, and the contents of the mark-ring.
+(defun marker-visit-get-sorted-mark-set (current-point-mark)
+  (marker-visit-remove-dupes
+   (sort
+    (append (cons current-point-mark
+		  (if (mark-marker) (list (mark-marker)) nil))
+	    (mapcar (lambda (id) id) mark-ring))
+    (lambda (a b) (< a b)))))
+
+(defun marker-visit-no-markers-p ()
+  (and (null mark-ring)
+       (or (not (mark-marker))
+	   (not (marker-position (mark-marker))))))
+
+(defun marker-visit-warn (error-message)
+  (message error-message)
+  (beep))
+
+;;;###autoload
+(defun marker-visit-prev ()
+  "From point, visit the nearest mark earlier in the buffer."
+  (interactive)
+  (if (marker-visit-no-markers-p)
+      (marker-visit-warn "Mark does not point anywhere")
+    (let* ((current-point-mark (point-marker))
+	   (sorted-marks (marker-visit-get-sorted-mark-set current-point-mark))
+	   (dest-mark nil))
+      (while (not (equal current-point-mark (car sorted-marks)))
+	(setq dest-mark (car sorted-marks))
+	(setq sorted-marks (cdr sorted-marks)))
+      (if dest-mark
+	  (goto-char dest-mark)
+	(marker-visit-warn "No previous mark to visit")))))
+
+;;;###autoload
+(defun marker-visit-next ()
+  "From point, visit the nearest mark later in the buffer."
+  (interactive)
+  (if (marker-visit-no-markers-p)
+      (marker-visit-warn "Mark does not point anywhere")
+    (let* ((current-point-mark (point-marker))
+	   (sorted-marks (marker-visit-get-sorted-mark-set current-point-mark))
+	   (dest-mark nil)
+	   (done nil))
+      (while (not done)
+	(if (equal current-point-mark (car sorted-marks))
+	    (progn
+	      (setq dest-mark (cadr sorted-marks))
+	      (setq done t))
+	  (setq sorted-marks (cdr sorted-marks))))
+      (if dest-mark
+	  (goto-char dest-mark)
+	(marker-visit-warn "No next mark to visit")))))
+
+;;;###autoload
+(defun marker-visit-truncate-mark-ring ()
+  "Truncate the `mark-ring'."
+  (interactive)
+  (setq mark-ring nil))
+#+end_src
+
+**** hydra
+#+name: 00b43976
+#+begin_src elisp
+(defhydra gwp::hydra-mark-ring-pop ()
+  "goto last location"
+  ("SPC" gwp::jump-to-previous-mark "prev mark")          ; 在org中可自动打开折叠的内容
+  ("j" marker-visit-next "next mark")
+  ("k" marker-visit-prev "prev mark")                     ; NOTE: org折叠的内容不会打开
+  ("C-p" backward-global-mark "prev mark (global)")         ;
+  ("C-n" forward-global-mark "next mark (global)")          ;
+  ("r" gwp::org-show-context-at-point "org show context") ; 在org时: 跳转到被折叠的headline中很有用
+  ("q" nil "quit"))
+#+end_src
+
+*** bindings: goto
+仿 helix 编辑器
+#+name: 6cb02a16
+#+begin_src elisp
+(gwp::goto-leader-def
+  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+  "g" (general-simulate-key "M-<" :which-key "goto first line")
+  "e" (general-simulate-key "M->" :which-key "goto last line")
+  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
+  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "." 'goto-line
+  )
+#+end_src
+*** bindings: SPC
+#+name: 4cf8c86c
+#+begin_src elisp
+(gwp::leader-def
+ "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
+ "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
+ "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
+ "u" '(universal-argument :which-key "Universal argument")
+ )
+#+end_src
+
+*** bindings: SPC-b
+#+name: 33105bcf
+#+begin_src elisp
+(gwp::leader-def
+ "b" '(:ignore t :which-key "buffer")
+ "bb" '(switch-to-buffer :which-key "switch buffer")
+ )
+#+end_src
+
+*** bindings: SPC-f
+#+name: 45f27ad1
+#+begin_src elisp
+  (gwp::leader-def
+   "f" '(:ignore t :which-key "file")
+   "fr" '(counsel-recentf :which-key "recent files")
+   "fj" '(dired-jump :which-key "jump to dired buffer")
+   "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
+   "fb" '(counsel-bookmark :which-key "open bookmarks")
+   )
+#+end_src
+
+*** bindings: SPC-q
+#+name: 860eb4b2
+#+begin_src elisp
+(gwp::leader-def
+ "q" '(:ignore t :which-key "quit/session")
+ "qq" '(save-buffers-kill-terminal :which-key "Quit Emacs")
+ "qk" '(save-buffers-kill-emacs :which-key "Kill Emacs (and daemon)")
+ )
+#+end_src
+
+*** bindings: SPC-h help
+帮助系统
+- apropos-value
+
+#+name: e7792733
+#+begin_src elisp
+(gwp::leader-def
+ "h" '(:keymap help-map :which-key "Help" :package emacs))
+#+end_src
+
+*** bindings: SPC-w window
+#+name: c54b17b5
+#+begin_src elisp
+(gwp::leader-def
+ "w" '(:keymap gwp::window-map :which-key "Window" :package emacs))
+#+end_src
+
+*** bindings: SPC-g magit
+#+name: 185fc283
+#+begin_src elisp
+(gwp::leader-def
+ "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-edit)
+#+end_src
+
 ** init-ui.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-ui.el
@@ -296,367 +975,339 @@
   ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
   )
 #+end_src
+*** helpful
+#+name: 2b13453c
+#+begin_src elisp
+(use-package helpful
+  :demand t
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+#+end_src
+
+*** window/frame
+**** ace window
+[[https://github.com/abo-abo/ace-window][abo-abo/ace-window: Quickly switch windows in Emacs]]
+
+切换至前一个最近访问的buffer所在的window, evil-window-mru
+: SPC-w-p
+
+撤消或恢复之前的窗口布局
+: SPC-w-u, SPC-w C-r
+
+用avy在多个窗口下跳转也很方便. 默认使用数字, 现改为字母, 更好按一些
+#+name: 34bcfc6f
+#+begin_src elisp
+(use-package ace-window
+  :custom
+  ;; 仅当多于两个窗口时才提示选择
+  (aw-scope 'frame)
+  (aw-dispatch-always nil)
+  (aw-dispatch-when-more-than 2)
+  (aw-ignore-current t)
+  ;; Set window selection keys to the home row ones.
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+;;;###autoload
+(defun gwp::ace-select-window ()
+  "选取某窗口放入当前窗口位置"
+  (interactive)
+  (call-interactively #'ace-swap-window)
+  (call-interactively #'aw-flip-window)
+  )
+
+(use-package avy
+  :config
+  (setq avy-all-windows t))
+#+end_src
+
+**** save layout
+可保存窗口的布局及对应的 buffer, 可正常处理 narrowed, indirect buffers 等特殊情
+况.
+
+使用 SPC-W-s 来保存窗口布局, 使用 SPC-r-b 加载.
+
+临时保存也可用 ivy-push-view, 该视图可用 buffer 切换.
+
+#+name: a207c706
+#+begin_src elisp
+(use-package burly)
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "S" #'burly-bookmark-windows
+ "C-s" #'burly-bookmark-windows
+ )
+#+end_src
+
+**** COMMENT bookmark/workspace
+保存的 burly layout 可直接在新的 workspace 中打开. 可完全替代 doom 的功能, 但更
+好用, bug 更少.
+#+name: 14897c7b
+#+begin_src elisp
+(require 'ivy)
+
+(defun gwp::bookmark-jump-workspace (bookmark)
+  "Jump to BOOKMARK in new workspace."
+  (interactive
+   (list (bookmark-completing-read "Jump to bookmark (in another frame)"
+                                   bookmark-current-bookmark)))
+  (+workspace/new-named bookmark)
+  (+workspace/switch-to bookmark)
+  (bookmark-jump bookmark))
+
+(defvar gwp::ivy-bookmark-actions
+  '(("j" bookmark-jump-other-window "other window")
+    ("d" bookmark-delete "delete")
+    ("e" bookmark-rename "edit")
+    ("s" bookmark-set "replace")
+    ("f" bookmark-jump-other-frame "other frame")
+    ("n" gwp::bookmark-jump-workspace "in new workspace"))
+  "Default ivy actions for files.")
+
+(ivy-set-actions 'counsel-bookmark gwp::ivy-bookmark-actions)
+#+end_src
+
+
+**** new frame
+tear-off-window
+#+name: 19e08aef
+#+begin_src elisp
+(defun gwp::display-current-buffer-other-frame ()
+  "在其它 frame 中显式当前 buffer"
+  (interactive)
+  (switch-to-buffer-other-frame (current-buffer)))
+#+end_src
+
+**** switch buffer
+这几个命令挺有用, 不过在 ivy 框架下使用应更便利. 比如 ivy-switch-buffer 时, 可按
+C-o 选取相应的 action, 来操作选定的 buffer.
+
+: switch-to-buffer-other-window
+: switch-to-buffer-other-frame
+: switch-to-buffer-other-tab
+: switch-to-buffer
+
+从以下变量可查看 ivy 默认定义的 actions
+: ivy--actions-list
+
+#+name: bf66c13f
+#+begin_src elisp
+(require 'ivy)
+
+(defvar gwp::ivy-buffer-actions
+  '(("j" switch-to-buffer-other-window "other window")
+    ("x" counsel-open-buffer-file-externally "open externally")
+    ("k" ivy--kill-buffer-action "kill")
+    ("r" ivy--rename-buffer-action "rename")
+    ("t" switch-to-buffer-other-tab "other tab")     ; 默认没有
+    ("f" switch-to-buffer-other-frame "other frame") ; 默认没有
+    )
+  "Default ivy actions for files.")
+(ivy-set-actions 'ivy-switch-buffer gwp::ivy-buffer-actions)
+#+end_src
+
+**** COMMENT 修改 frame 标题 方便 gnome-shell 桌面切换
+#+name: da14a342
+#+begin_src elisp
+;; workspace@buffer-name: ~/foo/bar
+(setq frame-title-format
+      '((:eval (+workspace-current-name)) ;
+        " | %b : "
+        (:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))))
+        ))
+#+end_src
+
+**** 放大窗口
+自动放大当前窗口. 注意, 这类工具通过和doom的popup window有冲突. 需要的时候命令手
+动开启.
+- https://github.com/hlissner/doom-emacs/issues/2225
+
+对应命令: SPC-w z
+#+name: bfacbb8e
+#+begin_src elisp
+(use-package golden-ratio)
+#+end_src
+
+doom内置了几个命令:
+- 水平放大: SPC-w-m-s
+- 垂直放大: SPC-w-m-v
+
+#+name: 9a32eb12
+#+begin_src elisp
+;; 新建frame时最大化窗口
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; 切换窗口最大化状态
+;; ;; from https://gist.github.com/3402786
+;; (defun gwp::toggle-maximize-window ()
+;;   (interactive)
+;;   (save-excursion
+;;     (if (and (= 1 (length (window-list)))
+;;              (assoc ?_ register-alist))
+;;         (jump-to-register ?_)
+;;       (progn
+;;         (window-configuration-to-register ?_)
+;;         (delete-other-windows)))))
+
+;;;###autoload
+(defun gwp::toggle-maximize-window ()
+  "仅显示当前窗口?"
+  (interactive)
+  ;; (if (= 1 (length (window-list)))
+  ;;     (winner-undo)
+  ;;   (delete-other-windows))
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+
+(defun gwp::maximize-window-vertically ()
+  "纵向仅显示当前窗口"
+  (interactive)
+  (require 'windmove)
+  (let* ((w1 (window-in-direction 'below))
+         (w2 (window-in-direction 'above)))
+    (cond ((or w1 w2)
+           (save-excursion
+             (while (ignore-errors (windmove-up)) (delete-window))
+             (while (ignore-errors (windmove-down)) (delete-window))))
+          ((and (not w1) (not w2))
+           ;; 手动 undo 更合适些
+           ;; (winner-undo)
+           ))))
+
+;; https://github.com/purcell/emacs.d/blob/master/lisp/init-windows.el
+(defun sanityinc/split-window()
+  "Split the window to see the most recent buffer in the other window.
+Call a second time to restore the original window configuration."
+  (interactive)
+  (if (eq last-command 'sanityinc/split-window)
+      (progn
+        (jump-to-register :sanityinc/split-window)
+        (setq this-command 'sanityinc/unsplit-window))
+    (window-configuration-to-register :sanityinc/split-window)
+    (switch-to-buffer-other-window nil)
+    ))
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "z"       #'golden-ratio
+ "1"       #'gwp::toggle-maximize-window
+ "o"       #'gwp::toggle-maximize-window     ; show "only"
+ "t"       #'gwp::maximize-window-vertically ; show top
+ "`"       #'sanityinc/split-window
+ )
+#+end_src
+
+
+**** 窗口大小
+使用滚轮来修改窗口大小. Ctrl-Alt-scroll-up, Ctrl-Alt-scroll-down
+- [[https://stackoverflow.com/questions/51879921/emacs-find-file-other-window-command-splits-buffer-vertically][Emacs find-file-other-window command splits buffer vertically - Stack Overflow]]
+
+设置分屏阈值, 避免 find-file-other-window 垂直向分割为多个windows
+#+name: 1429fad5
+#+begin_src elisp
+(setq split-width-threshold 200)        ; default is 160
+#+end_src
+
+hydra特别适合需要重复按键来完成的操作, 比如调整窗口大小.
+#+name: f07dc327
+#+begin_src elisp
+(defhydra gwp/adjust-window-size ()
+  "resize-window"
+  ("h" enlarge-window-horizontally "decrease width")
+  ("l" shrink-window-horizontally "decrease height")
+  ("k" enlarge-window "increase height")
+  ("j" shrink-window "increase width")
+  ("q" nil "quit")
+  )
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "a" #'gwp/adjust-window-size/body ; adjust
+ )
+#+end_src
+
+**** clone buffer
+clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
+: clone-indirect-buffer-other-window
+: clone-indirect-buffer
+
+**** keymap
+#+name: 44d5ec48
+#+begin_src elisp
+;; keymaps for leader key
+(use-package winner)
+
+(general-define-key
+ :prefix-map 'gwp::window-map
+ "s" #'split-window-below
+ "v" #'split-window-right
+ "h" #'windmove-left
+ "j" #'windmove-down
+ "k" #'windmove-up
+ "l" #'windmove-right
+ "d" #'delete-window
+ "q" #'delete-window
+ "=" #'balance-windows
+ "u" #'winner-undo            ; 撤销窗口变动
+ "w" #'ace-window             ; 替代 SPC-w-w
+ "r" #'gwp::ace-select-window ; rotate
+ "R" #'ace-swap-window        ; rotate
+ "c" #'ace-delete-window      ; close other windows
+ "f" #'tear-off-window        ; 类似于firefox中的标签变窗口 (float, move to new frame)
+ "F" #'follow-mode            ; 同步滚动窗口, 可用于双窗口内容对比等
+ )
+#+end_src
+
+*** swiper
+在 isearch 界面下, 按 M-s 切换至 swiper 界面
+
+按键绑定: swiper-isearch-map
+
+可用 ivy-push-view 来临时保存窗口视图, 可通过 buffer 来切换回该视图
+[[https://oremacs.com/2016/06/27/ivy-push-view/][Bookmark the current window layout with Ivy · (or emacs]]
+
+#+name: bf455395
+#+begin_src elisp
+(use-package ivy-hydra)
+
+(use-package swiper
+  :after ivy
+  :bind
+  (
+   ;; ("C-s"   . swiper-isearch)
+   ;; ("C-r"   . swiper-isearch-backward)
+   ;; ("C-c v p" . ivy-push-view)
+   ;; ("C-c v o" . ivy-pop-view)
+   ;; ("C-c v ." . ivy-switch-view)
+   :map swiper-map
+   ("M-s" . swiper-isearch-toggle)
+   :map isearch-mode-map
+   ("M-s" . swiper-isearch-toggle)
+   :map ctl-x-4-map
+   ("C-s" . ivy-push-view)
+   ))
+#+end_src
 
 *** provide
 #+begin_src elisp
 (provide 'init-ui)
-#+end_src
-** init-edit.el
-:PROPERTIES:
-:header-args: :tangle user-lisp/init-edit.el
-:END:
-*** docs
-*** constants
-#+name: 0894dac2
-#+begin_src elisp
-(defconst gwp::dwim-leader-key "s-w")
-(defconst gwp::goto-leader-key "s-g")
-(defconst gwp::local-leader-key "s-,")
-#+end_src
-
-*** general keybindings
-#+name: f3f75fec
-#+begin_src elisp
-(use-package general
-  :demand t
-  :after meow
-  :config
-  ;;  prevent Key sequence starts with a non-prefix key errors
-  (general-auto-unbind-keys)
-  ;; 定义 "," 及 "g", "w" 开头的按键序列.
-  (general-create-definer gwp::goto-leader-def
-    :keymaps 'general-override-mode-map
-    :prefix gwp::goto-leader-key)
-  (general-create-definer gwp::local-leader-def
-    :keymaps 'general-override-mode-map
-    :prefix gwp::local-leader-key)
-  (general-create-definer gwp::dwim-leader-def
-    :keymaps 'meow-normal-state-keymap
-    :prefix gwp::dwim-leader-key)
-
-  ;; 方便定义在 Insert 状态下的一些编辑命令
-  (general-create-definer gwp::text-edit-def
-    ;; :prefix "C-c"
-    :keymaps '(meow-insert-state-keymap))
-
-  ;; 用于 help 及只读类文件
-  (general-create-definer gwp::text-view-def
-    :keymaps '(meow-motion-state-keymap meow-normal-state-keymap))
-
-  ;; 高优先级
-  ;; (general-create-definer gwp::local-def :keymaps 'local)
-
-  ;; 取消某些容易误按, 不习惯的键
-  (general-unbind "C-v" "C-z" "C-x C-z"))
-#+end_src
-
-*** meow undo
-感觉emacs的undo比evil的强
-
-默认绑定:
-C-x u, C-_ C-/
-
-C-u C-/ 如果选中区域, 则仅撤销当前内容.
-
-#+name: 9f41280c
-#+begin_src elisp
-(defun gwp::undo-dwim ()
-  (interactive)
-  (if (region-active-p)
-      (let ((current-prefix-arg '(4)))     ; C-u
-        (call-interactively #'undo))
-    (call-interactively #'undo)))
-
-;; 默认evil的undo会将多个小操作合并为一个大的, undo时很不适应.
-;; (setq evil-want-fine-undo t)
-#+end_src
-
-*** meow utils
-#+name: 4e63ecbf
-#+begin_src elisp
-;;; editor/core/config.el -*- lexical-binding: t; -*-
-
-;;;###autoload
-;; https://www.emacswiki.org/emacs/CopyingWholeLines
-(defun gwp::copy-current-line (&optional arg)
-  (interactive "p")
-  (let ((buffer-read-only t)
-        (kill-read-only-ok t))
-    (kill-whole-line arg)))
-
-;;;###autoload
-(defun gwp::meow-insert-at-the-beginning ()
-  (interactive)
-  (if mark-active
-      (call-interactively #'meow-insert-mode)
-    (meow-join 1)
-    (meow-append)))
-
-;;;###autoload
-(defun gwp::meow-insert-at-the-end ()
-  (interactive)
-  (if mark-active
-      (call-interactively #'meow-insert-mode)
-    (meow-line 1)
-    (meow-append)))
-
-;;;###autoload
-;; https://www.gnu.org/software/emacs/manual/html_node/efaq/Matching-parentheses.html
-(defun gwp::match-paren (arg)
-  (interactive "p")
-  (cond ((looking-at "\\s(") (forward-list 1) (backward-char 1))
-        ((looking-at "\\s)") (forward-char 1) (backward-list 1))
-        (t (call-interactively #'meow-block))))
-
-;;;###autoload
-(defun gwp::meow-change-to-the-end ()
-  (interactive)
-  (meow-insert)
-  (kill-line))
-
-;;;###autoload
-(defun gwp::meow-change-whole-line ()
-  (interactive)
-  (call-interactively #'crux-move-beginning-of-line)
-  (call-interactively #'gwp::meow-change-to-the-end))
-#+end_src
-*** TODO meow states
-[[https://github.com/krdzo/dotemacs/blob/master/init-kr.org#custom-states][meow-define-state]]
-
-*** space keymap
-#+name: 81eacab4
-#+begin_src elisp
-(setq meow-space-keymap (make-keymap))
-
-(meow-define-state paren
-  "global keybindings like spacemacs"
-  :lighter " [P]"
-  :keymap meow-space-keymap)
-
-;; meow-define-state creates the variable
-(setq meow-cursor-type-space 'hollow)
-#+end_src
-
-*** meow setup normal
-#+name: 672c2d79
-#+begin_src elisp
-(defun meow/setup-normal ()
-  ;; normal commands
-  (meow-normal-define-key
-   (cons "SPC" meow-space-keymap)
-   '("<escape>" . keyboard-quit)
-   '("9" . meow-expand-9)
-   '("8" . meow-expand-8)
-   '("7" . meow-expand-7)
-   '("6" . meow-expand-6)
-   '("5" . meow-expand-5)
-   '("4" . meow-expand-4)
-   '("3" . meow-expand-3)
-   '("2" . meow-expand-2)
-   '("1" . meow-expand-1)
-   '("0" . meow-expand-0)
-   '("-" . negative-argument)
-   ;; 常规移动操作
-   '("h" . meow-left)
-   '("j" . meow-next)
-   '("k" . meow-prev)
-   '("l" . meow-right)
-   '("^" . meow-back-to-indentation)
-   ;; 常规编辑操作
-   '("i" . meow-insert)
-   '("I" . gwp::meow-insert-at-the-beginning)
-   '("a" . meow-append)
-   '("A" . gwp::meow-insert-at-the-end)
-   '("x" . meow-kill)                   ; 同 vi, 剪入 king-ring, 无选区时等效于 C-x 按键
-   '("y" . meow-save)                   ; 同 vi, 复制到 king-ring, 无选区时复制当前行
-   '("c" . meow-change)                 ; 同 vi, 删除选区内容, 无选区时等效于 C-c 按键
-   '("C" . gwp::meow-change-whole-line) ; 同 vi, 修改整行
-   '("K" . gwp::meow-change-to-the-end) ; 像 C-k, 但进入 insert mode
-   '("p" . meow-yank)
-   '("O" . meow-open-above)
-   '("J" . crux-top-join-line)      ; 同vi, 合并下一行至当前行
-   '("r" . meow-change-char)        ; 删除当前字符或选区(不进入 kill-ring), 同时进入 insert state
-   '("d" . meow-delete)             ; 删除当前字符或选区(不进入 kill-ring)
-   '("DEL" . meow-backward-delete)
-   '("D" . meow-kill-whole-line)
-   ;; 选区扩展操作
-   '("." . meow-line)                ; 向下扩选一行, 按 "-." 向上扩选
-   '("e" . meow-next-word)           ; 向前扩选, 以 word 为单位
-   '("E" . meow-next-symbol)         ; 向前扩选, 以 symbol 为单位 (包括连字符等)
-   '("b" . meow-back-word)           ; 反向操作, 等效于 "-e"
-   '("B" . meow-back-symbol)         ; 反向操作, 等效于 "-E"
-   '("o" . meow-reverse)             ; 反转选区方向. 若无选区, 则相当于 vi 中为 o
-   '("u" . gwp::undo-dwim)
-   '("U" . meow-pop-selection)       ; 撤销选择
-   ;; 搜索与跳转
-   '("/" . meow-visit)            ; 快速搜索, 按C-M-j 搜索任意字串
-   '("n" . meow-search)           ; 向选区方向搜索, 可按 o 键改变当前选区方向
-   '("f" . meow-find)             ; 含搜索字符
-   '("t" . meow-till)             ; 不含搜索字符
-   '("m" . point-to-register)
-   '("`" . jump-to-register)
-   ;; 常规选择
-   '("%" . gwp::match-paren)
-   '("*" . meow-mark-symbol)
-   ;; '("q" . meow-mark-word)
-   '("s" . meow-inner-of-thing)
-   '("S" . meow-bounds-of-thing)
-   '("(" . meow-beginning-of-thing)
-   '(")" . meow-end-of-thing)
-   '(";" . meow-cancel-selection)
-   '("v" . meow-cancel-selection) ; 仿 vi
-   '("V" . meow-block)            ; 逐级扩选, 按U 回退, 可替代 expand-region
-   '("G" . meow-grab)             ; 相当于 vi 中的 visual mode
-   '("C-v" . meow-grab)
-   ;; 特殊功能
-   '("]" . sp-unwrap-sexp)
-   '("R" . sp-unwrap-sexp)                         ; 比] 容易按一些
-   '("$" . ispell-word)
-   '("'" . repeat)                      ; 重复上一个命令
-   '("=" . meow-goto-line)
-   ;; '("z" . avy-goto-char-in-line)
-   '("z" . meow-pop-selection)
-   '("Z" . repeat-complex-command)      ; 重复上一个需要 minibuffer 输入的命令
-   )
-
-  ;; 当无选区时执行的功能
-  (setq
-   meow-selection-command-fallback
-   '(
-     (meow-reverse . meow-open-below)
-     (meow-kill . meow-keypad-start)    ; for C-x
-     (meow-change . meow-keypad-start)  ; for C-c
-     (meow-save . gwp::copy-current-line)
-     ;; (meow-pop-selection . meow-pop-grab)
-     (meow-beacon-change . meow-beacon-change-char)
-     (meow-cancel-selection . meow-right-expand) ; 仿vi, 取消选择或扩选
-     )))
-#+end_src
-
-*** meow setup leader
-相当于 Ctrl-c 对应的按键.
-
-问题: meow 中的 keypad 与 which-key 配合不好
-
-#+name: f4be1bd9
-#+begin_src elisp
-;; Leader Key
-(defun meow/setup-leader ()
-  ;; 与 which-key 集成度不高
-  ;; (meow-leader-define-key
-  ;;  '("/" . meow-keypad-describe-key)
-  ;;  '("?" . meow-cheatsheet))
-  ;; (meow-normal-define-key
-  ;;  '("," . "s-,")
-  ;;  '("g" . "s-g")
-  ;;  '("w" . "s-w")
-  ;;  )
-
-  (general-define-key
-   :keymaps 'meow-normal-state-keymap
-   "," (general-simulate-key "s-," :which-key "local")
-   "g" (general-simulate-key "s-g" :which-key "goto")
-   "w" (general-simulate-key "s-w" :which-key "dwim")
-   :keymaps 'meow-motion-state-keymap
-   "," (general-simulate-key "s-,")
-   "g" (general-simulate-key "s-g")
-   "w" (general-simulate-key "s-w")
-   "j" (general-simulate-key "C-n")
-   "k" (general-simulate-key "C-p")
-   "h" (general-simulate-key "C-b")
-   "l" (general-simulate-key "C-f")
-   "y" #'meow-save
-   "v" #'meow-cancel-selection
-   ))
-#+end_src
-
-*** meow setup motion
-用于 dired 等 mode
-
-#+name: 60483a2d
-#+begin_src elisp
-;; 比如 dired, magit 生成的 buffer, 也许单独处理更好?
-(defun meow/setup-motion ()
-  (meow-motion-overwrite-define-key
-   '("j"  "meow-next")
-   '("k"  "meow-prev")
-   '("<escape>" . ignore)
-   )
-  (meow-motion-overwrite-define-key
-   '("," . "s-,")
-   '("g" . "s-g")
-   '("w" . "s-w")
-   ))
-#+end_src
-
-*** meow setup keypad
-KEYPAD is the state used for executing commands without modifier keys.
-
-Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
-
-*** meow install
-#+name: 9a723a5b
-#+begin_src elisp
-(use-package meow
-  :demand t
-  :init
-  (meow-global-mode 1)
-  :custom
-  ;; 扩选指示字符显示延时
-  (meow-expand-hint-remove-delay 5.0)
-  ;; 默认在 org 中不显示扩选指示字符
-  (meow-expand-exclude-mode-list nil)
-  ;; (meow-cursor-type-normal 'hbar)  :config
-  :config
-  (setq meow-cursor-type-normal '(box . 2))
-  (setq meow-cursor-type-insert '(bar . 2))
-  ;; (setq meow-cursor-type-region-cursor 'bar)
-  ;; https://github.com/meow-edit/meow/discussions/87
-  ;; 选择文字区域时光标位置与 vim 及其它软件一致
-  ;; 2022-03-19: 会出一些怪问题, 禁用
-  ;; (setq meow-use-cursor-position-hack t)
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-  (meow/setup-normal)
-  (meow/setup-leader)
-  (meow/setup-motion)
-  ;; If you want relative line number in NORMAL s tate(for display-line-numbers-mode)
-  (meow-setup-line-number)
-  ;; If you need setup indicator, see `meow-indicator' for customizing  hand.
-  (meow-setup-indicator))
-#+end_src
-*** bindings: goto
-仿 helix 编辑器
-#+name: 6cb02a16
-#+begin_src elisp
-(gwp::goto-leader-def
-  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
-  "g" (general-simulate-key "M-<" :which-key "goto first line")
-  "e" (general-simulate-key "M->" :which-key "goto last line")
-  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
-  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." 'goto-line
-  )
-#+end_src
-*** bindings: f
-#+name: 33105bcf
-#+begin_src elisp
-(general-define-key
- :keymaps 'meow-space-keymap
- :prefix "f"
- "r" '(counsel-recentf :which-key "Recent files")
- )
-#+end_src
-
-*** provide
-#+begin_src elisp
-(provide 'init-edit)
 #+end_src
 
 ** init-org.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-org.el
 :END:
-*** 基本设置
+*** basic
 #+name: e2f6b646
 #+begin_src elisp
 (use-package org
@@ -693,6 +1344,45 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
 #+end_src
 
+*** bindings
+#+name: dfee4224
+#+begin_src elisp
+(gwp::goto-leader-def
+  :keymaps 'org-mode-map
+  "k" '(org-up-element :which-key "goto up element")
+  "j" '(org-next-visible-heading :which-key "next visible heading")
+  ;; "h" '(org-beginning-of-line :which-key "goto the beginning of visible line")
+  ;; "l" '(org-end-of-line :which-key "goto the end of visible line")
+  ;; "k" '(org-backward-heading-same-level :which-key "backward heading")
+  ;; "j" '(org-forward-heading-same-level :which-key "forward heading")
+  )
+
+(general-define-key
+ :keymaps 'org-mode-map
+ "M-l" #'org-metaright   ; doom中默认为 demote-subtree
+ "M-h" #'org-metaleft    ; doom中默认为 promote-subtree
+ "M-k" #'org-metaup
+ "M-j" #'org-metadown
+ "M-p" #'org-backward-element
+ "M-n" #'org-forward-element
+ )
+
+(gwp::dwim-leader-def
+  :keymaps 'org-mode-map
+  "g" 'counsel-org-goto                        ; goto
+  "t" 'org-todo                                ; todo
+  "e" 'org-edit-special                        ; edit
+  "a" 'org-attach                              ; attach
+  ;; "b" 'gwp/org-babel-tangle-dwim               ; babel
+  ;; "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+  )
+
+(gwp::dwim-leader-def
+  :keymaps 'org-src-mode-map
+  ;; "b" 'gwp/org-babel-tangle-dwim
+  "q" 'org-edit-src-exit
+  )
+#+end_src
 
 *** provide
 #+name: 183d2d8f
@@ -706,18 +1396,22 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
 :END:
 #+name: 8970c514
 #+begin_src elisp
+(general-define-key :prefix-map 'gwp::magit-map)
+
 (use-package magit
   :demand t
   :config
   (setq magit-completing-read-function 'ivy-completing-read)
   :bind
-  ("C-x g s" . magit-status)
-  ("C-x g x" . magit-checkout)
-  ("C-x g c" . magit-commit)
-  ("C-x g p" . magit-push)
-  ("C-x g u" . magit-pull)
-  ("C-x g e" . magit-ediff-resolve)
-  ("C-x g r" . magit-rebase-interactive))
+  (:map gwp::magit-map
+   ("s" . magit-status)
+   ("x" . magit-checkout)
+   ("c" . magit-commit)
+   ("p" . magit-push)
+   ("u" . magit-pull)
+   ("e" . magit-ediff-resolve)
+   ("r" . magit-rebase-interactive)))
+
 
 (use-package magit-popup)
 #+end_src
