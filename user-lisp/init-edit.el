@@ -470,6 +470,7 @@
 ;; ebb32bb1 ends here
 
 ;; [[file:../gwp-scratch.note::00b43976][00b43976]]
+(require 'hydra)
 (defhydra gwp::hydra-mark-ring-pop ()
   "goto last location"
   ("SPC" gwp::jump-to-previous-mark "prev mark")          ; 在org中可自动打开折叠的内容
