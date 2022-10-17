@@ -334,6 +334,7 @@ Call a second time to restore the original window configuration."
 ;; [[file:../gwp-scratch.note::44d5ec48][44d5ec48]]
 ;; keymaps for leader key
 (use-package winner)
+(winner-mode 1)
 
 (general-define-key
  :prefix-map 'gwp::window-map

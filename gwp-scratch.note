@@ -1277,6 +1277,7 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+begin_src elisp
 ;; keymaps for leader key
 (use-package winner)
+(winner-mode 1)
 
 (general-define-key
  :prefix-map 'gwp::window-map
