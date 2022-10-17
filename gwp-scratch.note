@@ -8,7 +8,7 @@
 - [[https://github.com/daviwil/emacs-from-scratch/tree/master][daviwil/emacs-from-scratch: An example of a fully custom Emacs configuration developed live on YouTube!]]
 - [[https://github.com/jwiegley/use-package][jwiegley/use-package: A use-package declaration for simplifying your .emacs]]
 
-* Memo [0/2]
+* Memo [2/3]
 ** TODO [2022-10-17 Mon] 试用 verticol/consult 等补全框架
 - [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
 - [[https://www.youtube.com/watch?v=J0OaRy85MOo][Streamline Your Emacs Completions with Vertico - YouTube]]
@@ -17,13 +17,18 @@
 - vertico 只 hack completing-read, 兼容性比 ivy 更强, 与 emacs 集成度更高, 更不易出错, 或出错会更容易找到原因.
 - 性能更好, 据说搜索速度更快一些
 
-** TODO [2022-10-14 Fri] 还是得从头搞起. doom 的容易出问题
-** TODO [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
+** DONE [2022-10-14 Fri] 还是得从头搞起. doom 的容易出问题
 
+- State "DONE"       from "TODO"       [2022-10-17 Mon 17:57] \\
+  基本可用
+** DONE [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
+
+- State "DONE"       from "TODO"       [2022-10-17 Mon 17:57]
 * init.el
 :PROPERTIES:
 :header-args: :tangle init.el
 :END:
+
 #+name: 158fcd0c
 #+begin_src elisp
 ;; Load path
@@ -98,6 +103,7 @@
   :config
   (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
 
+(require 'init-completion)
 (require 'init-edit)
 (require 'init-ui)
 (require 'init-dired)
@@ -1006,6 +1012,7 @@ C-u C-@: 这是轮换当前的 mark ring
   ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
   )
 #+end_src
+
 *** helpful
 #+name: 2b13453c
 #+begin_src elisp
@@ -1711,6 +1718,71 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 #+begin_src elisp
 (provide 'init-org)
 #+end_src
+** init-completion.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-completion.el
+:END:
+*** yasnippet
+#+name: 7db2aa5a
+#+begin_src elisp
+(use-package yasnippet
+  :commands
+  (yas-expand yas-minor-mode)
+  :init
+  (defun entropy/emacs-yas-enable-or-expand (&rest args)
+    "Auto enable `yas-global-mode' when not as it and call
+`yas-expand'."
+    (interactive)
+    (require 'yasnippet)
+    (cond
+     ((not yas-global-mode)
+      (yas-global-mode)
+      (yas-expand))
+     (t
+      (yas-expand))))
+  :bind
+  (:map prog-mode-map
+   ("M-i" . entropy/emacs-yas-enable-or-expand)
+   :map org-mode-map
+   ("M-i" . entropy/emacs-yas-enable-or-expand)
+   )
+  :config
+  ;; 不用TAB, 因为要避免 org 中与 tab 键冲突
+  (unbind-key "TAB" yas-minor-mode-map)
+  (unbind-key "<tab>" yas-minor-mode-map))
+#+end_src
+
+*** hippie-expand
+#+name: 7f307588
+#+begin_src emacs-lisp
+;; Use hippie-expand instead of dabbrev-expand
+;; (global-set-key (kbd "M-/") #'dabbrev-expand)
+(global-set-key (kbd "M-/") #'hippie-expand)
+;; the same behavior as the original `dabbrev-expand'
+(setq hippie-expand-dabbrev-skip-space t)
+
+;; adjust the list of functions that hippie-expand will try
+(setq hippie-expand-try-functions-list
+      '(
+        try-expand-dabbrev-visible      ; first try the expansions from the currently visible parts
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-line
+        try-expand-dabbrev-from-kill
+        ;; try-expand-all-abbrevs
+        ;; try-expand-list
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol
+        ))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-completion)
+#+end_src
+
 
 ** init-develop.el
 :PROPERTIES:
