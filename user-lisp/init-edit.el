@@ -506,6 +506,13 @@
 (gwp::leader-def
  "b" '(:ignore t :which-key "buffer")
  "bb" '(switch-to-buffer :which-key "switch buffer")
+ "bd" '(kill-current-buffer :which-key "kill buffer")
+ "bk" '(kill-current-buffer :which-key "kill buffer")
+ "br" '(revert-buffer :which-key "revert buffer")
+ "bn" '(next-buffer :which-key "next buffer")
+ "bp" '(previous-buffer :which-key "previous buffer")
+ "bm" '(bookmark-set :which-key "set bookmark")
+ "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
  )
 ;; 33105bcf ends here
 

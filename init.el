@@ -67,6 +67,10 @@
 
 (use-package hydra)
 
+(use-package crux
+  :config
+  (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
+
 (require 'init-edit)
 (require 'init-ui)
 (require 'init-dired)
@@ -135,7 +139,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(magit-popup magit org-superstar ivy-hydra golden-ratio burly ace-window helpful symbol-overlay rime doom-themes doom-modeline which-key use-package meow ivy-rich hydra general counsel command-log-mode)))
+   '(crux which-key use-package symbol-overlay rime org-superstar meow magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general doom-themes doom-modeline counsel command-log-mode burly ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
