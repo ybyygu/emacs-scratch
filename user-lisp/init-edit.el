@@ -534,6 +534,13 @@
  )
 ;; 860eb4b2 ends here
 
+;; [[file:../gwp-scratch.note::92af756a][92af756a]]
+(gwp::leader-def
+ "j" '(:ignore t :which-key "jump")
+ "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
+ )
+;; 92af756a ends here
+
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]
 (gwp::leader-def
  "h" '(:keymap help-map :which-key "Help" :package emacs))

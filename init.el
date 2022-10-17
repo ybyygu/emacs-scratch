@@ -1,4 +1,3 @@
-;; [[file:gwp-scratch.note::158fcd0c][158fcd0c]]
 ;; Load path
 (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
 (push (expand-file-name "user-lisp" user-emacs-directory) load-path)
@@ -76,9 +75,7 @@
 (require 'init-dired)
 (require 'init-org)
 (require 'init-develop)
-;; 158fcd0c ends here
 
-;; [[file:gwp-scratch.note::f1b9d1b9][f1b9d1b9]]
 (use-package eaf
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
   :after org
@@ -132,17 +129,3 @@
   (confirm-kill-processes nil)	; 退出不需要确认杀死进程
   ;; (browse-url-browser-function 'eaf-open-browser)
   )
-;; f1b9d1b9 ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(crux which-key use-package symbol-overlay rime org-superstar meow magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general doom-themes doom-modeline counsel command-log-mode burly ace-window)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

@@ -776,6 +776,15 @@ C-u C-@: 这是轮换当前的 mark ring
  )
 #+end_src
 
+*** bindings: SPC-j
+#+name: 92af756a
+#+begin_src emacs-lisp
+(gwp::leader-def
+ "j" '(:ignore t :which-key "jump")
+ "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
+ )
+#+end_src
+
 *** bindings: SPC-h help
 帮助系统
 - apropos-value
@@ -1394,6 +1403,266 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   (setq org-superstar-headline-bullets-list '("☰" "▶" "▷" "»"))
   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
 #+end_src
+*** babel
+**** settings
+#+name: 99465500
+#+begin_src elisp
+;; 编辑代码时在下方新开窗口
+;;(setq org-src-window-setup 'split-window-below)
+(setq org-src-window-setup 'current-window)
+#+end_src
+
+**** template
+- http://orgmode.org/manual/Languages.html
+
+#+name: e9fca5dc
+#+begin_src emacs-lisp
+(with-eval-after-load 'ob
+  (setq org-structure-template-alist
+        '(
+          ("py" . "src python :results output")
+          ("rs" . "src rust")
+          ("el" . "src emacs-lisp")
+          ("sh" . "src sh")
+          )))
+#+end_src
+
+**** tangle
+不缩进org-src块中的代码. 注意: 不直接设置为
+"org-src-preserve-indentation t", 只设置
+org-edit-src-content-indentation为0, 这样仅影响编辑的org, 不影响tangle
+出的代码. 以前的org文档可以逐步调回来
+#+name: d309f5b7
+#+begin_src elisp
+(setq org-src-preserve-indentation nil)
+(setq org-edit-src-content-indentation 0) ;Default = 2
+
+;; helper functions for literate programming
+;; taking from: https://github.com/grettke/help/blob/master/Org-Mode_Fundamentals.org
+(defun help/set-org-babel-default-header-args (property value)
+  "Easily set system header arguments in org mode.
+
+PROPERTY is the system-wide value that you would like to modify.
+
+VALUE is the new value you wish to store.
+
+Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.html#System_002dwide-header-arguments'"
+  (setq org-babel-default-header-args
+        (cons (cons property value)
+              (assq-delete-all property org-babel-default-header-args))))
+
+;; 几个重要的header args:
+(help/set-org-babel-default-header-args :padline "yes")
+(help/set-org-babel-default-header-args :mkdirp "yes")
+(help/set-org-babel-default-header-args :comments "link")  
+#+end_src
+
+插入一个唯一的block name, 方便跳转
+#+name: 1a4b128e
+#+begin_src elisp
+(defun gwp/org-src-insert-name ()
+  "If it doesn't have a NAME property then assign it an unique name."
+  (interactive)
+  (let ((element (org-element-at-point)))
+    (if (eq 'src-block (org-element-type element))
+        (if (not (org-element-property :name element))
+            (save-excursion
+              (goto-char (org-babel-where-is-src-block-head))
+              (let ((i (current-indentation)))
+                (save-excursion (insert "#+name: " (substring (org-id-new) 0 8) "\n"))
+                (indent-to i)))
+          (message "source block alread named"))
+      (message "not in source block"))))
+#+end_src
+
+#+name: 62fd7850
+#+begin_src elisp
+;;;###autoload
+;; tangle blocks for current file at point
+;; http://stackoverflow.com/questions/28727190/org-babel-tangle-only-one-code-block
+;; call org-babel-tangle with C-u C-u
+(defun gwp/org-babel-tangle-blocks()
+  (interactive)
+  ;; tangle blocks only for target file at point
+  (let ((current-prefix-arg '(16)))     ; C-u C-u
+    (call-interactively 'org-babel-tangle)))
+
+;;;###autoload
+(defun gwp/org-edit-save-and-tangle ()
+  "When in a sub-editing buffer, swith to the parent buffer and tangle the file blocks"
+  (interactive)
+  (save-excursion
+    (org-edit-src-exit)
+    ;; insert an unique code block name
+    (gwp/org-src-insert-name)
+    (call-interactively 'gwp/org-babel-tangle-blocks)
+    (org-edit-src-code)))
+
+;;;###autoload
+(defun gwp::org-babel-tangle-dwim()
+  "Tangle current file at point whenever in a sub-editing buffer or not"
+  (interactive)
+  ;; 标记当前位置
+  ;; (gwp::mark-current-position)
+  (if (org-src-edit-buffer-p)
+      (gwp/org-edit-save-and-tangle)
+    (if (eq 'src-block (org-element-type (org-element-at-point)))
+        (progn
+          ;; insert an unique code block name
+          (gwp/org-src-insert-name)
+          (call-interactively 'gwp/org-babel-tangle-blocks))
+      (message "not in source block"))))
+#+end_src
+
+**** jump to org blocks/links
+#+name: 8aa4aca8
+#+begin_src elisp
+(defhydra gwp/org-jump-block ()
+  "jump to org blocks"
+  ("n" org-next-block "next block")
+  ("p" org-previous-block "prev block")
+  ("q" nil "quit")
+  )
+
+(defhydra gwp/org-jump-link ()
+  "jump to org links"
+  ("n" org-next-link "next link")
+  ("p" org-previous-link "prev link")
+  ("q" nil "quit")
+  )
+#+end_src
+
+**** jump to file
+从org文件跳转到tangled file
+- 这个包可用于与compile等跳转配合使用 [[https://github.com/EricCrosson/help-find-org-mode][help-find-org-mode]]
+
+#+name: fa928b1c
+#+begin_src elisp
+;;;###autoload
+(defun gwp::org-babel-tangle-jump-to-file ()
+  "Jump to tangle file for the source block at point."
+  (interactive)
+  (let ((mid (point))
+        (element (org-element-at-point))
+        (body-start (save-excursion
+                      (progn
+                        (org-babel-goto-src-block-head)
+                        (next-line)
+                        (point)
+                        )))
+        (tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
+        offset)
+    (if tangle-file
+        (let ((block-name (org-element-property :name element))
+              (tangle-file (expand-file-name tangle-file)))
+          (if (file-readable-p tangle-file)
+              (progn
+                ;; open tangled file
+                (find-file tangle-file)
+                ;; if code block has a name, we jump to that block
+                (when block-name
+                  (beginning-of-buffer)   ; if point restored, the searching could fail
+                  (when (search-forward (format "::%s" block-name) nil t)
+                    (next-line)
+                    (beginning-of-line)
+                    (setq offset (- mid body-start))
+                    (forward-char offset)
+                    (recenter)
+                    )))
+            (error "Cannot open tangle file %S" tangle-file)))
+      (message "not in source block"))))
+#+end_src
+
+
+跳回来可用(需要配合src block name一起使用):
+: org-babel-tangle-jump-to-org
+
+将tangle file中的修改返回给org
+: org-babel-detangle
+
+还有一个https://github.com/mtekman/org-tanglesync.el. 但使用上有限制 [[https://github.com/mtekman/org-tanglesync.el/issues/13][issue 13]].
+**** jump to org
+原版的似有bug, 不能精确复原光标位置.
+#+name: 9b40c7cf
+#+begin_src elisp
+;;;###autoload
+(defun gwp::org-babel-tangle-jump-to-org ()
+  "Jump from a tangled code file to the related Org mode file."
+
+  (require 'ol)
+  (interactive)
+  (let ((mid (point))
+	start body-start end target-buffer target-char link block-name body)
+    (save-window-excursion
+      (save-excursion
+    (while (and (re-search-backward org-link-bracket-re nil t)
+            (not ; ever wider searches until matching block comments
+             (and (setq start (line-beginning-position))
+              (setq body-start (line-beginning-position 2))
+              (setq link (match-string 0))
+              (setq block-name (match-string 2))
+              (save-excursion
+                (save-match-data
+                  (re-search-forward
+                   (concat " " (regexp-quote block-name)
+                       " ends here")
+                   nil t)
+                  (setq end (line-beginning-position))))))))
+	(unless (and start (< start mid) (< mid end))
+	  (error "Not in tangled code"))
+        (setq body (buffer-substring body-start end)))
+      ;; Go to the beginning of the relative block in Org file.
+      (org-link-open-from-string link)
+      (message "%s" link)
+      (setq target-buffer (current-buffer))
+      ;; (search-forward body)
+      (if (string-match "[^ \t\n\r]:\\([[:digit:]]+\\)" block-name)
+          (let ((n (string-to-number (match-string 1 block-name))))
+            (if (org-before-first-heading-p) (goto-char (point-min))
+              (org-back-to-heading t))
+            ;; Do not skip the first block if it begins at point min.
+            (cond ((or (org-at-heading-p)
+                       (not (eq (org-element-type (org-element-at-point))
+                		'src-block)))
+                   (org-babel-next-src-block n))
+                  ((= n 1))
+                  (t (org-babel-next-src-block (1- n)))))
+        (org-babel-goto-named-src-block block-name))
+      (goto-char (org-babel-where-is-src-block-head))
+      (forward-line 1)
+      ;; Try to preserve location of point within the source code in
+      ;; tangled code file.
+      (let ((offset (- mid body-start)))
+        (when (< end (+ offset (point))) ; ybyygu hacked here
+          (forward-char offset)))
+      (setq target-char (point)))
+    (org-src-switch-to-buffer target-buffer t)
+    (goto-char target-char)))
+#+end_src
+
+*** narrow
+#+name: 097db727
+#+begin_src elisp
+;;;###autoload
+(defun gwp::org-babel-narrow-to-tangle-heading ()
+  "narrow至当前代码块对应的 tangle 文件所在级别"
+  (interactive)
+  (let ((tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
+        (start-position (point))
+        offset)
+    ;; :tangle no 不能算
+    (if (and tangle-file (not (string= tangle-file "no")))
+        (save-excursion
+          (if (search-backward (format ":tangle %s" tangle-file) nil t)
+              (progn
+                (setq offset (- start-position (point)))
+                (org-tree-to-indirect-buffer)
+                (forward-char offset)
+                (message "narrowed to heading: %s" tangle-file))
+            (message "no root headline found")))
+      (message "narrowed to headline at point")
+      (org-tree-to-indirect-buffer))))
+#+end_src
 
 *** bindings
 #+name: dfee4224
@@ -1424,8 +1693,9 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   "t" 'org-todo                                ; todo
   "e" 'org-edit-special                        ; edit
   "a" 'org-attach                              ; attach
-  ;; "b" 'gwp/org-babel-tangle-dwim               ; babel
-  ;; "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+  "b" 'gwp::org-babel-tangle-dwim              ; babel
+  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
   )
 
 (gwp::dwim-leader-def
@@ -1457,7 +1727,7 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   (:map gwp::magit-map
    ;; ("j" . magit-next-line)
    ;; ("k" . magit-previous-line)
-   ("s" . magit-status)
+   ("g" . magit-status)
    ("s" . magit-status)
    ("x" . magit-checkout)
    ("c" . magit-commit)

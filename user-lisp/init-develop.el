@@ -9,7 +9,7 @@
   (:map gwp::magit-map
    ;; ("j" . magit-next-line)
    ;; ("k" . magit-previous-line)
-   ("s" . magit-status)
+   ("g" . magit-status)
    ("s" . magit-status)
    ("x" . magit-checkout)
    ("c" . magit-commit)
