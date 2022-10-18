@@ -8,11 +8,19 @@
 ;; (setq package-archives
 ;;       '(("gnu"   . "http://elpa.gnu.org/packages/")
 ;;         ("melpa" . "http://melpa.org/packages/")))
+
+;; (setq package-archives
+;;       '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
+;;         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
+;;         ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
+;;         ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
+
 (setq package-archives
-      '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-        ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-        ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
+      '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+        ("melpa-stable" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/")
+        ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
+        ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 
 (package-initialize)
 (unless package-archive-contents
@@ -140,7 +148,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(yasnippet which-key use-package symbol-overlay rime org-superstar meow magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general doom-themes doom-modeline crux counsel command-log-mode burly ace-window)))
+   '(marginalia yasnippet which-key use-package symbol-overlay simpleclip rime org-superstar meow magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general find-file-in-project embark doom-themes doom-modeline crux counsel command-log-mode burly ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

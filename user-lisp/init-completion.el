@@ -50,6 +50,26 @@
         ))
 ;; 7f307588 ends here
 
+;; [[file:../gwp-scratch.note::74ebe55a][74ebe55a]]
+(use-package marginalia
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :bind (
+         ;; 相当于选中文件弹出右键菜单
+         ("C-;" . embark-act)
+         ;; 相当于选中文件双击, 用处不大
+         ;; ("C-." . embark-dwim)
+         ("C-h B" . embark-bindings)
+         )
+  :custom
+  ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
+  ;; 命令可搜索后再选择了
+  (prefix-help-command #'embark-prefix-help-command)
+  )
+;; 74ebe55a ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-completion)
 ;; provide:1 ends here

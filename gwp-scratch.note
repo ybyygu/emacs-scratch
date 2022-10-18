@@ -7,8 +7,13 @@
 * 参考
 - [[https://github.com/daviwil/emacs-from-scratch/tree/master][daviwil/emacs-from-scratch: An example of a fully custom Emacs configuration developed live on YouTube!]]
 - [[https://github.com/jwiegley/use-package][jwiegley/use-package: A use-package declaration for simplifying your .emacs]]
+- [[https://github.com/SystemCrafters/crafted-emacs/tree/master/modules][crafted-emacs/modules at master · SystemCrafters/crafted-emacs]]
+- [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
-* Memo [2/3]
+* Memo [2/4]
+** TODO [2022-10-18 Tue] 实现 doom 中类似 workspace 的功能
+[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html][Projects (GNU Emacs Manual)]]
+
 ** TODO [2022-10-17 Mon] 试用 verticol/consult 等补全框架
 - [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
 - [[https://www.youtube.com/watch?v=J0OaRy85MOo][Streamline Your Emacs Completions with Vertico - YouTube]]
@@ -24,6 +29,7 @@
 ** DONE [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
 
 - State "DONE"       from "TODO"       [2022-10-17 Mon 17:57]
+  
 * init.el
 :PROPERTIES:
 :header-args: :tangle init.el
@@ -40,11 +46,19 @@
 ;; (setq package-archives
 ;;       '(("gnu"   . "http://elpa.gnu.org/packages/")
 ;;         ("melpa" . "http://melpa.org/packages/")))
+
+;; (setq package-archives
+;;       '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
+;;         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
+;;         ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
+;;         ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
+
 (setq package-archives
-      '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-        ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-        ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
+      '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+        ("melpa-stable" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/")
+        ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
+        ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 
 (package-initialize)
 (unless package-archive-contents
@@ -1797,9 +1811,9 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (defun gwp::find-file-in-notes ()
   "Find a file under `~/.cache/notes', recursively."
   (interactive)
-  (let ((default-directory "~/.cache/notes"))
-       (counsel-fd-file-jump)
- ))
+  (let ((default-directory "~/.cache/notes")
+        (find-file-visit-truename t))
+        (counsel-fd-file-jump)))
 #+end_src
 
 **** bindings
@@ -2009,7 +2023,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   )
 
 (general-define-key
- :keymaps 'org-mode-map
+ :keymaps '(org-mode-map)
  "M-l" #'org-metaright   ; doom中默认为 demote-subtree
  "M-h" #'org-metaleft    ; doom中默认为 promote-subtree
  "M-k" #'org-metaup
@@ -2101,6 +2115,47 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
         try-complete-lisp-symbol
         ))
 #+end_src
+
+*** embark
+一个新的神器.
+
+重要文档
+- [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+- [[https://karthinks.com/software/fifteen-ways-to-use-embark/][Fifteen ways to use Embark | Karthinks]]
+
+常规的 emacs 操作流程时选择命令, 然后再将命令应用于操作对象. embark 则相反流程.
+embark 先选定对象, 再根据对象不同, 执行动作, 类似 ivy action, 但更通用.
+
+在文本窗口中, 可自动识别 url, symbol 等动象, 并分配适用的执行函数. 可以多次执行
+embark-act, 切换可能的操作对象.
+
+可用的 keymap:
+: embark-keymap-alist
+
+也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+: embark-target-finders
+
+#+name: 74ebe55a
+#+begin_src emacs-lisp
+(use-package marginalia
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :bind (
+         ;; 相当于选中文件弹出右键菜单
+         ("C-;" . embark-act)
+         ;; 相当于选中文件双击, 用处不大
+         ;; ("C-." . embark-dwim)
+         ("C-h B" . embark-bindings)
+         )
+  :custom
+  ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
+  ;; 命令可搜索后再选择了
+  (prefix-help-command #'embark-prefix-help-command)
+  )
+#+end_src
+
 
 *** provide
 #+begin_src elisp

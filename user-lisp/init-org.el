@@ -359,9 +359,9 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (defun gwp::find-file-in-notes ()
   "Find a file under `~/.cache/notes', recursively."
   (interactive)
-  (let ((default-directory "~/.cache/notes"))
-       (counsel-fd-file-jump)
- ))
+  (let ((default-directory "~/.cache/notes")
+        (find-file-visit-truename t))
+        (counsel-fd-file-jump)))
 ;; 05419467 ends here
 
 ;; [[file:../gwp-scratch.note::515195f9][515195f9]]
@@ -510,7 +510,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   )
 
 (general-define-key
- :keymaps 'org-mode-map
+ :keymaps '(org-mode-map)
  "M-l" #'org-metaright   ; doom中默认为 demote-subtree
  "M-h" #'org-metaleft    ; doom中默认为 promote-subtree
  "M-k" #'org-metaup
