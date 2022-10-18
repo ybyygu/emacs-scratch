@@ -169,7 +169,6 @@
   )
 #+end_src
 
-
 * user-lisp
 ** init-edit.el
 :PROPERTIES:
@@ -814,6 +813,14 @@ C-u C-@: 这是轮换当前的 mark ring
 (gwp::leader-def
  "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
 #+end_src
+
+*** bindings: SPC-n note
+#+name: 51e6b46e
+#+begin_src elisp
+(general-define-key :prefix-map 'gwp::note-map)
+(gwp::leader-def "n" '(:keymap gwp::note-map :which-key "note" :package emacs))
+#+end_src
+
 
 *** provide
 #+begin_src elisp
@@ -1671,6 +1678,322 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
       (message "narrowed to headline at point")
       (org-tree-to-indirect-buffer))))
 #+end_src
+*** note
+**** search all notes
+搜索所有~/.cache/notes目录下所有.notes文件. 为了避免symlink文件不存在导致ivy报错,
+我们使用自定义脚本ripgrep, 强制命令退出码为0. 注意~/.local/bin应在PATH变量中.
+
+#+name: 21d90559
+#+begin_src shell :tangle ~/.local/bin/ripgrep :shebang #! /bin/bash
+/usr/bin/rg --follow "$@"
+
+exit 0
+#+end_src
+
+#+name: 4971b464
+#+begin_src emacs-lisp
+;;;###autoload
+(defun gwp::search-all-notes (&optional arg)
+  "search all notes in ~/.cache/notes"
+  (interactive)
+  (let ((counsel-rg-base-command (list
+                                  "ripgrep"
+                                  "-M" "240"
+                                  "--with-filename"
+                                  "--no-heading"
+                                  "--line-number"
+                                  "--color" "never"
+                                  "%s")))
+    (if arg
+        (counsel-rg arg "~/.cache/notes")
+      (counsel-rg "" "~/.cache/notes"))))
+
+#+end_src
+
+**** find notes
+#+name: 05419467
+#+begin_src elisp
+(use-package find-file-in-project
+  :config
+  (setq ffip-use-rust-fd t))
+
+(use-package simpleclip)
+
+(defun gwp::find-file-from-clipboard ()
+  "打开 clipboard 中复制的文件路径"
+  (interactive)
+  (require 'find-file-in-project)
+  (let ((path (simpleclip-get-contents)))
+    (ffip-find-files path nil)))
+
+(defun gwp::search-org-notes (query)
+  "Perform a text search on `org-directory'."
+  (interactive
+   (list (if (use-region-p)
+             (buffer-substring-no-properties
+              (region-beginning)
+              (region-end))
+           "")))
+
+  (require 'org)
+  (let ((counsel-rg-base-command (list
+                                  "ripgrep"
+                                  "-M" "240"
+                                  "--with-filename"
+                                  "--no-heading"
+                                  "--line-number"
+                                  "--color" "never"
+                                  "%s")))
+    (counsel-rg query org-directory)
+    ))
+
+
+;; credit: https://github.com/CsBigDataHub/counsel-fd/blob/master/counsel-fd.el
+(defvar counsel-fd-command "fd --hidden --color never "
+  "Base command for fd.")
+
+;;;###autoload
+(defun counsel-fd-dired-jump (&optional initial-input initial-directory)
+  "Jump to a directory (in dired) below the current directory.
+List all subdirectories within the current directory.
+INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
+  (interactive
+   (list nil
+         (when current-prefix-arg
+           (read-directory-name "From directory: "))))
+  (counsel-require-program (car (split-string counsel-fd-command)))
+  (let* ((default-directory (or initial-directory default-directory)))
+    (ivy-read "Directory: "
+              (split-string
+               (shell-command-to-string
+                (concat counsel-fd-command "--type d --exclude '*.git'"))
+               "\n" t)
+              :initial-input initial-input
+              :action (lambda (d) (dired-x-find-file (expand-file-name d)))
+              :caller 'counsel-fd-dired-jump)))
+
+;;;###autoload
+(defun counsel-fd-file-jump (&optional initial-input initial-directory)
+  "Jump to a file below the current directory.
+List all files within the current directory or any of its subdirectories.
+INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
+  (interactive
+   (list nil
+         (when current-prefix-arg
+           (read-directory-name "From directory: "))))
+  (counsel-require-program (car (split-string counsel-fd-command)))
+  (let* ((default-directory (or initial-directory default-directory)))
+    (ivy-read "File: "
+              (split-string
+               (shell-command-to-string
+                (concat counsel-fd-command "--type l --exclude '*.git'"))
+               "\n" t)
+              :initial-input initial-input
+              :action (lambda (d) (find-file (expand-file-name d)))
+              :caller 'counsel-fd-file-jump)))
+
+(defun gwp::find-file-in-notes ()
+  "Find a file under `~/.cache/notes', recursively."
+  (interactive)
+  (let ((default-directory "~/.cache/notes"))
+       (counsel-fd-file-jump)
+ ))
+#+end_src
+
+**** bindings
+#+name: 515195f9
+#+begin_src elisp
+(general-define-key
+ :prefix-map 'gwp::note-map
+ ;; "s" 'gwp::search-org-notes
+ "s" 'gwp::search-all-notes
+ "f" 'gwp::find-file-in-notes
+ )
+#+end_src
+
+*** agenda
+重要日程打 TODO+ASAP 标签.
+**** 基本设置
+#+name: 43fd72e2
+#+begin_src emacs-lisp
+(require 'org-agenda)
+
+;; 2013-01-20: less is more
+;; (setq org-agenda-files (append (file-expand-wildcards "~/Notes/*.note") (file-expand-wildcards "~/Notes/*/*.note")))
+(setq org-agenda-files "~/Notes/.agenda_files")
+
+;; the default is todo-start
+(setq org-icalendar-use-scheduled (quote (event-if-not-todo event-if-todo todo-start)))
+(setq org-icalendar-alarm-time 5)
+
+;; Show all future entries for repeating tasks
+(setq org-agenda-repeating-timestamp-show-all t)
+
+;; do not show agenda dates if they are empty
+(setq org-agenda-show-all-dates nil)
+
+;; Sorting order for tasks on the agenda
+(setq org-agenda-sorting-strategy
+      (quote ((agenda time-up priority-down category-up)
+              (todo priority-down)
+              (tags priority-down))))
+
+;; Start the weekly agenda today
+(setq org-agenda-start-on-weekday nil)
+
+;; do not include todo items
+(setq org-agenda-include-all-todo nil)
+
+;; 忽略已经完成的任务
+(setq org-agenda-skip-deadline-if-done t)
+(setq org-agenda-skip-scheduled-if-done t)
+
+;; 退出 agenda buffer 时还原之前的窗口
+(setq org-agenda-restore-windows-after-quit t)
+#+end_src
+
+
+**** 自定义agenda命令
+- SPC nn: 查看所有重要事项
+- SPC nb: 查看当前重要事项
+
+#+name: ded2ea25
+#+begin_src emacs-lisp
+;; description for "g" prefix
+(setq org-agenda-custom-commands '(("g" . "GTD contexts")))
+
+;; project overview
+(add-to-list 'org-agenda-custom-commands
+             '("gp" "Project"
+               (
+                (tags "Project+Action+TODO=\"TODO\""
+                      (
+                       (org-agenda-overriding-header "Project\n------------------")
+                       (org-agenda-sorting-strategy '(priority-down category-keep timestamp-up))))
+                (tags "Action+Study+TODO=\"TODO\""
+                      (
+                       (org-agenda-overriding-header "Topics\n------------------")
+                       (org-agenda-files '("~/Notes/research.note"))
+                       (org-agenda-sorting-strategy '(priority-down timestamp-up))
+                       (org-agenda-max-entries 5)))
+                (tags "Action+TODO=\"TODO\""
+                      (
+                       (org-agenda-overriding-header "生活琐事\n------------------")
+                       (org-agenda-files '("~/Notes/life.note"))
+                       (org-agenda-sorting-strategy '(priority-down timestamp-up))
+                       (org-agenda-max-entries 5)))
+                )
+               ;; options set here apply to the entire block
+               (
+                (org-tags-match-list-sublevels nil)
+                (org-agenda-prefix-format "%-20c ")
+                (org-agenda-todo-keyword-format "")
+                (org-agenda-remove-tags t)
+                (org-agenda-compact-blocks t))))
+
+(add-to-list 'org-agenda-custom-commands
+             '("gt" "Tasks"
+               (
+                (agenda ""
+                        (;; (org-agenda-entry-types '(:deadline :scheduled))
+                         (org-agenda-span (quote month)) ;; or (org-agenda-span 90)
+                         (org-agenda-include-diary nil)
+                         (org-agenda-overriding-header "Agenda\n------------------")))
+                (tags-todo "ASAP"
+                           ((org-agenda-entry-types '(:timestamp))
+                            (org-agenda-skip-function '(org-agenda-skip-entry-if 'scheduled))
+                            (org-agenda-overriding-header "\nASAP\n------------------")
+                            (org-agenda-sorting-strategy '(priority-down category-keep timestamp-up))
+                            (org-agenda-max-entries 20)
+                            (org-agenda-prefix-format "%-12c ")
+                            (org-agenda-compact-blocks t)))
+                (tags-todo "TODO={READ}"
+                           ((org-agenda-overriding-header "\n待读列表\n------------------")
+                            (org-agenda-sorting-strategy '(category-keep priority-down))
+                            (org-agenda-remove-tags t)
+                            (org-agenda-prefix-format "%-12c ")
+                            (org-agenda-compact-blocks t)))
+                )
+               ;; options set here apply to the entire block
+               (
+                (org-tags-match-list-sublevels nil)
+                ;; (org-agenda-files '("~/Notes/research.note" "~/Notes/life.note"))
+                (org-agenda-todo-keyword-format "")
+                (org-agenda-remove-tags t))
+               ;; agenda view exported with: Ctrl-C a e
+               ("~/Notes/agenda.html" "~/Notes/agenda.txt")))
+
+
+(defun gwp::org-agenda-gtd-task ()
+  "show gtd task"
+  (interactive)
+  (org-agenda nil "gt"))
+
+(defun gwp::org-agenda-gtd-task-this-buffer ()
+  "show gtd task for this buffer"
+  (interactive)
+  (if (equal major-mode 'org-mode)
+      (org-agenda nil "gt" 'buffer))
+  (message "not in org mode buffer"))
+
+(general-define-key
+ :prefix-map 'gwp::note-map
+ "a" '(org-agenda :which-key "org agenda")
+ "l" '(org-store-link :which-key "org store link")
+ "c" '(org-capture :which-key "org capture")
+ "n" '(gwp::org-agenda-gtd-task :which-key "org agenda (gtd)")
+ "b" '(gwp::org-agenda-gtd-task-this-buffer :which-key "org agenda (gtd) this buffer")
+ )
+#+end_src
+
+**** COMMENT 显示当前 buffer 事项
+可用 org-agenda 代替, "SPC n a < g t"
+
+[2022-10-12 Wed] 绑定为 SPC n b
+
+见 [[https://stackoverflow.com/questions/29495419/agenda-view-of-the-current-buffer][emacs - Agenda view of the current buffer - Stack Overflow]]
+
+#+begin_src elisp
+(defun gwp::org-todo-list-current-file (&optional arg)
+  "Like `org-todo-list', but using only the current buffer's file."
+  (interactive "P")
+  (let ((org-agenda-files (list (buffer-file-name (current-buffer)))))
+    (if (null (car org-agenda-files))
+        (error "%s is not visiting a file" (buffer-name (current-buffer)))
+      (org-todo-list arg))))
+#+end_src
+
+**** COMMENT 后台自动导出日程. 暂时禁用
+#+name: a49dc68d
+#+BEGIN_SRC emacs-lisp
+;; disabled for upgrading to org-9.0
+;; auto export agenda
+(defun gwp/run-agenda-store ()
+  ""
+  (message "Exporting agenda... ")
+  (org-batch-store-agenda-views)
+  (message "Agenda exported."))
+
+;; export agenda if I am away for 2 minutes
+(run-with-idle-timer 600 t 'gwp/run-agenda-store)
+#+END_SRC
+
+闲时显示日程. 有兼容性问题, 暂时禁用.
+#+begin_src emacs-lisp
+(use-package idle-org-agenda
+  :after org-agenda
+  :ensure t
+  :config (idle-org-agenda-mode))
+
+(custom-set-variables
+ '(idle-org-agenda-interval 600) ;; 10 x 60 seconds
+ '(idle-org-agenda-key "gt")     ;; Choose your specific agenda
+ '(idle-org-agenda-mode t)
+ )
+#+end_src
+
 
 *** bindings
 #+name: dfee4224
@@ -1718,6 +2041,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 #+begin_src elisp
 (provide 'init-org)
 #+end_src
+
 ** init-completion.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-completion.el

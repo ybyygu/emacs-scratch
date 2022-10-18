@@ -556,6 +556,11 @@
  "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
 ;; 185fc283 ends here
 
+;; [[file:../gwp-scratch.note::51e6b46e][51e6b46e]]
+(general-define-key :prefix-map 'gwp::note-map)
+(gwp::leader-def "n" '(:keymap gwp::note-map :which-key "note" :package emacs))
+;; 51e6b46e ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-edit)
 ;; provide:1 ends here
