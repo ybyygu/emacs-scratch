@@ -28,10 +28,11 @@
          ((find-font (font-spec :name  "Iosevka")) "Iosevka")
          ((find-font (font-spec :name  "Inconsolata Nerd Font")) "Inconsolata Nerd Font")
          ((find-font (font-spec :name  "Ubuntu Mono")) "Ubuntu Mono")))
+
+  (setq default-font-height 110)
   ;; (setq resolution-factor 2)
   ;; (setq ideal-font-size (eval (* 15 resolution-factor)))
-
-  (setq default-font-height 100)
+  ;; (setq big-font-size (eval (* 18 resolution-factor)))
   (set-face-attribute 'default nil :font user-font :height default-font-height)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil :font user-font :height default-font-height)
