@@ -42,15 +42,6 @@
 
 ;; Packages
 (require 'package)
-;; (setq package-archives
-;;       '(("gnu"   . "http://elpa.gnu.org/packages/")
-;;         ("melpa" . "http://melpa.org/packages/")))
-
-;; (setq package-archives
-;;       '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-;;         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-;;         ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-;;         ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
 
 (setq package-archives
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -96,7 +87,7 @@
   (which-key-mode)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 1
+  (setq which-key-idle-delay 3
         which-key-sort-uppercase-first nil))
 
 (use-package ivy-rich
@@ -124,6 +115,7 @@
 (require 'init-org)
 (require 'init-develop)
 (require 'init-completion)
+(require 'init-note)
 #+end_src
 
 [[https://github.com/emacs-eaf/emacs-application-framework/wiki/Chemacs][Chemacs · emacs-eaf/emacs-application-framework Wiki]]
@@ -1541,6 +1533,359 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   ;; 避免误编辑
   (setq org-catch-invisible-edits 'show-and-error))
 #+end_src
+*** view
+#+begin_src elisp
+;; https://orgmode.org/manual/Clean-view.html
+(setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
+(with-eval-after-load 'org-indent
+  (setq org-indent-indentation-per-level 1)) ;; default = 2
+
+;; 对齐headline中的TAGs
+(setq org-tags-column -80)
+
+;; 方便用 property 来控制 image 显示大小
+(setq org-image-actual-width nil)
+
+;; 避免误编辑
+(setq org-catch-invisible-edits 'show-and-error)
+
+;; 避免显示subtree之间多余的空行
+(setq org-cycle-separator-lines 0)
+
+;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
+(setq org-fontify-emphasized-text nil)
+#+end_src
+*** COMMENT reveal
+#+begin_src elisp
+;; 显示光标所在处的内容
+(defun gwp::org-show-context-at-point ()
+  (interactive)
+  (call-interactively #'org-show-subtree)
+  ;; 从下面的命令看来的
+  ;; (call-interactively 'org-mark-ring-goto)
+  ;; (org-show-context 'mark-goto)
+  ;; (when (or (org-invisible-p) (org-invisible-p2)) (org-show-context 'mark-goto))
+  (call-interactively #'org-reveal)
+  )
+
+;; 默认的为 org-reveal, 但不太好用
+(map! :map org-mode-map
+      "C-c C-r" #'gwp::org-show-context-at-point
+      )
+#+end_src
+
+*** open-at-point
+默认在另一窗口打开链接, 如果使用C-u参数, 则强制在本窗口打开.
+#+name: 2f61258f
+#+begin_src elisp
+;; https://stackoverflow.com/questions/17590784/how-to-let-org-mode-open-a-link-like-file-file-org-in-current-window-inste
+;; Depending on universal argument try opening link
+(defun gwp::org-open-at-point-dwim (&optional arg)
+  (interactive "P")
+  (cond
+   ((equal arg '(16))                    ; C-u C-u
+    (let ((org-link-frame-setup (quote ((file . find-file)))))
+      (org-open-at-point)))
+   ((equal arg '(4))                     ; C-u
+    (let ((org-link-frame-setup (quote ((file . find-file-other-frame)))))
+      (org-open-at-point)))
+   (t                                   ; the default behavior
+    (let ((org-link-frame-setup (quote ((file . find-file-other-window)))))
+      (org-open-at-point)
+      (golden-ratio)))))
+
+;; 注释代码时, 在org code block下特殊处理. 不然光标会跳开很远.
+(defun gwp/comment-or-uncomment-dwim ()
+  (interactive)
+  (save-excursion
+    (if (org-in-src-block-p)
+        (progn
+          (org-edit-src-code)
+          (call-interactively 'comment-dwim)
+          (org-edit-src-exit))
+      (call-interactively 'comment-dwim))))
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "o"      #'gwp::org-open-at-point-dwim)
+#+end_src
+
+*** enter-at-point
+从 doom 中抄来的. 在org-src环境, 直接编辑代码, 而非执行
+
+#+name: fbbec921
+#+begin_src elisp
+;; 取自doom org moudle
+(defun gwp::org-dwim-at-point (&optional arg)
+  "Do-what-I-mean at point.
+
+If on a:
+- checkbox list item or todo heading: toggle it.
+- clock: update its time.
+- footnote reference: jump to the footnote's definition
+- footnote definition: jump to the first reference of this footnote
+- table-row or a TBLFM: recalculate the table's formulas
+- table-cell: clear it and go into insert mode. If this is a formula cell,
+  recaluclate it instead.
+- babel-call: edit org-src
+- statistics-cookie: update it.
+- latex fragment: toggle it.
+- link: follow it
+- otherwise, refresh all inline images in current tree."
+  (interactive "P")
+  (if (button-at (point))
+      (call-interactively #'push-button)
+    (let* ((context (org-element-context))
+           (type (org-element-type context)))
+      ;; skip over unimportant contexts
+      (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
+        (setq context (org-element-property :parent context)
+              type (org-element-type context)))
+      (pcase type
+        (`clock (org-clock-update-time-maybe))
+
+        (`footnote-reference
+         (org-footnote-goto-definition (org-element-property :label context)))
+
+        (`footnote-definition
+         (org-footnote-goto-previous-reference (org-element-property :label context)))
+
+        ((or `planning `timestamp)
+         (org-follow-timestamp-link))
+
+        (`babel-call
+         (org-babel-lob-execute-maybe))
+
+        (`statistics-cookie
+         (save-excursion (org-update-statistics-cookies arg)))
+
+        ;; Hacked by ybyygu at 2021-04-13
+        ((or `src-block `inline-src-block)
+         (org-edit-special arg))
+
+        ((or `latex-fragment `latex-environment)
+         (org-latex-preview arg))
+
+        (`link
+         (let* ((lineage (org-element-lineage context '(link) t))
+                (path (org-element-property :path lineage)))
+           (if (or (equal (org-element-property :type lineage) "img")
+                   (and path (image-type-from-file-name path)))
+               (org-toggle-inline-images)
+             ;; 强制在本窗口打开
+             (let ((current-prefix-arg '(16)))     ; C-u C-u
+               (call-interactively #'gwp::org-open-at-point-dwim)))))
+
+        ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
+         (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
+           (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
+
+        (_
+         (if (or (org-in-regexp org-ts-regexp-both nil t)
+                 (org-in-regexp org-tsr-regexp-both nil  t)
+                 (org-in-regexp org-link-any-re nil t))
+             (call-interactively #'org-open-at-point)
+           ;; (+org--toggle-inline-images-in-subtree
+           ;;  (org-element-property :begin context)
+           ;;  (org-element-property :end context))
+           ))))))
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "RET"    #'gwp::org-dwim-at-point
+  [return] #'gwp::org-dwim-at-point
+  )
+#+end_src
+*** link
+默认用 firefox 打开, 可加过链接打开速度. 默认会经过 xdg-open, 有时很慢.
+
+#+name: 7330d8ac
+#+begin_src elisp
+;; (setq browse-url-browser-function 'browse-url-firefox)
+
+;; If available, use `xdg-open' to open URLs.
+(setq-default
+ browse-url-browser-function (quote browse-url-generic)
+ browse-url-generic-program "xdg-open")
+#+end_src
+
+*** latex preview
+默认公式预览图片太小, 改大一些([[https://emacs.stackexchange.com/questions/19880/font-size-control-of-latex-previews-in-org-files][URL]]).
+- [[https://emacs.stackexchange.com/questions/30309/latex-preview-on-hidpi-display/30318#30318][LaTeX preview on HiDPI display - Emacs Stack Exchange]]
+#+begin_src elisp
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 2.5))
+#+end_src
+
+*** toggle
+#+begin_src elisp
+(defun gwp::org-toggle-checkbox ()
+  (interactive)
+  (unless (org-at-item-p)
+    (call-interactively #'org-toggle-item))
+  (let ((current-prefix-arg '(4)))     ; C-u
+    (call-interactively #'org-toggle-checkbox)))
+#+end_src
+*** attach
+#+name: 994db730
+#+begin_src elisp
+(require 'org-attach)
+
+(defun gwp::org-attach-auto-directory ()
+  "为当前 headline 设置 DIR 属性 (基于 ID)"
+
+  (interactive)
+  (let* ((attach-dir (org-attach-dir-from-id (org-id-new)))
+         (current-dir (file-name-directory (or default-directory
+                                               buffer-file-name)))
+         (attach-dir-relative (file-relative-name attach-dir current-dir)))
+    (org-entry-put nil "DIR" attach-dir-relative)
+    attach-dir))
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "a"  #'(:ignore t :which-key "attach/agenda")
+ "an" #'gwp::org-attach-auto-directory)
+#+end_src
+*** zotero
+#+name: 458d7b11
+#+begin_src elisp
+(org-link-set-parameters "zotero" :follow #'gwp/org-zotero-open :export #'gwp/org-zotero-export)
+
+(defun gwp/org-zotero-open (path)
+  (setq url (format "zotero:%s" path))
+  (browse-url url))
+
+;; rust-modules
+(add-to-list 'load-path "/home/ybyygu/Workspace/Programming/emacs/rust-modules")
+(require 'zotero)
+
+(defun gwp/zotero-search-by-tag (name)
+  "Search Zotero entries by tag using ivy."
+  (interactive "sTag: ")
+
+  (let* ((candidates (zotero-search-items-by-tag name)))
+    (ivy-read (format "Zotero entries: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp/zotero-search-by-collection (name)
+  "Search Zotero entries by collection name using ivy."
+  (interactive "sCollection: ")
+
+  (let* ((candidates (zotero-search-items-by-collection name)))
+    (ivy-read (format "Zotero entries: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp--ivy-action-show-related-items (x)
+  "show related items from selection"
+  (let* ((candidates (zotero-get-related-items x)))
+    (ivy-read (format "Related: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp--ivy-action-annotate-attachment (pdf-file)
+  "Annotate the attachment with org-noter."
+  (let ((annotation-file (expand-file-name (car org-noter-default-notes-file-names) (file-name-directory pdf-file))))
+    (progn
+      ;; create an empty annotation file if not exists
+      (unless (file-exists-p annotation-file) (write-region "" nil annotation-file))
+      (org-open-file pdf-file)
+      (org-noter))))
+
+(defun gwp--ivy-open-file-dir (file)
+  "open parent directory of a file"
+  (dired-jump 0 file))
+
+(defun gwp--ivy-action-open-attachments (x)
+  "ivy completion for zotero attachments."
+  (let* ((candidates (zotero-get-selected-item-attachment-paths x)))
+    (ivy-read (format "Open attachment: ")
+              candidates
+              :action '(1               ; set the default action to open link
+                        ("o" org-open-file "Open")
+                        ("d" gwp--ivy-open-file-dir "Dired")
+                        ("n" gwp--ivy-action-annotate-attachment "Annotate")))))
+
+(defun gwp--ivy-action-insert-link (x)
+  (let ((uri (zotero-get-selected-item-link x)))
+    (if uri
+        (progn
+          (message "%s!" x)
+          (insert "[[" uri "][" "zotero-item" "]]"))
+      (error "No link extracted from: %s" x))))
+
+(defun gwp--ivy-action-open-link (x)
+  (let ((uri (zotero-get-selected-item-link x)))
+    (if uri
+        (progn
+          (message "%s!" x)
+          (org-link-open-from-string (format "[[%s]]" uri)))
+      (error "No link extracted from: %s" x))))
+
+(defun gwp/org-open-zotero-attachments-at-point (arg)
+  "Handle zotero attachments in org-mode"
+  (interactive "P")
+  (let ((ct (org-element-context)))
+    (if (eq 'link (org-element-type ct))
+        (let ((link (org-element-property :raw-link ct)))
+          (when link
+            (let ((key (zotero-get-item-key-from-link link)))
+              (if key
+                  (gwp--ivy-action-open-attachments key)
+                (error "Invalid zotero link!"))))))))
+
+(defun gwp/org-open-zotero-related-at-point (arg)
+  "Open related zotero items for zotero link at point"
+  (interactive "P")
+  (let ((ct (org-element-context)))
+    (if (eq 'link (org-element-type ct))
+        (let ((link (org-element-property :raw-link ct)))
+          (when link
+            (let ((key (zotero-get-item-key-from-link link)))
+              (if key
+                  (gwp--ivy-action-show-related-items key)
+                (error "Invalid zotero link!"))))))))
+
+(defun gwp/insert-new-zotero-item (arg)
+  "Create a new zotero item (report)"
+  (interactive "P")
+
+  (let ((uri (zotero-create-new-note)))
+    (if uri
+        (progn
+          (message "%s!" uri)
+          (insert "[[" uri "][" "zotero-note" "]]"))
+      (error "create zotero item failed!"))))
+
+;; https://www.reddit.com/r/emacs/comments/f3o0v8/anyone_have_good_examples_for_transient/
+(require 'transient)
+(transient-define-prefix gwp/zotero-search-transient ()
+  "Search zotero database"
+  ["Search zotero items:"
+   ("t" "search by tag" gwp/zotero-search-by-tag)
+   ("c" "search by collection" gwp/zotero-search-by-collection)
+   ("o" "open attachments at point" gwp/org-open-zotero-attachments-at-point)
+   ("r" "open related items at point" gwp/org-open-zotero-related-at-point)
+   ]
+  )
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "z" '(gwp/zotero-search-transient :which-key "zotero"))
+#+end_src
 
 *** superstar
 #+name: 0caa1907
@@ -2129,6 +2474,24 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 *** bindings
 #+name: dfee4224
 #+begin_src elisp
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
+ "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
+ "t"  #'(:ignore t :which-key "toggle")
+ "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
+ "th" #'org-toggle-heading
+ "t:" #'org-toggle-fixed-width
+ "tL" #'org-latex-preview
+ "tI" #'org-toggle-inline-images
+ "tc" #'gwp::org-toggle-checkbox
+)
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ [tab] '(org-next-link :which-key "goto next link")
+ [backtab] '(org-previous-link :which-key "goto next link"))
+
 (gwp::goto-leader-def
   :keymaps 'org-mode-map
   "k" '(org-up-element :which-key "goto up element")
@@ -2171,6 +2534,317 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 #+name: 183d2d8f
 #+begin_src elisp
 (provide 'init-org)
+#+end_src
+
+** init-note.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-note.el
+:END:
+*** docs
+仿 org-noter 但, 简化操作, 不依赖于 pdf-tools 等包, 可使用外部的 pdf 阅读器来处
+理 pdf 文件.
+
+pdf-tools 的缺点是太慢了, llpp 要快得多, 适合看稍大一些的文件. 使用 llpp 来打开
+org-noter 生成的note, 用于打开打定的 PDF 页面.
+
+: okular foo.pdf -p 5
+: evince foo.pdf -p 5
+: llpp foo.pdf -page 5
+
+批注流程
+- 使用 dired 打开某个 pdf 文件, 然后 ",nn", 在 pdf 所在目录生成并打开 annotation.note.
+- 在 org-mode 下, 自建 heading, ",ni", 插入 property, 标明 pdf 页码信息.
+- 在某 heading 下, ",no", 打开该 heading 对应的 pdf 文件及相应的页码
+
+另外, 通过 [[https://github.com/ymarco/paper-mode][ymarco/paper-mode]], 也可以把 llpp 放到 emacs buffer 中.
+
+*** require
+还是基于 org-noter 来开发, 能省一些事是一些.
+#+name: 2ad3390b
+#+begin_src elisp
+(use-package org-noter
+  :config
+  (setq org-noter-always-create-frame nil))
+#+end_src
+
+*** create file
+#+name: 8a535ad4
+#+begin_src elisp
+(defun gwp::org-note::create-annotation-file (document-path)
+  (let* ((note-file "annotation.note")
+         (document-name (file-name-nondirectory document-path))
+         (document-base (file-name-base document-name)))
+    (with-current-buffer (switch-to-buffer (find-file-noselect note-file))
+      (goto-char (point-max))
+      (insert "* " document-base)
+      (org-set-property org-noter-property-doc-file document-name)
+      (save-buffer))))
+
+;;;###autoload
+(defun gwp::org-note::dired-annotate-file-at-point ()
+  "标注 dired buffer 中所定的(pdf)文件"
+  (interactive)
+  (if (derived-mode-p 'dired-mode)
+      (gwp::org-note::create-annotation-file (dired-get-file-for-visit))
+    (user-error "not in dired buffer")))
+#+end_src
+
+*** handle READ
+在 dired 中选中的文件(PDF) 放至 ~/Boox/READ 目录下, 文件在移动设备中阅读批注
+
+keybinding [[id:424e51bc-9a50-49dd-bf4f-33795aec2eaa][keymap]]
+
+#+name: 7f3b3bee
+#+begin_src elisp
+(defun gwp::org-note::to-read-file-in-READ (document-path read-dir)
+  (let* ((document-name (file-name-nondirectory document-path))
+         (document-in-read (concat read-dir document-name)))
+
+    ;; 将当前文件复制至READ 目录下
+    (message (format "%s => %s" document-path document-in-read))
+    (rename-file document-path document-in-read)
+    ;; 再将该文件反向软链回当前目录
+    (make-symbolic-link (file-truename document-in-read) document-path)))
+
+;;;###autoload
+(defun gwp::org-note::dired-annotate-pdf-in-READ ()
+  "将 dired buffer 中所选定的(pdf)文件放至READ 目录下"
+  (interactive)
+  (if (derived-mode-p 'dired-mode)
+      (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
+        (gwp::org-note::to-read-file-in-READ (dired-get-file-for-visit) read-dir)
+        (dired-do-redisplay))
+    (user-error "not in dired buffer")))
+
+;;;###autoload
+(defun gwp::dired::symbol-link-move-back ()
+  "在 dired 中, 将当前软链所指向的文件取回来, 同时删除源文件"
+  (interactive)
+
+  (if (derived-mode-p 'dired-mode)
+      (let* ((this-file (dired-get-file-for-visit))
+             (target-path (file-truename this-file)))
+        (if (file-symlink-p this-file)
+            (when (file-exists-p target-path)
+              (delete-file this-file)
+              (rename-file target-path this-file 1)
+              (dired-do-redisplay)
+              (message "Moved from: %s" target-path))
+          (user-error "not a symlink file")))
+    (user-error "not in dired buffer")))
+#+end_src
+*** backlinks
+双向链接/反向链接是 roam research 里重要的特性.
+
+[[https://github.com/landakram/org-z][landakram/org-z: Lightweight, Org-mode flavored zettelkasten links.]]
+
+使用唯一的 ID 来管理 org heading 链接, 不依赖于文件名或 heading 字串, 可以保持链接的稳定性.
+#+name: ac1d0086
+#+begin_src elisp
+;; (use-package org-id
+;;   :custom
+;;   (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
+
+(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+#+end_src
+
+使用 counsel-org-link 也可用 ID 链接至本文档的 heading.
+
+如何打开 ID 链接呢?
+: org-id-track-globally
+: org-link-parameters
+: org-id-open
+: org-id-find
+: org-id-find-id-file
+: org-id-locations-file
+
+org 生成 ID 链接时, 会记录对应的文件路径, 然后在文件中搜索相应的 ID.
+org-id-locations-file 默认在 ~/emacs/.org-id-locations
+
+org 会自动扫描 org-directory 中的 org 文件, 找到有 ID 的文件名(org-id-find,
+org-id-find-id-file).
+
+ripgrep --files-with-matches "^\s*:ID: +ed7c"
+
+以下代码用 patch 覆盖 org-id-find-id-file 函数, 让去从~/.cache/notes 下找?
+#+name: 98fd4d7a
+#+begin_src elisp
+(use-package el-patch)
+
+(defun gwp::org-id-find-id-file (id)
+  (let* ((rg-command (format "ripgrep -l --color never -e '^\\s*:ID:\\s+%s' /home/ybyygu/.cache/notes" id))
+         (output (shell-command-to-string rg-command))
+         (file (car (split-string output "[\r\n]+" t))))
+    ;; (message "%s" rg-command)
+    file))
+
+(el-patch-feature org-id)
+(with-eval-after-load 'org-id
+  (el-patch-defun org-id-find-id-file (id)
+    "Query the id database for the file in which ID is located."
+    (unless org-id-locations (org-id-locations-load))
+    (or (and org-id-locations
+             (hash-table-p org-id-locations)
+             (gethash id org-id-locations))
+        ;; Fall back on current buffer
+        (or
+         (gwp::org-id-find-id-file id)
+         (buffer-file-name (or (buffer-base-buffer (current-buffer))
+                               (current-buffer)))))))
+#+end_src
+
+org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继承自 org-agenda?).
+
+#+name: 48102b4f
+#+begin_src elisp
+(use-package org-sidebar
+  :custom
+  (org-sidebar-side 'left)                                                         ; 新版中 left 是默认
+  (org-ql-sidebar-buffer-setup-hook nil)                                           ; 避免多行显示, 太乱
+  (org-sidebar-default-fns '(gwp::org-sidebar--backlinks org-sidebar--todo-items)) ; 使用反链视图
+  (org-sidebar-tree-jump-fn 'org-sidebar-tree-jump-source)                         ; 跳至源文件对应的位置, 而不是 narrowed heding
+  :config
+  ;; 避免误按
+  (;; map! :map org-sidebar-tree-map
+   ;;      [mouse-1] nil
+   ;;      [drag-mouse-1] nil
+   ))
+
+;;;###autoload
+(defun gwp::org-backlinks ()
+  "显示指向当前 heading 的反向链接"
+  (interactive)
+
+  (let* ((org-sidebar-side 'right)
+         (id (org-entry-get (point) "ID"))
+         (custom-id (org-entry-get (point) "CUSTOM_ID"))
+         (query (gwp::org-backlinks--get-query id custom-id)))
+    (org-sidebar-ql (gwp::org-backlinks-search-files id)
+      query :title (concat "Links to: " (org-get-heading t t)))))
+
+(defun gwp::org-backlinks--get-query (id custom-id)
+  (cond ((and id custom-id)
+         ;; This will be slow because it isn't optimized to a single regexp.  :(
+         (warn "Entry has both ID and CUSTOM_ID set; query will be slow")
+         `(or (link :target ,(concat "id:" id))
+              (link :target ,(concat "id:" custom-id))))
+        ((or id custom-id)
+         `(link :target ,(concat "id:" (or id custom-id))))
+        (t (error "Entry has no ID nor CUSTOM_ID property"))))
+
+
+;; reference:
+;; (collection (funcall ffip-project-search-function cmd))
+(defun gwp::org-backlinks-search-files (keyword)
+  "搜索文件系统中所有的.note文件, 返回包含引用 keyword 的文件名"
+  (let* (
+         (rg-command (format "ripgrep -l --color never -e %s /home/ybyygu/.cache/notes" keyword))
+         (output (shell-command-to-string rg-command))
+         (collection (split-string output "[\r\n]+" t))
+         result)
+    ;; (message "shell output:\n%s\nshell output ends here" output)
+    (dolist (file collection result) (push file result))
+    result))
+
+(defun gwp::org-sidebar--backlinks (source-buffer)
+  "在 org-sidebar 中显示 backlinks buffer"
+  (let* ((display-buffer (generate-new-buffer (format "org-sidebar<%s>" (buffer-name source-buffer))))
+         (title (propertize (concat "反链条目: " (buffer-name source-buffer)) 'help-echo "含有指向当前heading链接的条目"))
+         (id (org-entry-get (point) "ID"))
+         (custom-id (org-entry-get (point) "CUSTOM_ID"))
+         (source-buffers (gwp::org-backlinks-search-files id))
+         query)
+    (with-current-buffer display-buffer
+      (setf org-sidebar-source-buffer source-buffer))
+
+    ;; 如果当前 heading 无 ID, 不报错
+    (condition-case err
+        (setq query (gwp::org-backlinks--get-query id custom-id))
+      (error
+       (message "%s" (error-message-string err))
+       (setq source-buffers nil)))
+    (org-ql-search source-buffers
+      query
+      :buffer display-buffer
+      :title title)
+
+    display-buffer))
+#+end_src
+
+*** open
+#+name: 1773f1a3
+#+begin_src elisp
+(defun gwp::org-note::get-pdf-file ()
+  (save-excursion
+    (if (search-backward ":NOTER_DOCUMENT" nil t)
+        (progn
+          (org-back-to-heading)
+          (let ((pdf (org-element-property :NOTER_DOCUMENT (org-element-at-point))))
+            (message "%s" pdf)))
+      (message "no pdf doc found"))))
+
+(defun gwp::org-note::get-pdf-page ()
+  (save-excursion
+    (org-back-to-heading)
+    (let ((property (org-element-property :NOTER_PAGE (org-element-at-point))))
+      (let ((value (car (read-from-string property))))
+        (cond
+         ((consp value) (car value))
+         (t value))))))
+
+;;;###autoload
+(defun gwp::org-note::new-note ()
+  "在当前 heading 下插入新的文献阅读笔记"
+  (interactive)
+  ;; (let ((current-prefix-arg '(4)))     ; C-u
+  ;;   (call-interactively #'org-insert-heading))
+  ;; (insert (read-string "笔记标题: "))
+  (if (org-at-heading-p)
+      (let ((page (read-number "PDF 页码: " 1)))
+        (org-set-property "NOTER_PAGE" (number-to-string page)))
+    (user-error "not at org heading.")))
+
+;;;###autoload
+(defun gwp::org-note::open-pdf ()
+  "使用 llpp 来打开当前笔记对应的 pdf 文件, 并转到指定的页码"
+  (interactive)
+  (let ((page (gwp::org-note::get-pdf-page))
+        (pdf (gwp::org-note::get-pdf-file)))
+    (if page
+        (start-process "llpp" nil "llpp" pdf "-page" (format "%s" page))
+      ;; (start-process "okular" nil "okular" pdf "-p" (format "%s" page))
+      (start-process "llpp" nil "llpp" pdf)
+      ;; (start-process "okular" nil "okular" pdf)
+      )))
+#+end_src
+
+*** bindings
+#+name: 8ae833e2
+#+begin_src elisp
+(require 'dired)
+
+(gwp::local-leader-def
+  :keymaps 'dired-mode-map
+  "n" #'(gwp::org-note::dired-annotate-file-at-point :which-key "PDF 批注")
+  "R" #'(gwp::org-note::dired-annotate-pdf-in-READ :which-key "置入待读(READ)")
+  "T" #'(gwp::dired::symbol-link-move-back :which-key "取回软链源文件")
+  )
+
+(require 'org)
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "n" '(:ignore t :which-key "org note")
+  "nb" #'gwp::org-backlinks
+  "no" #'gwp::org-note::open-pdf
+  )
+
+#+end_src
+
+*** provide
+#+name: 8d4b377b
+#+begin_src elisp
+(provide 'init-note)
 #+end_src
 
 ** init-completion.el

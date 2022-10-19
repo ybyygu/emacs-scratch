@@ -5,15 +5,6 @@
 
 ;; Packages
 (require 'package)
-;; (setq package-archives
-;;       '(("gnu"   . "http://elpa.gnu.org/packages/")
-;;         ("melpa" . "http://melpa.org/packages/")))
-
-;; (setq package-archives
-;;       '(("gnu" . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-;;         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-;;         ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-;;         ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")))
 
 (setq package-archives
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -59,7 +50,7 @@
   (which-key-mode)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 1
+  (setq which-key-idle-delay 3
         which-key-sort-uppercase-first nil))
 
 (use-package ivy-rich
@@ -87,6 +78,7 @@
 (require 'init-org)
 (require 'init-develop)
 (require 'init-completion)
+(require 'init-note)
 ;; 158fcd0c ends here
 
 ;; [[file:gwp-scratch.note::f1b9d1b9][f1b9d1b9]]
@@ -144,3 +136,16 @@
   ;; (browse-url-browser-function 'eaf-open-browser)
   )
 ;; f1b9d1b9 ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(org-sidebar yasnippet which-key use-package symbol-overlay simpleclip rime org-superstar org-noter meow marginalia magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general find-file-in-project embark doom-themes doom-modeline crux counsel command-log-mode burly ace-window)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

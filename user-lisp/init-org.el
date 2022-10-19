@@ -23,6 +23,325 @@
   (setq org-catch-invisible-edits 'show-and-error))
 ;; e2f6b646 ends here
 
+;; [[file:../gwp-scratch.note::*view][view:1]]
+;; https://orgmode.org/manual/Clean-view.html
+(setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
+(with-eval-after-load 'org-indent
+  (setq org-indent-indentation-per-level 1)) ;; default = 2
+
+;; 对齐headline中的TAGs
+(setq org-tags-column -80)
+
+;; 方便用 property 来控制 image 显示大小
+(setq org-image-actual-width nil)
+
+;; 避免误编辑
+(setq org-catch-invisible-edits 'show-and-error)
+
+;; 避免显示subtree之间多余的空行
+(setq org-cycle-separator-lines 0)
+
+;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
+(setq org-fontify-emphasized-text nil)
+;; view:1 ends here
+
+;; [[file:../gwp-scratch.note::2f61258f][2f61258f]]
+;; https://stackoverflow.com/questions/17590784/how-to-let-org-mode-open-a-link-like-file-file-org-in-current-window-inste
+;; Depending on universal argument try opening link
+(defun gwp::org-open-at-point-dwim (&optional arg)
+  (interactive "P")
+  (cond
+   ((equal arg '(16))                    ; C-u C-u
+    (let ((org-link-frame-setup (quote ((file . find-file)))))
+      (org-open-at-point)))
+   ((equal arg '(4))                     ; C-u
+    (let ((org-link-frame-setup (quote ((file . find-file-other-frame)))))
+      (org-open-at-point)))
+   (t                                   ; the default behavior
+    (let ((org-link-frame-setup (quote ((file . find-file-other-window)))))
+      (org-open-at-point)
+      (golden-ratio)))))
+
+;; 注释代码时, 在org code block下特殊处理. 不然光标会跳开很远.
+(defun gwp/comment-or-uncomment-dwim ()
+  (interactive)
+  (save-excursion
+    (if (org-in-src-block-p)
+        (progn
+          (org-edit-src-code)
+          (call-interactively 'comment-dwim)
+          (org-edit-src-exit))
+      (call-interactively 'comment-dwim))))
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "o"      #'gwp::org-open-at-point-dwim)
+;; 2f61258f ends here
+
+;; [[file:../gwp-scratch.note::fbbec921][fbbec921]]
+;; 取自doom org moudle
+(defun gwp::org-dwim-at-point (&optional arg)
+  "Do-what-I-mean at point.
+
+If on a:
+- checkbox list item or todo heading: toggle it.
+- clock: update its time.
+- footnote reference: jump to the footnote's definition
+- footnote definition: jump to the first reference of this footnote
+- table-row or a TBLFM: recalculate the table's formulas
+- table-cell: clear it and go into insert mode. If this is a formula cell,
+  recaluclate it instead.
+- babel-call: edit org-src
+- statistics-cookie: update it.
+- latex fragment: toggle it.
+- link: follow it
+- otherwise, refresh all inline images in current tree."
+  (interactive "P")
+  (if (button-at (point))
+      (call-interactively #'push-button)
+    (let* ((context (org-element-context))
+           (type (org-element-type context)))
+      ;; skip over unimportant contexts
+      (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
+        (setq context (org-element-property :parent context)
+              type (org-element-type context)))
+      (pcase type
+        (`clock (org-clock-update-time-maybe))
+
+        (`footnote-reference
+         (org-footnote-goto-definition (org-element-property :label context)))
+
+        (`footnote-definition
+         (org-footnote-goto-previous-reference (org-element-property :label context)))
+
+        ((or `planning `timestamp)
+         (org-follow-timestamp-link))
+
+        (`babel-call
+         (org-babel-lob-execute-maybe))
+
+        (`statistics-cookie
+         (save-excursion (org-update-statistics-cookies arg)))
+
+        ;; Hacked by ybyygu at 2021-04-13
+        ((or `src-block `inline-src-block)
+         (org-edit-special arg))
+
+        ((or `latex-fragment `latex-environment)
+         (org-latex-preview arg))
+
+        (`link
+         (let* ((lineage (org-element-lineage context '(link) t))
+                (path (org-element-property :path lineage)))
+           (if (or (equal (org-element-property :type lineage) "img")
+                   (and path (image-type-from-file-name path)))
+               (org-toggle-inline-images)
+             ;; 强制在本窗口打开
+             (let ((current-prefix-arg '(16)))     ; C-u C-u
+               (call-interactively #'gwp::org-open-at-point-dwim)))))
+
+        ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
+         (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
+           (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
+
+        (_
+         (if (or (org-in-regexp org-ts-regexp-both nil t)
+                 (org-in-regexp org-tsr-regexp-both nil  t)
+                 (org-in-regexp org-link-any-re nil t))
+             (call-interactively #'org-open-at-point)
+           ;; (+org--toggle-inline-images-in-subtree
+           ;;  (org-element-property :begin context)
+           ;;  (org-element-property :end context))
+           ))))))
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "RET"    #'gwp::org-dwim-at-point
+  [return] #'gwp::org-dwim-at-point
+  )
+;; fbbec921 ends here
+
+;; [[file:../gwp-scratch.note::7330d8ac][7330d8ac]]
+;; (setq browse-url-browser-function 'browse-url-firefox)
+
+;; If available, use `xdg-open' to open URLs.
+(setq-default
+ browse-url-browser-function (quote browse-url-generic)
+ browse-url-generic-program "xdg-open")
+;; 7330d8ac ends here
+
+;; [[file:../gwp-scratch.note::*latex preview][latex preview:1]]
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 2.5))
+;; latex preview:1 ends here
+
+;; [[file:../gwp-scratch.note::*toggle][toggle:1]]
+(defun gwp::org-toggle-checkbox ()
+  (interactive)
+  (unless (org-at-item-p)
+    (call-interactively #'org-toggle-item))
+  (let ((current-prefix-arg '(4)))     ; C-u
+    (call-interactively #'org-toggle-checkbox)))
+;; toggle:1 ends here
+
+;; [[file:../gwp-scratch.note::994db730][994db730]]
+(require 'org-attach)
+
+(defun gwp::org-attach-auto-directory ()
+  "为当前 headline 设置 DIR 属性 (基于 ID)"
+
+  (interactive)
+  (let* ((attach-dir (org-attach-dir-from-id (org-id-new)))
+         (current-dir (file-name-directory (or default-directory
+                                               buffer-file-name)))
+         (attach-dir-relative (file-relative-name attach-dir current-dir)))
+    (org-entry-put nil "DIR" attach-dir-relative)
+    attach-dir))
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "a"  #'(:ignore t :which-key "attach/agenda")
+ "an" #'gwp::org-attach-auto-directory)
+;; 994db730 ends here
+
+;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
+(org-link-set-parameters "zotero" :follow #'gwp/org-zotero-open :export #'gwp/org-zotero-export)
+
+(defun gwp/org-zotero-open (path)
+  (setq url (format "zotero:%s" path))
+  (browse-url url))
+
+;; rust-modules
+(add-to-list 'load-path "/home/ybyygu/Workspace/Programming/emacs/rust-modules")
+(require 'zotero)
+
+(defun gwp/zotero-search-by-tag (name)
+  "Search Zotero entries by tag using ivy."
+  (interactive "sTag: ")
+
+  (let* ((candidates (zotero-search-items-by-tag name)))
+    (ivy-read (format "Zotero entries: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp/zotero-search-by-collection (name)
+  "Search Zotero entries by collection name using ivy."
+  (interactive "sCollection: ")
+
+  (let* ((candidates (zotero-search-items-by-collection name)))
+    (ivy-read (format "Zotero entries: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp--ivy-action-show-related-items (x)
+  "show related items from selection"
+  (let* ((candidates (zotero-get-related-items x)))
+    (ivy-read (format "Related: ")
+              candidates
+              :action '(2               ; set the default action to open attachments
+                        ("o" gwp--ivy-action-open-link "Open link")
+                        ("O" gwp--ivy-action-open-attachments "Open attachments")
+                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
+                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+
+(defun gwp--ivy-action-annotate-attachment (pdf-file)
+  "Annotate the attachment with org-noter."
+  (let ((annotation-file (expand-file-name (car org-noter-default-notes-file-names) (file-name-directory pdf-file))))
+    (progn
+      ;; create an empty annotation file if not exists
+      (unless (file-exists-p annotation-file) (write-region "" nil annotation-file))
+      (org-open-file pdf-file)
+      (org-noter))))
+
+(defun gwp--ivy-open-file-dir (file)
+  "open parent directory of a file"
+  (dired-jump 0 file))
+
+(defun gwp--ivy-action-open-attachments (x)
+  "ivy completion for zotero attachments."
+  (let* ((candidates (zotero-get-selected-item-attachment-paths x)))
+    (ivy-read (format "Open attachment: ")
+              candidates
+              :action '(1               ; set the default action to open link
+                        ("o" org-open-file "Open")
+                        ("d" gwp--ivy-open-file-dir "Dired")
+                        ("n" gwp--ivy-action-annotate-attachment "Annotate")))))
+
+(defun gwp--ivy-action-insert-link (x)
+  (let ((uri (zotero-get-selected-item-link x)))
+    (if uri
+        (progn
+          (message "%s!" x)
+          (insert "[[" uri "][" "zotero-item" "]]"))
+      (error "No link extracted from: %s" x))))
+
+(defun gwp--ivy-action-open-link (x)
+  (let ((uri (zotero-get-selected-item-link x)))
+    (if uri
+        (progn
+          (message "%s!" x)
+          (org-link-open-from-string (format "[[%s]]" uri)))
+      (error "No link extracted from: %s" x))))
+
+(defun gwp/org-open-zotero-attachments-at-point (arg)
+  "Handle zotero attachments in org-mode"
+  (interactive "P")
+  (let ((ct (org-element-context)))
+    (if (eq 'link (org-element-type ct))
+        (let ((link (org-element-property :raw-link ct)))
+          (when link
+            (let ((key (zotero-get-item-key-from-link link)))
+              (if key
+                  (gwp--ivy-action-open-attachments key)
+                (error "Invalid zotero link!"))))))))
+
+(defun gwp/org-open-zotero-related-at-point (arg)
+  "Open related zotero items for zotero link at point"
+  (interactive "P")
+  (let ((ct (org-element-context)))
+    (if (eq 'link (org-element-type ct))
+        (let ((link (org-element-property :raw-link ct)))
+          (when link
+            (let ((key (zotero-get-item-key-from-link link)))
+              (if key
+                  (gwp--ivy-action-show-related-items key)
+                (error "Invalid zotero link!"))))))))
+
+(defun gwp/insert-new-zotero-item (arg)
+  "Create a new zotero item (report)"
+  (interactive "P")
+
+  (let ((uri (zotero-create-new-note)))
+    (if uri
+        (progn
+          (message "%s!" uri)
+          (insert "[[" uri "][" "zotero-note" "]]"))
+      (error "create zotero item failed!"))))
+
+;; https://www.reddit.com/r/emacs/comments/f3o0v8/anyone_have_good_examples_for_transient/
+(require 'transient)
+(transient-define-prefix gwp/zotero-search-transient ()
+  "Search zotero database"
+  ["Search zotero items:"
+   ("t" "search by tag" gwp/zotero-search-by-tag)
+   ("c" "search by collection" gwp/zotero-search-by-collection)
+   ("o" "open attachments at point" gwp/org-open-zotero-attachments-at-point)
+   ("r" "open related items at point" gwp/org-open-zotero-related-at-point)
+   ]
+  )
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "z" '(gwp/zotero-search-transient :which-key "zotero"))
+;; 458d7b11 ends here
+
 ;; [[file:../gwp-scratch.note::0caa1907][0caa1907]]
 (use-package org-superstar
   :init
@@ -499,6 +818,24 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; ded2ea25 ends here
 
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
+ "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
+ "t"  #'(:ignore t :which-key "toggle")
+ "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
+ "th" #'org-toggle-heading
+ "t:" #'org-toggle-fixed-width
+ "tL" #'org-latex-preview
+ "tI" #'org-toggle-inline-images
+ "tc" #'gwp::org-toggle-checkbox
+)
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ [tab] '(org-next-link :which-key "goto next link")
+ [backtab] '(org-previous-link :which-key "goto next link"))
+
 (gwp::goto-leader-def
   :keymaps 'org-mode-map
   "k" '(org-up-element :which-key "goto up element")
