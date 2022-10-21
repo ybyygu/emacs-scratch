@@ -45,6 +45,21 @@
 (setq org-fontify-emphasized-text nil)
 ;; view:1 ends here
 
+;; [[file:../gwp-scratch.note::10584ca0][10584ca0]]
+;; 显示光标所在处的内容
+(defun gwp::org-show-context-at-point ()
+  (interactive)
+  (call-interactively #'org-show-subtree)
+  ;; 从下面的命令看来的
+  ;; (call-interactively 'org-mark-ring-goto)
+  ;; (org-show-context 'mark-goto)
+  ;; (when (or (org-invisible-p) (org-invisible-p2)) (org-show-context 'mark-goto))
+  (call-interactively #'org-reveal))
+
+;; 默认的为 org-reveal, 但不太好用
+(bind-key "C-c C-r" 'gwp::org-show-context-at-point org-mode-map)
+;; 10584ca0 ends here
+
 ;; [[file:../gwp-scratch.note::2f61258f][2f61258f]]
 ;; https://stackoverflow.com/questions/17590784/how-to-let-org-mode-open-a-link-like-file-file-org-in-current-window-inste
 ;; Depending on universal argument try opening link
@@ -73,9 +88,11 @@
           (org-edit-src-exit))
       (call-interactively 'comment-dwim))))
 
+(bind-key "C-c C-o" 'gwp::org-open-at-point-dwim org-mode-map)
+
 (gwp::local-leader-def
   :keymaps 'org-mode-map
-  "o"      #'gwp::org-open-at-point-dwim)
+  "o"      #'(gwp::org-open-at-point-dwim :which-key "open at point"))
 ;; 2f61258f ends here
 
 ;; [[file:../gwp-scratch.note::fbbec921][fbbec921]]
@@ -196,11 +213,6 @@ If on a:
          (attach-dir-relative (file-relative-name attach-dir current-dir)))
     (org-entry-put nil "DIR" attach-dir-relative)
     attach-dir))
-
-(gwp::local-leader-def
- :keymaps 'org-mode-map
- "a"  #'(:ignore t :which-key "attach/agenda")
- "an" #'gwp::org-attach-auto-directory)
 ;; 994db730 ends here
 
 ;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
@@ -342,6 +354,83 @@ If on a:
  "z" '(gwp/zotero-search-transient :which-key "zotero"))
 ;; 458d7b11 ends here
 
+;; [[file:../gwp-scratch.note::*custom][custom:1]]
+(defun gwp::new-memo-time-stamp (arg)
+  "Insert a new org-mode memo entry under heading at point."
+  (interactive "P")
+  (unless (org-at-heading-p)
+    (org-up-element))
+  (call-interactively 'crux-smart-open-line)
+  (call-interactively 'org-insert-todo-subheading)
+  (call-interactively 'org-time-stamp-inactive)
+  (when (meow-normal-mode-p) (call-interactively 'meow-insert))
+  (insert " "))
+
+(defun gwp::new-item-time-stamp (arg)
+  (interactive "P")
+  (if (org-in-item-p)
+      (progn
+        (call-interactively 'org-beginning-of-item)
+        (call-interactively 'org-insert-item))
+    (insert "- "))
+  (call-interactively 'org-time-stamp-inactive)
+  (insert " ")
+  (when (meow-normal-mode-p) (call-interactively 'meow-insert)))
+;; custom:1 ends here
+
+;; [[file:../gwp-scratch.note::492d6ae4][492d6ae4]]
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "i"  #'(:ignore t :which-key "insert")
+ "im" #'gwp::new-memo-time-stamp ; 简化操作
+ "ii" #'gwp::new-item-time-stamp
+ "in" #'org-add-note			; or C-c C-z
+)
+;; 492d6ae4 ends here
+
+;; [[file:../gwp-scratch.note::3b9396a6][3b9396a6]]
+(defun gwp/org-image-attributes-default (&optional caption)
+  "default image attributes: caption, name label, width ..."
+  "Annotate LINK with the time of download."
+  (format (concat
+           (concat  "#+caption: " (read-string "Caption: " caption) "\n")
+           ;; set unique figure name
+           (format "#+name: fig:%s\n" (substring (org-id-new) 0 8))
+           ;; unit in px; for displaying in org-mode
+           "#+attr_org: :width 800\n"
+           ;; unit in cm; for exporting as odt
+           "#+attr_odt: :width 10\n"
+           )))
+
+(defun gwp/org-insert-image-attributes (&optional caption)
+  "insert image attributes such as caption and labels"
+  (interactive)
+  (insert (gwp/org-image-attributes-default caption)))
+
+(defun gwp/org-download-annotate (link)
+  "Annotate LINK with the time of download."
+  (gwp/org-image-attributes-default))
+
+(use-package org-download
+  :commands
+  org-download-delete
+  org-download-yank
+  org-download-clipboard
+  :hook ((org-mode . org-download-enable)) ; 启用拖放功能
+  :bind (:map org-mode-map
+         ("C-c v" . org-download-clipboard))
+  :config
+  (setq org-download-method 'attach
+        org-download-annotate-function 'gwp/org-download-annotate
+        ;; org-download-image-html-width 900 ; in px
+        ;; org-download-image-latex-width 16 ; in cm
+        ;; 2021-09-03: 直接调用org-download-clipboard即可, 以下代码不必要
+        ;; org-download-screenshot-method
+        ;; (cond ((executable-find "txclip")  "txclip paste --image -o %s")
+        ;;       ((executable-find "scrot") "scrot -s %s"))
+        ))
+;; 3b9396a6 ends here
+
 ;; [[file:../gwp-scratch.note::0caa1907][0caa1907]]
 (use-package org-superstar
   :init
@@ -380,6 +469,19 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 (help/set-org-babel-default-header-args :comments "link")
 ;; d309f5b7 ends here
 
+;; [[file:../gwp-scratch.note::661f0512][661f0512]]
+(defun gwp/org-babel-tangle-no()
+  "Turn on or turn off tangling current code block"
+  (interactive)
+  (if (eq 'src-block (org-element-type (org-element-at-point)))
+      (save-excursion
+        (org-babel-goto-src-block-head)
+        (if (re-search-forward ":tangle no" (line-end-position) t)
+            (delete-region (match-beginning 0) (match-end 0))
+          (org-babel-insert-header-arg "tangle" "no")))
+    (org-set-property "header-args" ":tangle no")))
+;; 661f0512 ends here
+
 ;; [[file:../gwp-scratch.note::1a4b128e][1a4b128e]]
 (defun gwp/org-src-insert-name ()
   "If it doesn't have a NAME property then assign it an unique name."
@@ -406,6 +508,14 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
   ;; tangle blocks only for target file at point
   (let ((current-prefix-arg '(16)))     ; C-u C-u
     (call-interactively 'org-babel-tangle)))
+
+;; narrow to subtree before calling org-babel-tangle
+(defun gwp/org-tangle-subtree()
+  "Tange src blocks in current subtree"
+  (interactive)
+  (org-narrow-to-subtree)
+  (org-babel-tangle)
+  (widen))
 
 ;;;###autoload
 (defun gwp/org-edit-save-and-tangle ()
@@ -564,6 +674,10 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
       (message "narrowed to headline at point")
       (org-tree-to-indirect-buffer))))
 ;; 097db727 ends here
+
+;; [[file:../gwp-scratch.note::82ecc499][82ecc499]]
+
+;; 82ecc499 ends here
 
 ;; [[file:../gwp-scratch.note::4971b464][4971b464]]
 ;;;###autoload
@@ -820,15 +934,42 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (gwp::local-leader-def
  :keymaps 'org-mode-map
+ "a"  #'(:ignore t :which-key "attach")
+ "aa" #'org-attach
+ "an" #'gwp::org-attach-auto-directory)
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "b"  #'(:ignore t :which-key "babel/buffer")
+  "bn" #'gwp/org-babel-tangle-no
+  "bj" #'gwp::org-babel-tangle-jump-to-file
+  "bt" #'gwp/org-tangle-subtree
+  "bb" #'org-switchb ; 仿SPC-b-b
+  "b M-p" '(org-previous-block :which-key "previous block")
+  "b M-n" '(org-next-block :which-key "next block"))
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
+ "m"  #'(:ignore t :which-key "mark")
+ "m." #'org-mark-element
+ "mm" #'org-mark-ring-push
+ "mp" #'org-mark-ring-goto
+ "ms" #'org-babel-mark-block)
+
+(gwp::local-leader-def
+ :keymaps 'org-mode-map
  "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
  "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
  "t"  #'(:ignore t :which-key "toggle")
  "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
  "th" #'org-toggle-heading
  "t:" #'org-toggle-fixed-width
+ ;; 可用 C-c C-x C-l
  "tL" #'org-latex-preview
+ ;; 可用 C-c C-x v
  "tI" #'org-toggle-inline-images
  "tc" #'gwp::org-toggle-checkbox
+ "ts" #'org-sidebar-tree-toggle
 )
 
 (gwp::local-leader-def

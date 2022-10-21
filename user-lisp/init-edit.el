@@ -172,11 +172,11 @@
    '("]" . sp-unwrap-sexp)
    '("R" . sp-unwrap-sexp)                         ; 比] 容易按一些
    '("$" . ispell-word)
-   '("'" . repeat)                      ; 重复上一个命令
    '("=" . meow-goto-line)
    ;; '("z" . avy-goto-char-in-line)
    '("z" . meow-pop-selection)
-   '("Z" . repeat-complex-command)      ; 重复上一个需要 minibuffer 输入的命令
+   '("'" . repeat-complex-command)      ; 重复上一个需要 minibuffer 输入的命令
+   '("Z" . repeat)                      ; 重复上一个命令
    )
 
   ;; 当无选区时执行的功能
@@ -277,6 +277,10 @@
   (meow-setup-indicator))
 ;; 9a723a5b ends here
 
+;; [[file:../gwp-scratch.note::*helpful][helpful:1]]
+
+;; helpful:1 ends here
+
 ;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
 (gwp::goto-leader-def
   :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
@@ -310,6 +314,13 @@
  "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
  )
 ;; 33105bcf ends here
+
+;; [[file:../gwp-scratch.note::*bindings: SPC-s search][bindings: SPC-s search:1]]
+(gwp::leader-def
+ "s" '(:ignore t :which-key "search")
+ "ss" '(counsel-grep-or-swiper :which-key "search buffer")
+ )
+;; bindings: SPC-s search:1 ends here
 
 ;; [[file:../gwp-scratch.note::e13c7903][e13c7903]]
 (defun spacemacs/open-in-external-app (file-path)
@@ -388,6 +399,14 @@ If two universal prefix arguments are used, then prompt for command to use."
  "ot" '(gwp::open-terminal-here :which-key "open terminal here")
  )
 ;; 826282dd ends here
+
+;; [[file:../gwp-scratch.note::574271f2][574271f2]]
+(gwp::leader-def
+ "r" '(:ignore t :which-key "resume/ring")
+ "rb" '(counsel-bookmark :which-key "bookmarks")
+ "rl" '(ivy-resume :which-key "resume last search")
+ )
+;; 574271f2 ends here
 
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
 (require 'recentf)

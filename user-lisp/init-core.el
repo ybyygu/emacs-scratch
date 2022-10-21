@@ -43,6 +43,14 @@
 (global-set-key (kbd "C-d") #'gwp::ctrl-d-dwim)
 ;; 7d5caf69 ends here
 
+;; [[file:../gwp-scratch.note::9e3bdda9][9e3bdda9]]
+(use-package emacs
+  :custom
+  ;; 访问软链接文件时使用真实的文件路径, 避免文件项目
+  (find-file-visit-truename t)
+  (vc-follow-symlinks t))
+;; 9e3bdda9 ends here
+
 ;; [[file:../gwp-scratch.note::9f41280c][9f41280c]]
 (defun gwp::undo-dwim ()
   (interactive)
