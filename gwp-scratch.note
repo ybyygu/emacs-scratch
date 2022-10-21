@@ -863,6 +863,37 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
 #+end_src
 
 *** bindings: SPC-f
+从spacemacs中改过来的
+#+name: e13c7903
+#+begin_src emacs-lisp
+(defun spacemacs/open-in-external-app (file-path)
+  "Open `file-path' in external application."
+  (let ((process-connection-type nil))
+    (start-process "" nil "xdg-open" file-path)))
+
+(defun spacemacs/open-file-or-directory-in-external-app (arg)
+  "Open current file in external application.
+If the universal prefix argument is used then open the folder
+containing the current file by the default explorer.
+If two universal prefix arguments are used, then prompt for command to use."
+  (interactive "P")
+  (if (equal arg '(4))                  ; C-u
+      (spacemacs/open-in-external-app (expand-file-name default-directory))
+    (let ((file-path (if (derived-mode-p 'dired-mode)
+                         (dired-get-file-for-visit)
+                       buffer-file-name)))
+      (if file-path
+          (if (equal arg '(16))         ; C-u C-u
+              (progn
+                (let ((program (read-shell-command "Open current file with: ")))
+                  (call-process program nil 0 nil file-path)))
+            (spacemacs/open-in-external-app file-path))
+        ;; for EAF pdf
+        (if (derived-mode-p 'eaf-mode)
+            (eaf-open-external)
+          (message "No file associated to this buffer."))))))
+#+end_src
+
 #+name: 45f27ad1
 #+begin_src elisp
   (gwp::leader-def
@@ -871,6 +902,7 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
    "fj" '(dired-jump :which-key "jump to dired buffer")
    "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
    "fb" '(counsel-bookmark :which-key "open bookmarks")
+   "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
    )
 #+end_src
 
@@ -891,6 +923,73 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
  "j" '(:ignore t :which-key "jump")
  "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
  "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
+ )
+#+end_src
+
+*** bindings: SPC-o
+emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
+
+#+name: 826282dd
+#+begin_src elisp
+(defun gwp/open-in-gnome-terminal (the-directory)
+  "Open `the-directory' in external gnome-terminal."
+  (let ((process-connection-type nil))
+    ;; (start-process "" nil "terminal-dwim.sh" (concat "--working-directory=" the-directory) "-e" "tmux")
+    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")
+    ))
+
+(defun gwp::open-terminal-here ()
+  "Open the current dir in a new terminal window"
+  (interactive)
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
+    (gwp/open-in-gnome-terminal (expand-file-name default-directory))))
+
+(gwp::leader-def
+ "o" '(:ignore t :which-key "open")
+ "ot" '(gwp::open-terminal-here :which-key "open terminal here")
+ )
+#+end_src
+
+*** bindings: SPC-d develop
+#+name: e724170b
+#+begin_src elisp
+(require 'recentf)
+(defun gwp::zoxide-recent-directories ()
+  (let* ((output (shell-command-to-string "zoxide query --list"))
+         (dirs (split-string output "[\r\n]+" t)))
+    dirs))
+
+(defun gwp::dired-recent-directories ()
+  (let* ((recent-dirs
+          (mapcar (lambda (file)
+                    (if (file-directory-p file) file (file-name-directory file)))
+                  recentf-list)))
+    recent-dirs))
+
+(defun gwp::zoxide-add-directory (dir)
+  "将 dir 加入 zoxide 数据库中"
+  (when dir (call-process "zoxide" nil nil nil "add" dir)))
+
+;; open recent directory, requires ivy (part of swiper)
+;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
+;;;###autoload
+(defun gwp::ivy-recent-dirs ()
+  "Present a list of recently used directories and open the selected one in dired"
+  (interactive)
+  (let ((recent-dirs
+         (delete-dups
+          (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories)))))
+    (let ((dir (ivy-read "Directory: " recent-dirs
+                         :sort nil
+                         :action '(1 ("o" gwp::zoxide-add-directory "open")))))
+      (dired dir))))
+
+(gwp::leader-def
+ "d" '(:ignore t :which-key "develop")
+ "dr" '(gwp::ivy-recent-dirs :which-key "recent dirs")
+ "dl" '(comment-dwim :which-key "comment/uncomment lines")
  )
 #+end_src
 
@@ -1395,7 +1494,11 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+name: 44d5ec48
 #+begin_src elisp
 ;; keymaps for leader key
-(use-package winner)
+(use-package winner
+  :custom
+  ;; 去掉 C-c left, C-c right
+  (winner-dont-bind-my-keys t))
+
 (winner-mode 1)
 
 (general-define-key
@@ -2140,7 +2243,8 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 (defun gwp::org-babel-narrow-to-tangle-heading ()
   "narrow至当前代码块对应的 tangle 文件所在级别"
   (interactive)
-  (let ((tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
+  (let ((org-indirect-buffer-display 'current-window)
+	(tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
         (start-position (point))
         offset)
     ;; :tangle no 不能算
@@ -2156,6 +2260,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
       (message "narrowed to headline at point")
       (org-tree-to-indirect-buffer))))
 #+end_src
+
 *** note
 **** search all notes
 搜索所有~/.cache/notes目录下所有.notes文件. 为了避免symlink文件不存在导致ivy报错,

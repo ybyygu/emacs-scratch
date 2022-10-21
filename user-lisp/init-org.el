@@ -558,7 +558,8 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 (defun gwp::org-babel-narrow-to-tangle-heading ()
   "narrow至当前代码块对应的 tangle 文件所在级别"
   (interactive)
-  (let ((tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
+  (let ((org-indirect-buffer-display 'current-window)
+	(tangle-file (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light)))))
         (start-position (point))
         offset)
     ;; :tangle no 不能算

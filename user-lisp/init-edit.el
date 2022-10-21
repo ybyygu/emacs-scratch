@@ -304,6 +304,35 @@
  )
 ;; 33105bcf ends here
 
+;; [[file:../gwp-scratch.note::e13c7903][e13c7903]]
+(defun spacemacs/open-in-external-app (file-path)
+  "Open `file-path' in external application."
+  (let ((process-connection-type nil))
+    (start-process "" nil "xdg-open" file-path)))
+
+(defun spacemacs/open-file-or-directory-in-external-app (arg)
+  "Open current file in external application.
+If the universal prefix argument is used then open the folder
+containing the current file by the default explorer.
+If two universal prefix arguments are used, then prompt for command to use."
+  (interactive "P")
+  (if (equal arg '(4))                  ; C-u
+      (spacemacs/open-in-external-app (expand-file-name default-directory))
+    (let ((file-path (if (derived-mode-p 'dired-mode)
+                         (dired-get-file-for-visit)
+                       buffer-file-name)))
+      (if file-path
+          (if (equal arg '(16))         ; C-u C-u
+              (progn
+                (let ((program (read-shell-command "Open current file with: ")))
+                  (call-process program nil 0 nil file-path)))
+            (spacemacs/open-in-external-app file-path))
+        ;; for EAF pdf
+        (if (derived-mode-p 'eaf-mode)
+            (eaf-open-external)
+          (message "No file associated to this buffer."))))))
+;; e13c7903 ends here
+
 ;; [[file:../gwp-scratch.note::45f27ad1][45f27ad1]]
 (gwp::leader-def
  "f" '(:ignore t :which-key "file")
@@ -311,6 +340,7 @@
  "fj" '(dired-jump :which-key "jump to dired buffer")
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
  "fb" '(counsel-bookmark :which-key "open bookmarks")
+ "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
  )
 ;; 45f27ad1 ends here
 
@@ -329,6 +359,67 @@
  "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
  )
 ;; 92af756a ends here
+
+;; [[file:../gwp-scratch.note::826282dd][826282dd]]
+(defun gwp/open-in-gnome-terminal (the-directory)
+  "Open `the-directory' in external gnome-terminal."
+  (let ((process-connection-type nil))
+    ;; (start-process "" nil "terminal-dwim.sh" (concat "--working-directory=" the-directory) "-e" "tmux")
+    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")
+    ))
+
+(defun gwp::open-terminal-here ()
+  "Open the current dir in a new terminal window"
+  (interactive)
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
+    (gwp/open-in-gnome-terminal (expand-file-name default-directory))))
+
+(gwp::leader-def
+ "o" '(:ignore t :which-key "open")
+ "ot" '(gwp::open-terminal-here :which-key "open terminal here")
+ )
+;; 826282dd ends here
+
+;; [[file:../gwp-scratch.note::e724170b][e724170b]]
+(require 'recentf)
+(defun gwp::zoxide-recent-directories ()
+  (let* ((output (shell-command-to-string "zoxide query --list"))
+         (dirs (split-string output "[\r\n]+" t)))
+    dirs))
+
+(defun gwp::dired-recent-directories ()
+  (let* ((recent-dirs
+          (mapcar (lambda (file)
+                    (if (file-directory-p file) file (file-name-directory file)))
+                  recentf-list)))
+    recent-dirs))
+
+(defun gwp::zoxide-add-directory (dir)
+  "将 dir 加入 zoxide 数据库中"
+  (when dir (call-process "zoxide" nil nil nil "add" dir)))
+
+;; open recent directory, requires ivy (part of swiper)
+;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
+;;;###autoload
+(defun gwp::ivy-recent-dirs ()
+  "Present a list of recently used directories and open the selected one in dired"
+  (interactive)
+  (let ((recent-dirs
+         (delete-dups
+          (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories)))))
+    (let ((dir (ivy-read "Directory: " recent-dirs
+                         :sort nil
+                         :action '(1 ("o" gwp::zoxide-add-directory "open")))))
+      (dired dir))))
+
+(gwp::leader-def
+ "d" '(:ignore t :which-key "develop")
+ "dr" '(gwp::ivy-recent-dirs :which-key "recent dirs")
+ "dl" '(comment-dwim :which-key "comment/uncomment lines")
+ )
+;; e724170b ends here
 
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]
 (gwp::leader-def
