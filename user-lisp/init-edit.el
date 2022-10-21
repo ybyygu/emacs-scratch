@@ -93,6 +93,13 @@
 ;; 4e63ecbf ends here
 
 ;; [[file:../gwp-scratch.note::672c2d79][672c2d79]]
+(use-package smartparens
+  :hook
+  ;; (prog-mode . smartparens-mode)
+  ;; (org-mode . smartparens-mode)
+  (meow-insert-mode . smartparens-mode))
+
+
 (defun meow/setup-normal ()
   ;; normal commands
   (meow-normal-define-key

@@ -627,6 +627,13 @@ C-u C-@: 这是轮换当前的 mark ring
 *** meow setup normal
 #+name: 672c2d79
 #+begin_src elisp
+(use-package smartparens
+  :hook
+  ;; (prog-mode . smartparens-mode)
+  ;; (org-mode . smartparens-mode)
+  (meow-insert-mode . smartparens-mode))
+
+
 (defun meow/setup-normal ()
   ;; normal commands
   (meow-normal-define-key
@@ -3133,6 +3140,15 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 
 
 (use-package magit-popup)
+#+end_src
+*** rust
+#+name: a267f2ee
+#+begin_src elisp
+(use-package rust-mode)
+(use-package cargo)
+
+(eval-after-load 'rust-mode
+  '(require 'smartparens-rust))
 #+end_src
 
 *** provide

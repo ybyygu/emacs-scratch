@@ -48,6 +48,14 @@
 (use-package magit-popup)
 ;; 8970c514 ends here
 
+;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]
+(use-package rust-mode)
+(use-package cargo)
+
+(eval-after-load 'rust-mode
+  '(require 'smartparens-rust))
+;; a267f2ee ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here
