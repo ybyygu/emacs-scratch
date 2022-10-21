@@ -356,17 +356,6 @@ If on a:
 (setq org-src-window-setup 'current-window)
 ;; 99465500 ends here
 
-;; [[file:../gwp-scratch.note::e9fca5dc][e9fca5dc]]
-(with-eval-after-load 'ob
-  (setq org-structure-template-alist
-        '(
-          ("py" . "src python :results output")
-          ("rs" . "src rust")
-          ("el" . "src emacs-lisp")
-          ("sh" . "src sh")
-          )))
-;; e9fca5dc ends here
-
 ;; [[file:../gwp-scratch.note::d309f5b7][d309f5b7]]
 (setq org-src-preserve-indentation nil)
 (setq org-edit-src-content-indentation 0) ;Default = 2
@@ -819,6 +808,16 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; ded2ea25 ends here
 
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
+;; org-insert-structure-template
+;; 换到 org-edit-special 上更方便
+(unbind-key "C-c C-,")
+(bind-key "C-c C-, " 'org-edit-special org-mode-map)
+(bind-key "C-c C-, " 'org-edit-src-exit org-src-mode-map)
+
+;; org-priority
+;; 很少用
+(unbind-key "C-c ,")
+
 (gwp::local-leader-def
  :keymaps 'org-mode-map
  "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")

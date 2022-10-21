@@ -2008,7 +2008,8 @@ If on a:
 (setq org-src-window-setup 'current-window)
 #+end_src
 
-**** template
+**** COMMENT template
+[2022-10-21 Fri] 用 yasnippet 更合适
 - http://orgmode.org/manual/Languages.html
 
 #+name: e9fca5dc
@@ -2579,6 +2580,16 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 *** bindings
 #+name: dfee4224
 #+begin_src elisp
+;; org-insert-structure-template
+;; 换到 org-edit-special 上更方便
+(unbind-key "C-c C-,")
+(bind-key "C-c C-, " 'org-edit-special org-mode-map)
+(bind-key "C-c C-, " 'org-edit-src-exit org-src-mode-map)
+
+;; org-priority
+;; 很少用
+(unbind-key "C-c ,")
+
 (gwp::local-leader-def
  :keymaps 'org-mode-map
  "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
