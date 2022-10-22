@@ -270,28 +270,28 @@
   :init
   (meow-global-mode 1)
   :custom
+  ;; 修改选中内容后退出 insert 模式时不要再选中该区域
+  (meow-select-on-change nil)
   ;; 扩选指示字符显示延时
   (meow-expand-hint-remove-delay 5.0)
   ;; 默认在 org 中不显示扩选指示字符
   (meow-expand-exclude-mode-list nil)
-  ;; (meow-cursor-type-normal 'hbar)  :config
-  ;; meow 默认 C-d 只删除一个字符
-  ;; https://github.com/meow-edit/meow/discussions/298
+  ;; 选择文字区域时光标位置与 vim 及其它软件一致
+  ;; 2022-03-19: 会出一些怪问题, 禁用
+  ;; (meow-cursor-type-normal 'hbar)
+  (meow-use-cursor-position-hack t)
   :config
   (setq meow-cursor-type-normal '(box . 2))
   (setq meow-cursor-type-insert '(bar . 2))
-  (setq delete-active-region t)
+  ;; (setq delete-active-region t)
   ;; (setq meow-cursor-type-region-cursor 'bar)
   ;; https://github.com/meow-edit/meow/discussions/87
-  ;; 选择文字区域时光标位置与 vim 及其它软件一致
-  ;; 2022-03-19: 会出一些怪问题, 禁用
-  ;; (setq meow-use-cursor-position-hack t)
   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
   (meow/setup-normal)
   (meow/setup-leader)
   (meow/setup-motion)
   (meow/setup-insert)
-  ;; If you want relative line number in NORMAL s tate(for display-line-numbers-mode)
+  ;; If you want relative line number in NORMAL state(for display-line-numbers-mode)
   (meow-setup-line-number)
   ;; If you need setup indicator, see `meow-indicator' for customizing  hand.
   (meow-setup-indicator))
@@ -461,10 +461,11 @@ If two universal prefix arguments are used, then prompt for command to use."
       (dired dir))))
 
 (gwp::leader-def
- "d" '(:ignore t :which-key "develop")
- "dr" '(gwp::ivy-recent-dirs :which-key "recent dirs")
- "dl" '(comment-dwim :which-key "comment/uncomment lines")
- )
+  "d" '(:ignore t :which-key "develop")
+  "dr" '(gwp::ivy-recent-dirs :which-key "recent dirs")
+  "dl" '(comment-dwim :which-key "comment/uncomment lines")
+  "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+  )
 ;; e724170b ends here
 
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]

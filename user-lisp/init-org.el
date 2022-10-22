@@ -202,6 +202,8 @@ If on a:
 
 ;; [[file:../gwp-scratch.note::994db730][994db730]]
 (require 'org-attach)
+;; 可用父节点定义的 attach 目录
+(setq org-attach-use-inheritance t)
 
 (defun gwp::org-attach-auto-directory ()
   "为当前 headline 设置 DIR 属性 (基于 ID)"
