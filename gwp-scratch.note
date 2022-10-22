@@ -646,12 +646,32 @@ C-u C-@: 这是轮换当前的 mark ring
 *** meow setup normal
 #+name: 672c2d79
 #+begin_src elisp
+;; 高亮括号配对
+(use-package paren
+  :ensure nil
+  :hook (after-init . show-paren-mode)
+  :custom
+  (show-paren-style 'mixed)
+  (show-paren-when-point-inside-paren t)
+  (show-paren-when-point-in-periphery t)
+  (show-paren-ring-bell-on-mismatch t)
+  :init
+  (custom-set-faces
+   '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold))))))
+
 (use-package smartparens
+  :custom
+  ;; Overlays are too distracting and not terribly
+  ;; helpful. show-parens does this for us already (and is faster),
+  ;; so...
+  (sp-highlight-pair-overlay nil)
+  (sp-highlight-wrap-tag-overlay nil)
+  (sp-highlight-wrap-overlay nil)
   :hook
   ;; (prog-mode . smartparens-mode)
   ;; (org-mode . smartparens-mode)
   (meow-insert-mode . smartparens-mode))
-
+(add-hook 'prog-mode-hook 'turn-on-smartparens-strict-mode)
 
 (defun meow/setup-normal ()
   ;; normal commands
