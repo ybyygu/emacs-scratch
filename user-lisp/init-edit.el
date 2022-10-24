@@ -302,12 +302,15 @@
  )
 ;; 33105bcf ends here
 
-;; [[file:../gwp-scratch.note::*bindings: SPC-s search][bindings: SPC-s search:1]]
+;; [[file:../gwp-scratch.note::f220a2a2][f220a2a2]]
 (gwp::leader-def
  "s" '(:ignore t :which-key "search")
- "ss" '(counsel-grep-or-swiper :which-key "search buffer")
+ "ss" '(isearch-forward :which-key "search buffer")
+ "si" '(imenu :which-key "jump to symbol(imenu)")
+ ;; gwp::rg 会虚拟命令, 待 consult remap
+ "sd" '(gwp::rg :which-key "search directory")
  )
-;; bindings: SPC-s search:1 ends here
+;; f220a2a2 ends here
 
 ;; [[file:../gwp-scratch.note::e13c7903][e13c7903]]
 (defun spacemacs/open-in-external-app (file-path)
@@ -342,11 +345,11 @@ If two universal prefix arguments are used, then prompt for command to use."
 (gwp::leader-def
  "f" '(:ignore t :which-key "file")
  "ff" '(find-file :which-key "find files")
- "fr" '(counsel-recentf :which-key "recent files")
+ "fr" '(recentf-open-files :which-key "recent files")
  "fs" '(write-file :which-key "save file as")
  "fj" '(dired-jump :which-key "jump to dired buffer")
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
- "fb" '(counsel-bookmark :which-key "open bookmarks")
+ "fb" '(bookmark-jump :which-key "open bookmarks")
  "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
  )
 ;; 45f27ad1 ends here
@@ -392,8 +395,10 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; [[file:../gwp-scratch.note::574271f2][574271f2]]
 (gwp::leader-def
  "r" '(:ignore t :which-key "resume/ring")
- "rb" '(counsel-bookmark :which-key "bookmarks")
- "rl" '(ivy-resume :which-key "resume last search")
+ "rb" '(bookmark-jump :which-key "bookmarks")
+ "rm" '(gwp::mark-ring :which-key "mark rings")
+ ;; consult 里没有匹配的函数
+ ;; "rl" '(ivy-resume :which-key "resume last search")
  )
 ;; 574271f2 ends here
 

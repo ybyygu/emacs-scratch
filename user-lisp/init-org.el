@@ -683,7 +683,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 
 ;; [[file:../gwp-scratch.note::4971b464][4971b464]]
 ;;;###autoload
-(defun gwp::search-all-notes (&optional arg)
+(defun gwp::search-all-notes-ivy (&optional arg)
   "search all notes in ~/.cache/notes"
   (interactive)
   (let ((counsel-rg-base-command (list
@@ -697,6 +697,24 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
     (if arg
         (counsel-rg arg "~/.cache/notes")
       (counsel-rg "" "~/.cache/notes"))))
+
+
+;;;###autoload
+(defun gwp::search-all-notes (&optional arg)
+  "search all notes in ~/.cache/notes"
+  (interactive)
+  (require 'consult)
+  (let ((consult-ripgrep-args (list
+                               "ripgrep"
+                               "--null"
+                               "--no-heading"
+                               "--path-separator" "/"
+                               "--line-number"
+                               "--color" "never"
+                               ".")))
+    (if arg
+        (consult-ripgrep "~/.cache/notes" arg)
+      (consult-ripgrep "~/.cache/notes" ""))))
 ;; 4971b464 ends here
 
 ;; [[file:../gwp-scratch.note::05419467][05419467]]
@@ -1001,7 +1019,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (gwp::dwim-leader-def
   :keymaps 'org-mode-map
-  "g" 'counsel-org-goto                        ; goto
+  "g" 'org-goto                                ; goto
   "t" 'org-todo                                ; todo
   "e" 'org-edit-special                        ; edit
   "a" 'org-attach                              ; attach

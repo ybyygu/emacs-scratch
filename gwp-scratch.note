@@ -166,7 +166,7 @@ use-package emacs
   (when (region-active-p)
     (call-interactively #'delete-region))
   (if (equal arg '(4))                  ; C-u
-      (call-interactively #'counsel-yank-pop)
+      (call-interactively #'yank-pop)
     (call-interactively #'yank)))
 (global-set-key (kbd "C-y") #'gwp::yank-dwim)
 
@@ -252,6 +252,47 @@ C-u C-/ 如果选中区域, 则仅撤销当前内容.
 
 ;; 默认evil的undo会将多个小操作合并为一个大的, undo时很不适应.
 ;; (setq evil-want-fine-undo t)
+#+end_src
+*** recentf
+#+name: d9848746
+#+begin_src elisp
+(use-package recentf
+  :custom
+  ;; then run M-x recentf-cleanup to make it work.
+  (recentf-exclude '("/tmp/"
+                     "/ssh:"
+                     "/sudo:"
+                     "/scp:"
+                     "/scpx:"
+                     "/ssh:"
+                     ;; "\\.pdf$"
+                     "\\.png$"
+                     "autosave$"
+                     ;; "\\.odt$"
+                     "\\.note_archive$"
+                     "_workspaces"
+                     ".*/COMMIT_EDITMSG$" ; magit 临时编辑文件
+                     ;; ".*/$"               ; 剔除目录
+                     ))
+  (recentf-max-saved-items 9999)   ; the default is only 20
+  (recentf-keep '(gwp::recentf-keep-p))
+  ;; clean up items when has been idle 1 hour
+  ;; (recentf-auto-cleanup 3600)
+  (recentf-auto-cleanup 'never)         ; doom 在退出时清理
+  :config
+  (recentf-mode 1))
+
+(defun gwp::recentf-keep-p (file)
+  "仅保留本地可读文件"
+  (not (file-remote-p file))
+  ;; (and (not (file-remote-p file))
+  ;;      (not (file-directory-p file)))
+  )
+
+;; 定义保存临时文件列表. 默认仅当退出 emacs 才保存, 这会丢掉不少数据.
+;; 2022-10-14 好像会丢记录, 问题再排查
+;; (require 'midnight)
+;; (add-hook! midnight #'recentf-save-list)
 #+end_src
 
 *** mark ring
@@ -668,6 +709,93 @@ C-u C-@: 这是轮换当前的 mark ring
         ))
 #+end_src
 
+*** hydra
+#+name: 23685638
+#+begin_src elisp
+(use-package hydra)
+#+end_src
+
+*** vertico
+#+name: 3702e7df
+#+begin_src elisp
+;; Enable vertico
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t)
+  )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; 启用模糊匹配
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+#+end_src
+
+*** consult
+#+name: 02437dc0
+#+begin_src elisp
+(use-package consult
+  :custom
+  ;; https://github.com/minad/consult#live-previews
+  ;; preview delayed
+  ;; (consult-preview-key '(:debounce 1 any))
+  ;; preview manually
+  (consult-preview-key (kbd "M-."))
+  :bind (
+         ([remap apropos-command] . consult-apropos) ; SPC-h-a
+         ([remap goto-line] . consult-goto-line)
+         ([remap isearch-forward] . consult-line)
+         ([remap yank-pop] . consult-yank-pop)
+         ([remap repeat-complex-command] . consult-complex-command)
+         ([remap recentf-open-files] . consult-recent-file)
+         ([remap bookmark-jump] . consult-bookmark)
+         ([remap project-switch-to-buffer] . consult-project-buffer)
+         ([remap switch-to-buffer] . consult-buffer)
+         ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+         ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+         ([remap imenu] . consult-imenu)
+         ([remap gwp::rg] . consult-ripgrep)
+         ([remap gwp::mark-ring] . consult-mark)
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history)                 ;; orig. previous-matching-history-element
+         )
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+  :config
+  (with-eval-after-load 'org
+    (define-key org-mode-map [remap org-goto] #'consult-org-heading))
+  )
+
+;; (use-package consult-notes
+;;   :commands (consult-notes consult-notes-search-in-all-notes)
+;;   :config
+;;   (setq consult-notes-sources `(("GTD"  ?g  "~/Notes/") ("all notes"  ?o  "~/.cache/notes")))
+;;   )
+#+end_src
+
 *** embark
 一个新的神器.
 
@@ -689,6 +817,7 @@ embark-act, 切换可能的操作对象.
 
 #+name: 74ebe55a
 #+begin_src emacs-lisp
+;; 补全窗口显示补助等信息
 (use-package marginalia
   :config
   (marginalia-mode))
@@ -697,6 +826,8 @@ embark-act, 切换可能的操作对象.
   :bind (
          ;; 相当于选中文件弹出右键菜单
          ("C-;" . embark-act)
+         ;; more like `ivy-occur'
+         ("C-c C-o" . embark-export)
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
          ("C-h B" . embark-bindings)
@@ -706,6 +837,10 @@ embark-act, 切换可能的操作对象.
   ;; 命令可搜索后再选择了
   (prefix-help-command #'embark-prefix-help-command)
   )
+
+(use-package embark-consult
+  :if (featurep 'embark)
+  :after consult)
 #+end_src
 
 *** which-key
@@ -720,13 +855,8 @@ embark-act, 切换可能的操作对象.
   (setq which-key-idle-delay 3
         which-key-sort-uppercase-first nil))
 #+end_src
-*** hydra
-#+name: 23685638
-#+begin_src elisp
-(use-package hydra)
-#+end_src
 
-*** ivy
+*** COMMENT ivy
 #+name: dd8cc577
 #+begin_src elisp
 (use-package ivy
@@ -1111,10 +1241,14 @@ meow 默认 C-d 只删除一个字符?
 #+end_src
 
 *** bindings: SPC-s search
+#+name: f220a2a2
 #+begin_src elisp
 (gwp::leader-def
  "s" '(:ignore t :which-key "search")
- "ss" '(counsel-grep-or-swiper :which-key "search buffer")
+ "ss" '(isearch-forward :which-key "search buffer")
+ "si" '(imenu :which-key "jump to symbol(imenu)")
+ ;; gwp::rg 会虚拟命令, 待 consult remap
+ "sd" '(gwp::rg :which-key "search directory")
  )
 #+end_src
 
@@ -1152,16 +1286,16 @@ If two universal prefix arguments are used, then prompt for command to use."
 
 #+name: 45f27ad1
 #+begin_src elisp
-  (gwp::leader-def
-   "f" '(:ignore t :which-key "file")
-   "ff" '(find-file :which-key "find files")
-   "fr" '(counsel-recentf :which-key "recent files")
-   "fs" '(write-file :which-key "save file as")
-   "fj" '(dired-jump :which-key "jump to dired buffer")
-   "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
-   "fb" '(counsel-bookmark :which-key "open bookmarks")
-   "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
-   )
+(gwp::leader-def
+ "f" '(:ignore t :which-key "file")
+ "ff" '(find-file :which-key "find files")
+ "fr" '(recentf-open-files :which-key "recent files")
+ "fs" '(write-file :which-key "save file as")
+ "fj" '(dired-jump :which-key "jump to dired buffer")
+ "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
+ "fb" '(bookmark-jump :which-key "open bookmarks")
+ "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
+ )
 #+end_src
 
 *** bindings: SPC-q
@@ -1214,8 +1348,10 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 #+begin_src elisp
 (gwp::leader-def
  "r" '(:ignore t :which-key "resume/ring")
- "rb" '(counsel-bookmark :which-key "bookmarks")
- "rl" '(ivy-resume :which-key "resume last search")
+ "rb" '(bookmark-jump :which-key "bookmarks")
+ "rm" '(gwp::mark-ring :which-key "mark rings")
+ ;; consult 里没有匹配的函数
+ ;; "rl" '(ivy-resume :which-key "resume last search")
  )
 #+end_src
 
@@ -1307,12 +1443,11 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 (setq inhibit-startup-message t)
 
 ;; 禁用不必要的界面元素
-(unless (display-graphic-p)
-  ;; Disable visible scrollbar
-  (scroll-bar-mode -1)
-  ;; (tooltip-mode -1)           ; Disable tooltips
-  ;; Give some breathing room
-  (set-fringe-mode 10))
+;; (tooltip-mode -1)           ; Disable tooltips
+;; Give some breathing room
+(set-fringe-mode 10)
+;; Disable visible scrollbar
+(scroll-bar-mode -1)
 
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar
@@ -1495,7 +1630,7 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
   )
 #+end_src
 
-*** helpful
+*** COMMENT helpful
 #+name: 2b13453c
 #+begin_src elisp
 (use-package helpful
@@ -1793,7 +1928,7 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
  )
 #+end_src
 
-*** swiper
+*** COMMENT swiper
 在 isearch 界面下, 按 M-s 切换至 swiper 界面
 
 按键绑定: swiper-isearch-map
@@ -2759,7 +2894,7 @@ exit 0
 #+name: 4971b464
 #+begin_src emacs-lisp
 ;;;###autoload
-(defun gwp::search-all-notes (&optional arg)
+(defun gwp::search-all-notes-ivy (&optional arg)
   "search all notes in ~/.cache/notes"
   (interactive)
   (let ((counsel-rg-base-command (list
@@ -2774,6 +2909,23 @@ exit 0
         (counsel-rg arg "~/.cache/notes")
       (counsel-rg "" "~/.cache/notes"))))
 
+
+;;;###autoload
+(defun gwp::search-all-notes (&optional arg)
+  "search all notes in ~/.cache/notes"
+  (interactive)
+  (require 'consult)
+  (let ((consult-ripgrep-args (list
+                               "ripgrep"
+                               "--null"
+                               "--no-heading"
+                               "--path-separator" "/"
+                               "--line-number"
+                               "--color" "never"
+                               ".")))
+    (if arg
+        (consult-ripgrep "~/.cache/notes" arg)
+      (consult-ripgrep "~/.cache/notes" ""))))
 #+end_src
 
 **** find notes
@@ -3139,7 +3291,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (gwp::dwim-leader-def
   :keymaps 'org-mode-map
-  "g" 'counsel-org-goto                        ; goto
+  "g" 'org-goto                                ; goto
   "t" 'org-todo                                ; todo
   "e" 'org-edit-special                        ; edit
   "a" 'org-attach                              ; attach

@@ -2,12 +2,11 @@
 (setq inhibit-startup-message t)
 
 ;; 禁用不必要的界面元素
-(unless (display-graphic-p)
-  ;; Disable visible scrollbar
-  (scroll-bar-mode -1)
-  ;; (tooltip-mode -1)           ; Disable tooltips
-  ;; Give some breathing room
-  (set-fringe-mode 10))
+;; (tooltip-mode -1)           ; Disable tooltips
+;; Give some breathing room
+(set-fringe-mode 10)
+;; Disable visible scrollbar
+(scroll-bar-mode -1)
 
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar
@@ -175,20 +174,6 @@
   ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
   )
 ;; 3d5eeec1 ends here
-
-;; [[file:../gwp-scratch.note::2b13453c][2b13453c]]
-(use-package helpful
-  :demand t
-  :commands (helpful-callable helpful-variable helpful-command helpful-key)
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
-  :bind
-  ([remap describe-function] . counsel-describe-function)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))
-;; 2b13453c ends here
 
 ;; [[file:../gwp-scratch.note::34bcfc6f][34bcfc6f]]
 (use-package ace-window
@@ -365,27 +350,6 @@ Call a second time to restore the original window configuration."
  "F" #'follow-mode            ; 同步滚动窗口, 可用于双窗口内容对比等
  )
 ;; 44d5ec48 ends here
-
-;; [[file:../gwp-scratch.note::bf455395][bf455395]]
-(use-package ivy-hydra)
-
-(use-package swiper
-  :after ivy
-  :bind
-  (
-   ;; ("C-s"   . swiper-isearch)
-   ;; ("C-r"   . swiper-isearch-backward)
-   ;; ("C-c v p" . ivy-push-view)
-   ;; ("C-c v o" . ivy-pop-view)
-   ;; ("C-c v ." . ivy-switch-view)
-   :map swiper-map
-   ("M-s" . swiper-isearch-toggle)
-   :map isearch-mode-map
-   ("M-s" . swiper-isearch-toggle)
-   :map ctl-x-4-map
-   ("C-s" . ivy-push-view)
-   ))
-;; bf455395 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-ui)

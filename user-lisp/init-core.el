@@ -14,7 +14,7 @@
   (when (region-active-p)
     (call-interactively #'delete-region))
   (if (equal arg '(4))                  ; C-u
-      (call-interactively #'counsel-yank-pop)
+      (call-interactively #'yank-pop)
     (call-interactively #'yank)))
 (global-set-key (kbd "C-y") #'gwp::yank-dwim)
 
@@ -68,6 +68,46 @@
 ;; 默认evil的undo会将多个小操作合并为一个大的, undo时很不适应.
 ;; (setq evil-want-fine-undo t)
 ;; 9f41280c ends here
+
+;; [[file:../gwp-scratch.note::d9848746][d9848746]]
+(use-package recentf
+  :custom
+  ;; then run M-x recentf-cleanup to make it work.
+  (recentf-exclude '("/tmp/"
+                     "/ssh:"
+                     "/sudo:"
+                     "/scp:"
+                     "/scpx:"
+                     "/ssh:"
+                     ;; "\\.pdf$"
+                     "\\.png$"
+                     "autosave$"
+                     ;; "\\.odt$"
+                     "\\.note_archive$"
+                     "_workspaces"
+                     ".*/COMMIT_EDITMSG$" ; magit 临时编辑文件
+                     ;; ".*/$"               ; 剔除目录
+                     ))
+  (recentf-max-saved-items 9999)   ; the default is only 20
+  (recentf-keep '(gwp::recentf-keep-p))
+  ;; clean up items when has been idle 1 hour
+  ;; (recentf-auto-cleanup 3600)
+  (recentf-auto-cleanup 'never)         ; doom 在退出时清理
+  :config
+  (recentf-mode 1))
+
+(defun gwp::recentf-keep-p (file)
+  "仅保留本地可读文件"
+  (not (file-remote-p file))
+  ;; (and (not (file-remote-p file))
+  ;;      (not (file-directory-p file)))
+  )
+
+;; 定义保存临时文件列表. 默认仅当退出 emacs 才保存, 这会丢掉不少数据.
+;; 2022-10-14 好像会丢记录, 问题再排查
+;; (require 'midnight)
+;; (add-hook! midnight #'recentf-save-list)
+;; d9848746 ends here
 
 ;; [[file:../gwp-scratch.note::e4fc036b][e4fc036b]]
 ;; 要保证 C-u C-@ 连续调用有效

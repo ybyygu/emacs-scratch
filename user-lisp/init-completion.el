@@ -50,7 +50,89 @@
         ))
 ;; 7f307588 ends here
 
+;; [[file:../gwp-scratch.note::23685638][23685638]]
+(use-package hydra)
+;; 23685638 ends here
+
+;; [[file:../gwp-scratch.note::3702e7df][3702e7df]]
+;; Enable vertico
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t)
+  )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; 启用模糊匹配
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+;; 3702e7df ends here
+
+;; [[file:../gwp-scratch.note::02437dc0][02437dc0]]
+(use-package consult
+  :custom
+  ;; https://github.com/minad/consult#live-previews
+  ;; preview delayed
+  ;; (consult-preview-key '(:debounce 1 any))
+  ;; preview manually
+  (consult-preview-key (kbd "M-."))
+  :bind (
+         ([remap apropos-command] . consult-apropos) ; SPC-h-a
+         ([remap goto-line] . consult-goto-line)
+         ([remap isearch-forward] . consult-line)
+         ([remap yank-pop] . consult-yank-pop)
+         ([remap repeat-complex-command] . consult-complex-command)
+         ([remap recentf-open-files] . consult-recent-file)
+         ([remap bookmark-jump] . consult-bookmark)
+         ([remap project-switch-to-buffer] . consult-project-buffer)
+         ([remap switch-to-buffer] . consult-buffer)
+         ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+         ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+         ([remap imenu] . consult-imenu)
+         ([remap gwp::rg] . consult-ripgrep)
+         ([remap gwp::mark-ring] . consult-mark)
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history)                 ;; orig. previous-matching-history-element
+         )
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+  :config
+  (with-eval-after-load 'org
+    (define-key org-mode-map [remap org-goto] #'consult-org-heading))
+  )
+
+;; (use-package consult-notes
+;;   :commands (consult-notes consult-notes-search-in-all-notes)
+;;   :config
+;;   (setq consult-notes-sources `(("GTD"  ?g  "~/Notes/") ("all notes"  ?o  "~/.cache/notes")))
+;;   )
+;; 02437dc0 ends here
+
 ;; [[file:../gwp-scratch.note::74ebe55a][74ebe55a]]
+;; 补全窗口显示补助等信息
 (use-package marginalia
   :config
   (marginalia-mode))
@@ -59,6 +141,8 @@
   :bind (
          ;; 相当于选中文件弹出右键菜单
          ("C-;" . embark-act)
+         ;; more like `ivy-occur'
+         ("C-c C-o" . embark-export)
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
          ("C-h B" . embark-bindings)
@@ -68,6 +152,10 @@
   ;; 命令可搜索后再选择了
   (prefix-help-command #'embark-prefix-help-command)
   )
+
+(use-package embark-consult
+  :if (featurep 'embark)
+  :after consult)
 ;; 74ebe55a ends here
 
 ;; [[file:../gwp-scratch.note::b0577e97][b0577e97]]
@@ -80,41 +168,6 @@
   (setq which-key-idle-delay 3
         which-key-sort-uppercase-first nil))
 ;; b0577e97 ends here
-
-;; [[file:../gwp-scratch.note::23685638][23685638]]
-(use-package hydra)
-;; 23685638 ends here
-
-;; [[file:../gwp-scratch.note::dd8cc577][dd8cc577]]
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
-;; dd8cc577 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-completion)
