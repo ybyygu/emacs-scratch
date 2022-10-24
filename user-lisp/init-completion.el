@@ -70,6 +70,52 @@
   )
 ;; 74ebe55a ends here
 
+;; [[file:../gwp-scratch.note::b0577e97][b0577e97]]
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 3
+        which-key-sort-uppercase-first nil))
+;; b0577e97 ends here
+
+;; [[file:../gwp-scratch.note::23685638][23685638]]
+(use-package hydra)
+;; 23685638 ends here
+
+;; [[file:../gwp-scratch.note::dd8cc577][dd8cc577]]
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+;; dd8cc577 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-completion)
 ;; provide:1 ends here

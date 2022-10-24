@@ -1,3 +1,9 @@
+;; [[file:../gwp-scratch.note::20ff3f1b][20ff3f1b]]
+(use-package crux
+  :config
+  (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
+;; 20ff3f1b ends here
+
 ;; [[file:../gwp-scratch.note::b5a74212][b5a74212]]
 (setq kill-ring-max 999)
 

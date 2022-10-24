@@ -11,6 +11,11 @@
 - [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
 * Memo [2/4]
+** TODO [2022-10-24 Mon] 用 vertico 等替换 ivy/counsel 等包
+- [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
+- [[https://www.youtube.com/watch?v=HzlLxWTD6QY][21天学会Emacs 2022 Edition（第四天：vertico, orderless, marginalia, embark） - YouTube]]
+- [[https://www.youtube.com/watch?v=UtqE-lR2HCA][System Crafters Live! - Replacing Ivy and Counsel with Vertico and Consult - YouTube]]
+
 ** TODO [2022-10-18 Tue] 实现 doom 中类似 workspace 的功能
 [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html][Projects (GNU Emacs Manual)]]
 
@@ -67,51 +72,7 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(use-package command-log-mode)
-
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
-
-(use-package which-key
-  :ensure t
-  :init
-  (which-key-mode)
-  :diminish which-key-mode
-  :config
-  (setq which-key-idle-delay 3
-        which-key-sort-uppercase-first nil))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
-
-(use-package hydra)
-
-(use-package crux
-  :config
-  (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
+;; (use-package command-log-mode)
 
 (require 'init-core)
 (require 'init-edit)
@@ -120,8 +81,8 @@
 (require 'init-workspace)
 (require 'init-org)
 (require 'init-develop)
-(require 'init-completion)
 (require 'init-note)
+(require 'init-completion)
 #+end_src
 
 [[https://github.com/emacs-eaf/emacs-application-framework/wiki/Chemacs][Chemacs · emacs-eaf/emacs-application-framework Wiki]]
@@ -154,24 +115,12 @@
   (eaf-bind-key jump_to_page "p" eaf-pdf-viewer-keybinding)
   ;; (define-key eaf-mode-map* (kbd "C-c B") #'eaf-open-bookmark)
 
-
   (defun eaf-org-open-file (file &optional link)
     "An wrapper function on `eaf-open'."
     (eaf-open file))
 
   ;; use `emacs-application-framework' to open PDF file: link
   (add-to-list 'org-file-apps '("\\.pdf\\'" . eaf-org-open-file))
-
-  ;; 修复 evil 按键问题. 这里需要启用 eaf-browser 支持, 不然会报错
-  ;; (require 'eaf-evil)
-  ;; (define-key key-translation-map (kbd "SPC")
-  ;;   (lambda (prompt)
-  ;;     (if (derived-mode-p 'eaf-mode)
-  ;;         (pcase eaf--buffer-app-name
-  ;;           ("pdf-viewer" (kbd eaf-evil-leader-key))
-  ;;           (_  (kbd "SPC")))
-  ;;       (kbd "SPC"))))
-
   :custom
   ;; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
   ;; (eaf-browser-continue-where-left-off t)
@@ -197,6 +146,13 @@ use-package emacs
 :END:
 *** docs
 这里处理最核心的设置或功能扩充
+*** crux
+#+name: 20ff3f1b
+#+begin_src elisp
+(use-package crux
+  :config
+  (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
+#+end_src
 
 *** kill/delete/yank
 #+name: b5a74212
@@ -650,6 +606,163 @@ C-u C-@: 这是轮换当前的 mark ring
 (provide 'init-core)
 #+end_src
 
+** init-completion.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-completion.el
+:END:
+*** TODO yasnippet
+注意, 这里如果在 org 前加载 M-i 按键会被覆盖. 可能得用 general 来绑定?
+
+#+name: 7db2aa5a
+#+begin_src elisp
+(use-package yasnippet
+  :commands
+  (yas-expand yas-minor-mode)
+  :init
+  (defun entropy/emacs-yas-enable-or-expand (&rest args)
+    "Auto enable `yas-global-mode' when not as it and call
+`yas-expand'."
+    (interactive)
+    (require 'yasnippet)
+    (cond
+     ((not yas-global-mode)
+      (yas-global-mode)
+      (yas-expand))
+     (t
+      (yas-expand))))
+  :bind
+  (:map prog-mode-map
+   ("M-i" . entropy/emacs-yas-enable-or-expand)
+   :map org-mode-map
+   ("M-i" . entropy/emacs-yas-enable-or-expand)
+   )
+  :config
+  ;; 不用TAB, 因为要避免 org 中与 tab 键冲突
+  (unbind-key "TAB" yas-minor-mode-map)
+  (unbind-key "<tab>" yas-minor-mode-map))
+#+end_src
+
+*** hippie-expand
+#+name: 7f307588
+#+begin_src emacs-lisp
+;; Use hippie-expand instead of dabbrev-expand
+;; (global-set-key (kbd "M-/") #'dabbrev-expand)
+(global-set-key (kbd "M-/") #'hippie-expand)
+;; the same behavior as the original `dabbrev-expand'
+(setq hippie-expand-dabbrev-skip-space t)
+
+;; adjust the list of functions that hippie-expand will try
+(setq hippie-expand-try-functions-list
+      '(
+        try-expand-dabbrev-visible      ; first try the expansions from the currently visible parts
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-line
+        try-expand-dabbrev-from-kill
+        ;; try-expand-all-abbrevs
+        ;; try-expand-list
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol
+        ))
+#+end_src
+
+*** embark
+一个新的神器.
+
+重要文档
+- [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+- [[https://karthinks.com/software/fifteen-ways-to-use-embark/][Fifteen ways to use Embark | Karthinks]]
+
+常规的 emacs 操作流程时选择命令, 然后再将命令应用于操作对象. embark 则相反流程.
+embark 先选定对象, 再根据对象不同, 执行动作, 类似 ivy action, 但更通用.
+
+在文本窗口中, 可自动识别 url, symbol 等动象, 并分配适用的执行函数. 可以多次执行
+embark-act, 切换可能的操作对象.
+
+可用的 keymap:
+: embark-keymap-alist
+
+也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+: embark-target-finders
+
+#+name: 74ebe55a
+#+begin_src emacs-lisp
+(use-package marginalia
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :bind (
+         ;; 相当于选中文件弹出右键菜单
+         ("C-;" . embark-act)
+         ;; 相当于选中文件双击, 用处不大
+         ;; ("C-." . embark-dwim)
+         ("C-h B" . embark-bindings)
+         )
+  :custom
+  ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
+  ;; 命令可搜索后再选择了
+  (prefix-help-command #'embark-prefix-help-command)
+  )
+#+end_src
+
+*** which-key
+#+name: b0577e97
+#+begin_src elisp
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 3
+        which-key-sort-uppercase-first nil))
+#+end_src
+*** hydra
+#+name: 23685638
+#+begin_src elisp
+(use-package hydra)
+#+end_src
+
+*** ivy
+#+name: dd8cc577
+#+begin_src elisp
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-completion)
+#+end_src
 ** init-edit.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-edit.el
@@ -710,8 +823,6 @@ C-u C-@: 这是轮换当前的 mark ring
 *** meow utils
 #+name: 4e63ecbf
 #+begin_src elisp
-;;; editor/core/config.el -*- lexical-binding: t; -*-
-
 ;;;###autoload
 ;; https://www.emacswiki.org/emacs/CopyingWholeLines
 (defun gwp::copy-current-line (&optional arg)
@@ -960,12 +1071,6 @@ meow 默认 C-d 只删除一个字符?
   (meow-setup-indicator))
 #+end_src
 
-*** helpful
-helpful-mode-map
-#+begin_src elisp
-
-#+end_src
-
 *** bindings: goto
 仿 helix 编辑器
 #+name: 6cb02a16
@@ -1049,7 +1154,9 @@ If two universal prefix arguments are used, then prompt for command to use."
 #+begin_src elisp
   (gwp::leader-def
    "f" '(:ignore t :which-key "file")
+   "ff" '(find-file :which-key "find files")
    "fr" '(counsel-recentf :which-key "recent files")
+   "fs" '(write-file :which-key "save file as")
    "fj" '(dired-jump :which-key "jump to dired buffer")
    "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
    "fb" '(counsel-bookmark :which-key "open bookmarks")
@@ -1185,7 +1292,6 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 (gwp::leader-def "n" '(:keymap gwp::note-map :which-key "note" :package emacs))
 #+end_src
 
-
 *** provide
 #+begin_src elisp
 (provide 'init-edit)
@@ -1199,16 +1305,20 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 #+name: 2f79944b
 #+begin_src elisp
 (setq inhibit-startup-message t)
+
 ;; 禁用不必要的界面元素
-(scroll-bar-mode -1)        ; Disable visible scrollbar
+(unless (display-graphic-p)
+  ;; Disable visible scrollbar
+  (scroll-bar-mode -1)
+  ;; (tooltip-mode -1)           ; Disable tooltips
+  ;; Give some breathing room
+  (set-fringe-mode 10))
+
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar
 
 ;; 默认会bee bee
 (setq visible-bell t)
-
-;; (tooltip-mode -1)           ; Disable tooltips
-(set-fringe-mode 10)        ; Give some breathing room
 
 (use-package doom-modeline
   :ensure t
@@ -1717,6 +1827,7 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+begin_src elisp
 (provide 'init-ui)
 #+end_src
+
 ** init-dired.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-dired.el
@@ -1765,6 +1876,87 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+name: f0f6f6eb
 #+begin_src elisp
 (provide 'init-workspace)
+#+end_src
+
+** init-develop.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-develop.el
+:END:
+*** with-editor
+magit 作者写的一个库, 方便使用当前 emacs 作为 EDITOR, 而非 shell 所定义的, 比如
+vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
+能, 调用 EDITOR 来编辑当前命令行.
+
+编辑完成, 按 "C-x #" 退出.
+: with-editor-cancel, with-editor-finish
+
+- [[https://emacs.stackexchange.com/questions/14008/default-magit-commit-state-in-evil][Default Magit commit state in Evil - Emacs Stack Exchange]]
+
+#+name: 24325443
+#+begin_src elisp
+(use-package with-editor)
+
+(add-hook 'shell-mode-hook  'with-editor-export-editor)
+(add-hook 'eshell-mode-hook 'with-editor-export-editor)
+(add-hook 'term-exec-hook   'with-editor-export-editor)
+(add-hook 'vterm-mode-hook  'with-editor-export-editor)
+
+;; 进入 insert 编辑模式
+(add-hook 'with-editor-mode-hook 'meow-insert-mode)
+#+end_src
+
+*** magit
+#+name: 8970c514
+#+begin_src elisp
+(general-define-key :prefix-map 'gwp::magit-map)
+
+(use-package magit
+  :demand t
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read)
+  ;; 隐藏untracked文件列表. 更多时候的操作是stage/commit
+  (setq magit-section-initial-visibility-alist (quote ((untracked . hide))))
+  ;;禁用magit中的gravatars支持, 响应能快一些.
+  (setq magit-revision-show-gravatars nil)
+  ;; 进入 magit-status 后, 将光标定在 unstaged 一栏
+  (setq magit-status-initial-section '(2))
+
+  :bind
+  (:map gwp::magit-map
+   ;; ("j" . magit-next-line)
+   ;; ("k" . magit-previous-line)
+   ("g" . magit-status)
+   ("s" . magit-status)
+   ("x" . magit-checkout)
+   ("c" . magit-commit)
+   ("p" . magit-push)
+   ("u" . magit-pull)
+   ("e" . magit-ediff-resolve)
+   ("r" . magit-rebase-interactive)
+   :map magit-status-mode-map
+   ;; ("j" . magit-next-line)
+   ;; ("k" . magit-previous-line)
+   :map magit-hunk-section-map
+   ;; ("j" . magit-next-line)
+   ;; ("k" . magit-previous-line)
+   ))
+
+
+(use-package magit-popup)
+#+end_src
+*** rust
+#+name: a267f2ee
+#+begin_src elisp
+(use-package rust-mode)
+(use-package cargo)
+
+(eval-after-load 'rust-mode
+  '(require 'smartparens-rust))
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-develop)
 #+end_src
 
 ** init-org.el
@@ -3278,192 +3470,6 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
 #+name: 8d4b377b
 #+begin_src elisp
 (provide 'init-note)
-#+end_src
-
-** init-completion.el
-:PROPERTIES:
-:header-args: :tangle user-lisp/init-completion.el
-:END:
-*** yasnippet
-#+name: 7db2aa5a
-#+begin_src elisp
-(use-package yasnippet
-  :commands
-  (yas-expand yas-minor-mode)
-  :init
-  (defun entropy/emacs-yas-enable-or-expand (&rest args)
-    "Auto enable `yas-global-mode' when not as it and call
-`yas-expand'."
-    (interactive)
-    (require 'yasnippet)
-    (cond
-     ((not yas-global-mode)
-      (yas-global-mode)
-      (yas-expand))
-     (t
-      (yas-expand))))
-  :bind
-  (:map prog-mode-map
-   ("M-i" . entropy/emacs-yas-enable-or-expand)
-   :map org-mode-map
-   ("M-i" . entropy/emacs-yas-enable-or-expand)
-   )
-  :config
-  ;; 不用TAB, 因为要避免 org 中与 tab 键冲突
-  (unbind-key "TAB" yas-minor-mode-map)
-  (unbind-key "<tab>" yas-minor-mode-map))
-#+end_src
-
-*** hippie-expand
-#+name: 7f307588
-#+begin_src emacs-lisp
-;; Use hippie-expand instead of dabbrev-expand
-;; (global-set-key (kbd "M-/") #'dabbrev-expand)
-(global-set-key (kbd "M-/") #'hippie-expand)
-;; the same behavior as the original `dabbrev-expand'
-(setq hippie-expand-dabbrev-skip-space t)
-
-;; adjust the list of functions that hippie-expand will try
-(setq hippie-expand-try-functions-list
-      '(
-        try-expand-dabbrev-visible      ; first try the expansions from the currently visible parts
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-line
-        try-expand-dabbrev-from-kill
-        ;; try-expand-all-abbrevs
-        ;; try-expand-list
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol
-        ))
-#+end_src
-
-*** embark
-一个新的神器.
-
-重要文档
-- [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
-- [[https://karthinks.com/software/fifteen-ways-to-use-embark/][Fifteen ways to use Embark | Karthinks]]
-
-常规的 emacs 操作流程时选择命令, 然后再将命令应用于操作对象. embark 则相反流程.
-embark 先选定对象, 再根据对象不同, 执行动作, 类似 ivy action, 但更通用.
-
-在文本窗口中, 可自动识别 url, symbol 等动象, 并分配适用的执行函数. 可以多次执行
-embark-act, 切换可能的操作对象.
-
-可用的 keymap:
-: embark-keymap-alist
-
-也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
-: embark-target-finders
-
-#+name: 74ebe55a
-#+begin_src emacs-lisp
-(use-package marginalia
-  :config
-  (marginalia-mode))
-
-(use-package embark
-  :bind (
-         ;; 相当于选中文件弹出右键菜单
-         ("C-;" . embark-act)
-         ;; 相当于选中文件双击, 用处不大
-         ;; ("C-." . embark-dwim)
-         ("C-h B" . embark-bindings)
-         )
-  :custom
-  ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
-  ;; 命令可搜索后再选择了
-  (prefix-help-command #'embark-prefix-help-command)
-  )
-#+end_src
-
-*** provide
-#+begin_src elisp
-(provide 'init-completion)
-#+end_src
-
-** init-develop.el
-:PROPERTIES:
-:header-args: :tangle user-lisp/init-develop.el
-:END:
-*** with-editor
-magit 作者写的一个库, 方便使用当前 emacs 作为 EDITOR, 而非 shell 所定义的, 比如
-vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
-能, 调用 EDITOR 来编辑当前命令行.
-
-编辑完成, 按 "C-x #" 退出.
-: with-editor-cancel, with-editor-finish
-
-- [[https://emacs.stackexchange.com/questions/14008/default-magit-commit-state-in-evil][Default Magit commit state in Evil - Emacs Stack Exchange]]
-
-#+name: 24325443
-#+begin_src elisp
-(use-package with-editor)
-
-(add-hook 'shell-mode-hook  'with-editor-export-editor)
-(add-hook 'eshell-mode-hook 'with-editor-export-editor)
-(add-hook 'term-exec-hook   'with-editor-export-editor)
-(add-hook 'vterm-mode-hook  'with-editor-export-editor)
-
-;; 进入 insert 编辑模式
-(add-hook 'with-editor-mode-hook 'meow-insert-mode)
-#+end_src
-
-*** magit
-#+name: 8970c514
-#+begin_src elisp
-(general-define-key :prefix-map 'gwp::magit-map)
-
-(use-package magit
-  :demand t
-  :config
-  (setq magit-completing-read-function 'ivy-completing-read)
-  ;; 隐藏untracked文件列表. 更多时候的操作是stage/commit
-  (setq magit-section-initial-visibility-alist (quote ((untracked . hide))))
-  ;;禁用magit中的gravatars支持, 响应能快一些.
-  (setq magit-revision-show-gravatars nil)
-  ;; 进入 magit-status 后, 将光标定在 unstaged 一栏
-  (setq magit-status-initial-section '(2))
-
-  :bind
-  (:map gwp::magit-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ("g" . magit-status)
-   ("s" . magit-status)
-   ("x" . magit-checkout)
-   ("c" . magit-commit)
-   ("p" . magit-push)
-   ("u" . magit-pull)
-   ("e" . magit-ediff-resolve)
-   ("r" . magit-rebase-interactive)
-   :map magit-status-mode-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   :map magit-hunk-section-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ))
-
-
-(use-package magit-popup)
-#+end_src
-*** rust
-#+name: a267f2ee
-#+begin_src elisp
-(use-package rust-mode)
-(use-package cargo)
-
-(eval-after-load 'rust-mode
-  '(require 'smartparens-rust))
-#+end_src
-
-*** provide
-#+begin_src elisp
-(provide 'init-develop)
 #+end_src
 
 * COMMENT Local variables

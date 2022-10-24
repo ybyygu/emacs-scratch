@@ -1,15 +1,19 @@
 ;; [[file:../gwp-scratch.note::2f79944b][2f79944b]]
 (setq inhibit-startup-message t)
+
 ;; 禁用不必要的界面元素
-(scroll-bar-mode -1)        ; Disable visible scrollbar
+(unless (display-graphic-p)
+  ;; Disable visible scrollbar
+  (scroll-bar-mode -1)
+  ;; (tooltip-mode -1)           ; Disable tooltips
+  ;; Give some breathing room
+  (set-fringe-mode 10))
+
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar
 
 ;; 默认会bee bee
 (setq visible-bell t)
-
-;; (tooltip-mode -1)           ; Disable tooltips
-(set-fringe-mode 10)        ; Give some breathing room
 
 (use-package doom-modeline
   :ensure t

@@ -45,8 +45,6 @@
 ;; f3f75fec ends here
 
 ;; [[file:../gwp-scratch.note::4e63ecbf][4e63ecbf]]
-;;; editor/core/config.el -*- lexical-binding: t; -*-
-
 ;;;###autoload
 ;; https://www.emacswiki.org/emacs/CopyingWholeLines
 (defun gwp::copy-current-line (&optional arg)
@@ -270,10 +268,6 @@
   (meow-setup-indicator))
 ;; 9a723a5b ends here
 
-;; [[file:../gwp-scratch.note::*helpful][helpful:1]]
-
-;; helpful:1 ends here
-
 ;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
 (gwp::goto-leader-def
   :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
@@ -347,7 +341,9 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; [[file:../gwp-scratch.note::45f27ad1][45f27ad1]]
 (gwp::leader-def
  "f" '(:ignore t :which-key "file")
+ "ff" '(find-file :which-key "find files")
  "fr" '(counsel-recentf :which-key "recent files")
+ "fs" '(write-file :which-key "save file as")
  "fj" '(dired-jump :which-key "jump to dired buffer")
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
  "fb" '(counsel-bookmark :which-key "open bookmarks")
