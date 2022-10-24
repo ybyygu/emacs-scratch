@@ -19,7 +19,7 @@
 + [[https://github.com/alphapapa/bufler.el][alphapapa/bufler.el: A butler for your buffers. Group buffers into workspaces with programmable rules, and easily switch to and manipulate them.]]
 + [[https://github.com/mclear-tools/tabspaces][mclear-tools/tabspaces]]
 + [[https://github.com/alphapapa/burly.el#usage][alphapapa/burly.el: Save and restore frames and windows with their buffers in Emacs]]
-  
+
 ** TODO [2022-10-17 Mon] 试用 verticol/consult 等补全框架
 - [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
 - [[https://www.youtube.com/watch?v=J0OaRy85MOo][Streamline Your Emacs Completions with Vertico - YouTube]]
@@ -35,7 +35,7 @@
 ** DONE [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
 
 - State "DONE"       from "TODO"       [2022-10-17 Mon 17:57]
-  
+
 * init.el
 :PROPERTIES:
 :header-args: :tangle init.el
@@ -181,6 +181,7 @@
   ;; (browse-url-browser-function 'eaf-open-browser)
   )
 #+end_src
+
 * docs
 ** use-package
 use-package emacs
@@ -201,7 +202,7 @@ use-package emacs
 #+name: b5a74212
 #+begin_src elisp
 (setq kill-ring-max 999)
-	 
+
 ;; 粘贴时删除区域中的内容, 不污染clipboard, 方便连续yank.
 (defun gwp::yank-dwim (arg)
   "粘贴并覆盖选定区域. 如果以C-u调用则提示从kill-ring中选择"
@@ -266,7 +267,7 @@ If a prefix argument is given, don't change the kill-ring."
       (delete-region beg end)
     (kill-region beg end)))
 #+end_src
-*** vars
+*** symlink
 #+name: 9e3bdda9
 #+begin_src elisp
 (use-package emacs
@@ -330,13 +331,14 @@ C-u C-@: 这是轮换当前的 mark ring
 (defun gwp::mark-current-position ()
   (interactive)
   (call-interactively #'set-mark-command)
-  (deactivate-mark)
-  )
+  (deactivate-mark))
 
 (defun gwp::mark-and-save-buffer()
   "标记光标所在位置, 并保存buffer"
   (interactive)
   (call-interactively #'gwp::mark-current-position)
+  ;; 保存时同当清理光标处空格
+  (call-interactively #'delete-trailing-whitespace)
   (save-buffer))
 
 (setq global-mark-ring-max 99
@@ -531,6 +533,117 @@ C-u C-@: 这是轮换当前的 mark ring
   ("q" nil "quit"))
 #+end_src
 
+*** auto-save
+开启自动保存
+#+begin_src elisp
+(setq
+ ;; doom里已默认为true
+ auto-save-default t
+ ;; 默认为5秒. 这里改大一些, 避免编辑时自动保存太快, 光标前的空格被吞掉
+ auto-save-visited-interval 30)
+
+;; 自动保存至当前文件名, 而非临时文件
+(auto-save-visited-mode +1)
+#+end_src
+
+*** white space
+显示行尾的空格. doom 中会在保存时自动清理, 在编辑时会打扰思路.
+
+#+name: 41b7e7c5
+#+begin_src elisp
+(setq show-trailing-whitespace t)
+#+end_src
+*** smartparens
+#+name: 649668b1
+#+begin_src elisp
+;; 高亮括号配对
+(use-package paren
+  :ensure nil
+  :hook (after-init . show-paren-mode)
+  :custom
+  ;; (show-paren-style 'mixed)
+  (show-paren-when-point-inside-paren t)
+  (show-paren-when-point-in-periphery t)
+  (show-paren-ring-bell-on-mismatch t)
+  :init
+  (custom-set-faces
+   '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold))))))
+
+(use-package smartparens
+  :custom
+  ;; Overlays are too distracting and not terribly
+  ;; helpful. show-parens does this for us already (and is faster),
+  ;; so...
+  (sp-highlight-pair-overlay nil)
+  (sp-highlight-wrap-tag-overlay nil)
+  (sp-highlight-wrap-overlay nil)
+  :hook
+  (prog-mode . smartparens-mode)
+  (org-mode . smartparens-mode))
+;; (add-hook 'prog-mode-hook 'turn-on-smartparens-mode)
+#+end_src
+
+*** clipboard
+#+name: dda75ec0
+#+begin_src elisp
+(use-package simple
+  :ensure nil
+  :custom
+  ;; 从其它程序复制的内容也放至在kill-ring中, 不会因为emacs的操作而覆盖之前的内容
+  (save-interprogram-paste-before-kill t))
+#+end_src
+
+*** auto revert
+从 doom-emacs 中抄来的
+#+name: 2bf53d30
+#+begin_src elisp
+(use-package autorevert
+  ;; revert buffers when their files/state have changed
+  :hook (focus-in . doom-auto-revert-buffers-h)
+  :hook (after-save . doom-auto-revert-buffers-h)
+  :hook (doom-switch-buffer . doom-auto-revert-buffer-h)
+  :hook (doom-switch-window . doom-auto-revert-buffer-h)
+  :config
+  (setq auto-revert-verbose t ; let us know when it happens
+        auto-revert-use-notify nil
+        auto-revert-stop-on-user-input nil
+        ;; Only prompts for confirmation when buffer is unsaved.
+        revert-without-query (list "."))
+
+  ;; `auto-revert-mode' and `global-auto-revert-mode' would, normally, abuse the
+  ;; heck out of file watchers _or_ aggressively poll your buffer list every X
+  ;; seconds. Too many watchers can grind Emacs to a halt if you preform
+  ;; expensive or batch processes on files outside of Emacs (e.g. their mtime
+  ;; changes), and polling your buffer list is terribly inefficient as your
+  ;; buffer list grows into the hundreds.
+  ;;
+  ;; Doom does this lazily instead. i.e. All visible buffers are reverted
+  ;; immediately when a) a file is saved or b) Emacs is refocused (after using
+  ;; another app). Meanwhile, buried buffers are reverted only when they are
+  ;; switched to. This way, Emacs only ever has to operate on, at minimum, a
+  ;; single buffer and, at maximum, ~10 buffers (after all, when do you ever
+  ;; have more than 10 windows in any single frame?).
+  (defun doom-auto-revert-buffer-h ()
+    "Auto revert current buffer, if necessary."
+    (unless (or auto-revert-mode (active-minibuffer-window))
+      (let ((auto-revert-mode t))
+        (auto-revert-handler))))
+
+  (defun doom-visible-buffers (&optional buffer-list)
+    "Return a list of visible buffers (i.e. not buried)."
+    (let ((buffers (delete-dups (mapcar #'window-buffer (window-list)))))
+      (if buffer-list
+          (cl-delete-if (lambda (b) (memq b buffer-list))
+			buffers)
+	(delete-dups buffers))))
+
+  (defun doom-auto-revert-buffers-h ()
+    "Auto revert stale buffers in visible windows, if necessary."
+    (dolist (buf (doom-visible-buffers))
+      (with-current-buffer buf
+        (doom-auto-revert-buffer-h)))))
+#+end_src
+
 *** provide
 #+name: 7b0203a1
 #+begin_src elisp
@@ -649,33 +762,6 @@ C-u C-@: 这是轮换当前的 mark ring
 *** meow setup normal
 #+name: 672c2d79
 #+begin_src elisp
-;; 高亮括号配对
-(use-package paren
-  :ensure nil
-  :hook (after-init . show-paren-mode)
-  :custom
-  (show-paren-style 'mixed)
-  (show-paren-when-point-inside-paren t)
-  (show-paren-when-point-in-periphery t)
-  (show-paren-ring-bell-on-mismatch t)
-  :init
-  (custom-set-faces
-   '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold))))))
-
-(use-package smartparens
-  :custom
-  ;; Overlays are too distracting and not terribly
-  ;; helpful. show-parens does this for us already (and is faster),
-  ;; so...
-  (sp-highlight-pair-overlay nil)
-  (sp-highlight-wrap-tag-overlay nil)
-  (sp-highlight-wrap-overlay nil)
-  :hook
-  ;; (prog-mode . smartparens-mode)
-  ;; (org-mode . smartparens-mode)
-  (meow-insert-mode . smartparens-mode))
-(add-hook 'prog-mode-hook 'turn-on-smartparens-strict-mode)
-
 (defun meow/setup-normal ()
   ;; normal commands
   (meow-normal-define-key
@@ -839,7 +925,7 @@ Entering KEYPAD state by pressing SPC in NORMAL or MOTION state.
 *** meow install
 meow 默认 C-d 只删除一个字符?
 - https://github.com/meow-edit/meow/discussions/298
-  
+
 #+name: 9a723a5b
 #+begin_src elisp
 (use-package meow
@@ -1892,7 +1978,7 @@ If on a:
 *** latex preview
 默认公式预览图片太小, 改大一些([[https://emacs.stackexchange.com/questions/19880/font-size-control-of-latex-previews-in-org-files][URL]]).
 - [[https://emacs.stackexchange.com/questions/30309/latex-preview-on-hidpi-display/30318#30318][LaTeX preview on HiDPI display - Emacs Stack Exchange]]
-  
+
 默认按键 C-c C-x C-l
 
 #+begin_src elisp
@@ -2120,7 +2206,7 @@ org-add-note: C-c C-z
 
 目前的问题 ([2020-03-06 Fri])
 - 第二次执行截图时, 如果clipboard无图, emacs会挂住, 现在无解.
-  
+
 #+name: 3b9396a6
 #+begin_src elisp
 (defun gwp/org-image-attributes-default (&optional caption)
@@ -2227,7 +2313,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; 几个重要的header args:
 (help/set-org-babel-default-header-args :padline "yes")
 (help/set-org-babel-default-header-args :mkdirp "yes")
-(help/set-org-babel-default-header-args :comments "link")  
+(help/set-org-babel-default-header-args :comments "link")
 #+end_src
 
 禁用当前代码块或整个headline. 如果再次使用即取消插入的header args. 还可以用
@@ -2265,7 +2351,7 @@ org-delete-property 删除 header-args
 #+end_src
 
 #+name: 62fd7850
-#+begin_src elisp 
+#+begin_src elisp
 ;;;###autoload
 ;; tangle blocks for current file at point
 ;; http://stackoverflow.com/questions/28727190/org-babel-tangle-only-one-code-block

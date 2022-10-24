@@ -1,6 +1,6 @@
 ;; [[file:../gwp-scratch.note::b5a74212][b5a74212]]
 (setq kill-ring-max 999)
-	 
+
 ;; 粘贴时删除区域中的内容, 不污染clipboard, 方便连续yank.
 (defun gwp::yank-dwim (arg)
   "粘贴并覆盖选定区域. 如果以C-u调用则提示从kill-ring中选择"
@@ -77,13 +77,14 @@
 (defun gwp::mark-current-position ()
   (interactive)
   (call-interactively #'set-mark-command)
-  (deactivate-mark)
-  )
+  (deactivate-mark))
 
 (defun gwp::mark-and-save-buffer()
   "标记光标所在位置, 并保存buffer"
   (interactive)
   (call-interactively #'gwp::mark-current-position)
+  ;; 保存时同当清理光标处空格
+  (call-interactively #'delete-trailing-whitespace)
   (save-buffer))
 
 (setq global-mark-ring-max 99
@@ -271,6 +272,105 @@
   ("r" gwp::org-show-context-at-point "org show context") ; 在org时: 跳转到被折叠的headline中很有用
   ("q" nil "quit"))
 ;; 00b43976 ends here
+
+;; [[file:../gwp-scratch.note::*auto-save][auto-save:1]]
+(setq
+ ;; doom里已默认为true
+ auto-save-default t
+ ;; 默认为5秒. 这里改大一些, 避免编辑时自动保存太快, 光标前的空格被吞掉
+ auto-save-visited-interval 30)
+
+;; 自动保存至当前文件名, 而非临时文件
+(auto-save-visited-mode +1)
+;; auto-save:1 ends here
+
+;; [[file:../gwp-scratch.note::41b7e7c5][41b7e7c5]]
+(setq show-trailing-whitespace t)
+;; 41b7e7c5 ends here
+
+;; [[file:../gwp-scratch.note::649668b1][649668b1]]
+;; 高亮括号配对
+(use-package paren
+  :ensure nil
+  :hook (after-init . show-paren-mode)
+  :custom
+  ;; (show-paren-style 'mixed)
+  (show-paren-when-point-inside-paren t)
+  (show-paren-when-point-in-periphery t)
+  (show-paren-ring-bell-on-mismatch t)
+  :init
+  (custom-set-faces
+   '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold))))))
+
+(use-package smartparens
+  :custom
+  ;; Overlays are too distracting and not terribly
+  ;; helpful. show-parens does this for us already (and is faster),
+  ;; so...
+  (sp-highlight-pair-overlay nil)
+  (sp-highlight-wrap-tag-overlay nil)
+  (sp-highlight-wrap-overlay nil)
+  :hook
+  (prog-mode . smartparens-mode)
+  (org-mode . smartparens-mode))
+;; (add-hook 'prog-mode-hook 'turn-on-smartparens-mode)
+;; 649668b1 ends here
+
+;; [[file:../gwp-scratch.note::dda75ec0][dda75ec0]]
+(use-package simple
+  :ensure nil
+  :custom
+  ;; 从其它程序复制的内容也放至在kill-ring中, 不会因为emacs的操作而覆盖之前的内容
+  (save-interprogram-paste-before-kill t))
+;; dda75ec0 ends here
+
+;; [[file:../gwp-scratch.note::2bf53d30][2bf53d30]]
+(use-package autorevert
+  ;; revert buffers when their files/state have changed
+  :hook (focus-in . doom-auto-revert-buffers-h)
+  :hook (after-save . doom-auto-revert-buffers-h)
+  :hook (doom-switch-buffer . doom-auto-revert-buffer-h)
+  :hook (doom-switch-window . doom-auto-revert-buffer-h)
+  :config
+  (setq auto-revert-verbose t ; let us know when it happens
+        auto-revert-use-notify nil
+        auto-revert-stop-on-user-input nil
+        ;; Only prompts for confirmation when buffer is unsaved.
+        revert-without-query (list "."))
+
+  ;; `auto-revert-mode' and `global-auto-revert-mode' would, normally, abuse the
+  ;; heck out of file watchers _or_ aggressively poll your buffer list every X
+  ;; seconds. Too many watchers can grind Emacs to a halt if you preform
+  ;; expensive or batch processes on files outside of Emacs (e.g. their mtime
+  ;; changes), and polling your buffer list is terribly inefficient as your
+  ;; buffer list grows into the hundreds.
+  ;;
+  ;; Doom does this lazily instead. i.e. All visible buffers are reverted
+  ;; immediately when a) a file is saved or b) Emacs is refocused (after using
+  ;; another app). Meanwhile, buried buffers are reverted only when they are
+  ;; switched to. This way, Emacs only ever has to operate on, at minimum, a
+  ;; single buffer and, at maximum, ~10 buffers (after all, when do you ever
+  ;; have more than 10 windows in any single frame?).
+  (defun doom-auto-revert-buffer-h ()
+    "Auto revert current buffer, if necessary."
+    (unless (or auto-revert-mode (active-minibuffer-window))
+      (let ((auto-revert-mode t))
+        (auto-revert-handler))))
+
+  (defun doom-visible-buffers (&optional buffer-list)
+    "Return a list of visible buffers (i.e. not buried)."
+    (let ((buffers (delete-dups (mapcar #'window-buffer (window-list)))))
+      (if buffer-list
+          (cl-delete-if (lambda (b) (memq b buffer-list))
+			buffers)
+	(delete-dups buffers))))
+
+  (defun doom-auto-revert-buffers-h ()
+    "Auto revert stale buffers in visible windows, if necessary."
+    (dolist (buf (doom-visible-buffers))
+      (with-current-buffer buf
+        (doom-auto-revert-buffer-h)))))
+;; 2bf53d30 ends here
 
 ;; [[file:../gwp-scratch.note::7b0203a1][7b0203a1]]
 (provide 'init-core)
