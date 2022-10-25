@@ -398,8 +398,8 @@ If two universal prefix arguments are used, then prompt for command to use."
  "rb" '(bookmark-jump :which-key "bookmarks")
  "rm" '(gwp::mark-ring :which-key "mark rings")
  ;; consult 里没有匹配的函数
- ;; "rl" '(ivy-resume :which-key "resume last search")
- )
+ "rl" '(ivy-resume :which-key "resume last search")
+  )
 ;; 574271f2 ends here
 
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
@@ -418,25 +418,26 @@ If two universal prefix arguments are used, then prompt for command to use."
 
 (defun gwp::zoxide-add-directory (dir)
   "将 dir 加入 zoxide 数据库中"
+  (message "add %s" dir)
   (when dir (call-process "zoxide" nil nil nil "add" dir)))
 
-;; open recent directory, requires ivy (part of swiper)
+;; open recent directory
 ;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
 ;;;###autoload
-(defun gwp::ivy-recent-dirs ()
+(defun gwp::recent-dirs ()
   "Present a list of recently used directories and open the selected one in dired"
   (interactive)
-  (let ((recent-dirs
-         (delete-dups
-          (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories)))))
-    (let ((dir (ivy-read "Directory: " recent-dirs
-                         :sort nil
-                         :action '(1 ("o" gwp::zoxide-add-directory "open")))))
-      (dired dir))))
+  (let* ((recent-dirs (delete-dups
+		       (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories))))
+	 ;; do not sort candidates
+	 (vertico-sort-function nil)
+	 (default-directory (completing-read "Directory: " recent-dirs nil t)))
+    (gwp::zoxide-add-directory default-directory)
+    (dired-jump)))
 
 (gwp::leader-def
   "d" '(:ignore t :which-key "develop")
-  "dr" '(gwp::ivy-recent-dirs :which-key "recent dirs")
+  "dr" '(gwp::recent-dirs :which-key "recent dirs")
   "dl" '(comment-dwim :which-key "comment/uncomment lines")
   "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
   )
