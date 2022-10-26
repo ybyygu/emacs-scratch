@@ -405,6 +405,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "rm" '(gwp::mark-ring :which-key "mark rings")
  ;; consult 里没有匹配的函数
  "rl" '(ivy-resume :which-key "resume last search")
+ "rj" '(list-registers :which-key "resume registers")
   )
 ;; 574271f2 ends here
 

@@ -771,7 +771,8 @@ C-u C-@: 这是轮换当前的 mark ring
   (consult-preview-key (kbd "M-."))
   :bind (
          ([remap apropos-command] . consult-apropos) ; SPC-h-a
-         ([remap goto-line] . consult-goto-line)
+         ;; avy-goto-line 更好用
+         ;; ([remap goto-line] . consult-goto-line)
          ([remap isearch-forward] . consult-line)
          ([remap yank-pop] . consult-yank-pop)
          ([remap repeat-complex-command] . consult-complex-command)
@@ -782,6 +783,7 @@ C-u C-@: 这是轮换当前的 mark ring
          ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
          ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
          ([remap imenu] . consult-imenu)
+         ([remap list-registers] . consult-register)
          ([remap gwp::rg] . consult-ripgrep)
          ([remap gwp::mark-ring] . consult-mark)
          ;; Minibuffer history
@@ -1365,6 +1367,7 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
  "rm" '(gwp::mark-ring :which-key "mark rings")
  ;; consult 里没有匹配的函数
  "rl" '(ivy-resume :which-key "resume last search")
+ "rj" '(list-registers :which-key "resume registers")
   )
 #+end_src
 
@@ -1693,7 +1696,9 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 
 (use-package avy
   :config
-  (setq avy-all-windows t))
+  (setq avy-all-windows t)
+  :bind
+  ([remap goto-line] . avy-goto-line))
 #+end_src
 
 **** save layout

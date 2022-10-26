@@ -106,7 +106,8 @@
   (consult-preview-key (kbd "M-."))
   :bind (
          ([remap apropos-command] . consult-apropos) ; SPC-h-a
-         ([remap goto-line] . consult-goto-line)
+         ;; avy-goto-line 更好用
+         ;; ([remap goto-line] . consult-goto-line)
          ([remap isearch-forward] . consult-line)
          ([remap yank-pop] . consult-yank-pop)
          ([remap repeat-complex-command] . consult-complex-command)
@@ -117,6 +118,7 @@
          ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
          ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
          ([remap imenu] . consult-imenu)
+         ([remap list-registers] . consult-register)
          ([remap gwp::rg] . consult-ripgrep)
          ([remap gwp::mark-ring] . consult-mark)
          ;; Minibuffer history
