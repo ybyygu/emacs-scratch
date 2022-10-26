@@ -1,3 +1,7 @@
+;; [[file:../gwp-scratch.note::b402e642][b402e642]]
+;; -*- lexical-binding: t; -*-
+;; b402e642 ends here
+
 ;; [[file:../gwp-scratch.note::e2f6b646][e2f6b646]]
 (use-package org
   :config

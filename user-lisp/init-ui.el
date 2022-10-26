@@ -1,12 +1,19 @@
+;; [[file:../gwp-scratch.note::b0fdf59c][b0fdf59c]]
+;; -*- lexical-binding: t; -*-
+;; b0fdf59c ends here
+
 ;; [[file:../gwp-scratch.note::2f79944b][2f79944b]]
 (setq inhibit-startup-message t)
 
 ;; 禁用不必要的界面元素
 ;; (tooltip-mode -1)           ; Disable tooltips
-;; Give some breathing room
-(set-fringe-mode 10)
-;; Disable visible scrollbar
-(scroll-bar-mode -1)
+
+;; 服务器上使用编译 --without-x 选项
+(when (boundp 'scroll-bar-mode)
+  ;; Give some breathing room
+  (set-fringe-mode 10)
+  ;; Disable visible scrollbar
+  (scroll-bar-mode -1))
 
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar

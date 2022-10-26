@@ -11,6 +11,29 @@
 - [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
 * Memo [2/4]
+** TODO [2022-10-26 Wed] 定义 prefix-map 的方法
+John Wiegley 写的, 也许用这个替代 general?
+
+[[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
+
+#+begin_src elisp :tangle no
+(bind-keys :prefix-map toggle-map
+           :prefix "C-c x"
+           :prefix-docstring "Keymap for commands that toggle settings."
+           ("c" . column-number-mode)
+           ("d" . toggle-debug-on-error)
+           ("t" . toggle-truncate-lines)
+           ("s" . whitespace-mode)
+           ("v" . variable-pitch-mode)
+           ("i" . visible-mode))
+
+(use-package bind-key
+  :bind ("C-h y" . describe-personal-keybindings))
+#+end_src
+
+也可以这样
+- [[https://github.com/SystemCrafters/crafted-emacs/blob/master/modules/crafted-windows.el][crafted-emacs/crafted-windows.el at master · SystemCrafters/crafted-emacs]]
+
 ** TODO [2022-10-24 Mon] 用 vertico 等替换 ivy/counsel 等包
 - [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
 - [[https://www.youtube.com/watch?v=HzlLxWTD6QY][21天学会Emacs 2022 Edition（第四天：vertico, orderless, marginalia, embark） - YouTube]]
@@ -74,6 +97,7 @@
 
 ;; (use-package command-log-mode)
 
+(require 'init-defaults)
 (require 'init-core)
 (require 'init-edit)
 (require 'init-ui)
@@ -146,6 +170,12 @@ use-package emacs
 :END:
 *** docs
 这里处理最核心的设置或功能扩充
+
+#+name: 4cd1adaf
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 *** crux
 #+name: 20ff3f1b
 #+begin_src elisp
@@ -532,6 +562,7 @@ C-u C-@: 这是轮换当前的 mark ring
 
 *** auto-save
 开启自动保存
+#+name: 1a29ba42
 #+begin_src elisp
 (setq
  ;; doom里已默认为true
@@ -646,11 +677,55 @@ C-u C-@: 这是轮换当前的 mark ring
 #+begin_src elisp
 (provide 'init-core)
 #+end_src
+** init-defaults.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-defaults.el
+:END:
+*** docs
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+*** crafted
+#+name: d8ca820b
+#+begin_src elisp
+;; credit: crafted-defaults.el
+;;
+;; Use spaces instead of tabs
+(setq-default indent-tabs-mode nil)
+
+;; Use "y" and "n" to confirm/negate prompt instead of "yes" and "no"
+;; Using `advice' here to make it easy to reverse in custom
+;; configurations with `(advice-remove 'yes-or-no-p #'y-or-n-p)'
+;;
+;; N.B. Emacs 28 has a variable for using short answers, which should
+;; be preferred if using that version or higher.
+(if (boundp 'use-short-answers)
+    (setq use-short-answers t)
+  (advice-add 'yes-or-no-p :override #'y-or-n-p))
+
+;; Do not save duplicates in kill-ring
+(customize-set-variable 'kill-do-not-save-duplicates t)
+
+;; Better support for files with long lines
+(setq-default bidi-paragraph-direction 'left-to-right)
+(setq-default bidi-inhibit-bpa t)
+(global-so-long-mode 1)
+
+(provide 'init-defaults)
+#+end_src
+
 
 ** init-completion.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-completion.el
 :END:
+*** docs
+#+name: 290a045b
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 *** TODO yasnippet
 注意, 这里如果在 org 前加载 M-i 按键会被覆盖. 可能得用 general 来绑定?
 
@@ -860,9 +935,11 @@ embark-act, 切换可能的操作对象.
   :init
   (which-key-mode)
   :diminish which-key-mode
+  :custom
+  (which-key-idle-delay 1)
+  (which-key-sort-uppercase-first nil)
   :config
-  (setq which-key-idle-delay 3
-        which-key-sort-uppercase-first nil))
+  )
 #+end_src
 
 *** COMMENT ivy
@@ -908,6 +985,11 @@ embark-act, 切换可能的操作对象.
 :END:
 *** docs
 主要用 meow 和 general 来实现按键
+
+#+name: 1d60bcbf
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
 
 *** constants
 #+name: 0894dac2
@@ -1454,6 +1536,12 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-ui.el
 :END:
+*** docs
+#+name: b0fdf59c
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 *** core
 #+name: 2f79944b
 #+begin_src elisp
@@ -1461,10 +1549,13 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 
 ;; 禁用不必要的界面元素
 ;; (tooltip-mode -1)           ; Disable tooltips
-;; Give some breathing room
-(set-fringe-mode 10)
-;; Disable visible scrollbar
-(scroll-bar-mode -1)
+
+;; 服务器上使用编译 --without-x 选项
+(when (boundp 'scroll-bar-mode)
+  ;; Give some breathing room
+  (set-fringe-mode 10)
+  ;; Disable visible scrollbar
+  (scroll-bar-mode -1))
 
 (tool-bar-mode -1)          ; Disable the toolbar
 (menu-bar-mode -1)            ; Disable the menu bar
@@ -2018,6 +2109,11 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 :END:
 *** docs
 实现和 doom 中 workspace 类似的功能
+#+name: 902df907
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 
 *** bindings
 默认为 mark-page, 用处不大. 取消为与 meow 中按键方便. "x p" 可直达 project-mode 相关按键.
@@ -2036,6 +2132,12 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-develop.el
 :END:
+*** docs
+#+name: ab84316d
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 *** with-editor
 magit 作者写的一个库, 方便使用当前 emacs 作为 EDITOR, 而非 shell 所定义的, 比如
 vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
@@ -2117,6 +2219,12 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-org.el
 :END:
+*** docs
+#+name: b402e642
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
 *** basic
 #+name: e2f6b646
 #+begin_src elisp
@@ -3312,6 +3420,11 @@ org-noter 生成的note, 用于打开打定的 PDF 页面.
 - 在某 heading 下, ",no", 打开该 heading 对应的 pdf 文件及相应的页码
 
 另外, 通过 [[https://github.com/ymarco/paper-mode][ymarco/paper-mode]], 也可以把 llpp 放到 emacs buffer 中.
+
+#+name: 6efb7ce7
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
 
 *** require
 还是基于 org-noter 来开发, 能省一些事是一些.

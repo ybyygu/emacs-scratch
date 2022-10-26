@@ -1,3 +1,7 @@
+;; [[file:../gwp-scratch.note::4cd1adaf][4cd1adaf]]
+;; -*- lexical-binding: t; -*-
+;; 4cd1adaf ends here
+
 ;; [[file:../gwp-scratch.note::20ff3f1b][20ff3f1b]]
 (use-package crux
   :config
@@ -319,7 +323,7 @@
   ("q" nil "quit"))
 ;; 00b43976 ends here
 
-;; [[file:../gwp-scratch.note::*auto-save][auto-save:1]]
+;; [[file:../gwp-scratch.note::1a29ba42][1a29ba42]]
 (setq
  ;; doom里已默认为true
  auto-save-default t
@@ -328,7 +332,7 @@
 
 ;; 自动保存至当前文件名, 而非临时文件
 (auto-save-visited-mode +1)
-;; auto-save:1 ends here
+;; 1a29ba42 ends here
 
 ;; [[file:../gwp-scratch.note::41b7e7c5][41b7e7c5]]
 (setq show-trailing-whitespace t)

@@ -26,6 +26,7 @@
 
 ;; (use-package command-log-mode)
 
+(require 'init-defaults)
 (require 'init-core)
 (require 'init-edit)
 (require 'init-ui)
@@ -80,16 +81,3 @@
   ;; (browse-url-browser-function 'eaf-open-browser)
   )
 ;; f1b9d1b9 ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(vertico yasnippet which-key use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download meow marginalia magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general find-file-in-project embark el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold)))))

@@ -1,3 +1,7 @@
+;; [[file:../gwp-scratch.note::1d60bcbf][1d60bcbf]]
+;; -*- lexical-binding: t; -*-
+;; 1d60bcbf ends here
+
 ;; [[file:../gwp-scratch.note::0894dac2][0894dac2]]
 (defconst gwp::dwim-leader-key "s-w")
 (defconst gwp::goto-leader-key "s-g")
