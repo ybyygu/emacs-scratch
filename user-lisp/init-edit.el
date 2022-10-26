@@ -280,6 +280,12 @@
 ;; 6cb02a16 ends here
 
 ;; [[file:../gwp-scratch.note::4cf8c86c][4cf8c86c]]
+(defun gwp::switch-to-previous-buffer ()
+  "Switch to previously open buffer.
+Repeated invocations toggle between the two most recently open buffers."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+
 (gwp::leader-def
  "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
  "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")

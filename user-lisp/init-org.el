@@ -232,40 +232,25 @@ If on a:
   "Search Zotero entries by tag using ivy."
   (interactive "sTag: ")
 
-  (let* ((candidates (zotero-search-items-by-tag name)))
-    (ivy-read (format "Zotero entries: ")
-              candidates
-              :action '(2               ; set the default action to open attachments
-                        ("o" gwp--ivy-action-open-link "Open link")
-                        ("O" gwp--ivy-action-open-attachments "Open attachments")
-                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
-                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+  (let* ((candidates (zotero-search-items-by-tag name))
+	 (item (completing-read "Zotero entries: " candidates nil t)))
+    (gwp--zotero-open-attachments item)))
 
 (defun gwp/zotero-search-by-collection (name)
   "Search Zotero entries by collection name using ivy."
   (interactive "sCollection: ")
 
-  (let* ((candidates (zotero-search-items-by-collection name)))
-    (ivy-read (format "Zotero entries: ")
-              candidates
-              :action '(2               ; set the default action to open attachments
-                        ("o" gwp--ivy-action-open-link "Open link")
-                        ("O" gwp--ivy-action-open-attachments "Open attachments")
-                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
-                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+  (let* ((candidates (zotero-search-items-by-collection name))
+	 (item (completing-read "zotero entries: " candidates nil t)))
+    (gwp--zotero-open-attachments item)))
 
-(defun gwp--ivy-action-show-related-items (x)
+(defun gwp--zotero-show-related-items (x)
   "show related items from selection"
-  (let* ((candidates (zotero-get-related-items x)))
-    (ivy-read (format "Related: ")
-              candidates
-              :action '(2               ; set the default action to open attachments
-                        ("o" gwp--ivy-action-open-link "Open link")
-                        ("O" gwp--ivy-action-open-attachments "Open attachments")
-                        ("r" gwp--ivy-action-show-related-items "Show Related Items")
-                        ("i" gwp--ivy-action-insert-link "Insert link")))))
+  (let* ((candidates (zotero-get-related-items x))
+	 (item (completing-read "Related: " candidates nil t)))
+    (gwp--zotero-open-attachments item)))
 
-(defun gwp--ivy-action-annotate-attachment (pdf-file)
+(defun gwp--zotero-annotate-attachment (pdf-file)
   "Annotate the attachment with org-noter."
   (let ((annotation-file (expand-file-name (car org-noter-default-notes-file-names) (file-name-directory pdf-file))))
     (progn
@@ -274,21 +259,13 @@ If on a:
       (org-open-file pdf-file)
       (org-noter))))
 
-(defun gwp--ivy-open-file-dir (file)
-  "open parent directory of a file"
-  (dired-jump 0 file))
-
-(defun gwp--ivy-action-open-attachments (x)
+(defun gwp--zotero-open-attachments (x)
   "ivy completion for zotero attachments."
-  (let* ((candidates (zotero-get-selected-item-attachment-paths x)))
-    (ivy-read (format "Open attachment: ")
-              candidates
-              :action '(1               ; set the default action to open link
-                        ("o" org-open-file "Open")
-                        ("d" gwp--ivy-open-file-dir "Dired")
-                        ("n" gwp--ivy-action-annotate-attachment "Annotate")))))
+  (let* ((candidates (zotero-get-selected-item-attachment-paths x))
+	 (attach (completing-read "Open attachment: " candidates nil t)))
+    (org-open-file attach)))
 
-(defun gwp--ivy-action-insert-link (x)
+(defun gwp--zotero-insert-link (x)
   (let ((uri (zotero-get-selected-item-link x)))
     (if uri
         (progn
@@ -296,7 +273,7 @@ If on a:
           (insert "[[" uri "][" "zotero-item" "]]"))
       (error "No link extracted from: %s" x))))
 
-(defun gwp--ivy-action-open-link (x)
+(defun gwp--zotero-open-link (x)
   (let ((uri (zotero-get-selected-item-link x)))
     (if uri
         (progn
@@ -313,7 +290,7 @@ If on a:
           (when link
             (let ((key (zotero-get-item-key-from-link link)))
               (if key
-                  (gwp--ivy-action-open-attachments key)
+                  (gwp--zotero-open-attachments key)
                 (error "Invalid zotero link!"))))))))
 
 (defun gwp/org-open-zotero-related-at-point (arg)
@@ -325,7 +302,7 @@ If on a:
           (when link
             (let ((key (zotero-get-item-key-from-link link)))
               (if key
-                  (gwp--ivy-action-show-related-items key)
+                  (gwp--zotero-show-related-items key)
                 (error "Invalid zotero link!"))))))))
 
 (defun gwp/insert-new-zotero-item (arg)
@@ -754,29 +731,8 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 
 
 ;; credit: https://github.com/CsBigDataHub/counsel-fd/blob/master/counsel-fd.el
-(defvar counsel-fd-command "fd --hidden --color never "
+(defvar gwp--fd-command "fd --hidden --color never "
   "Base command for fd.")
-
-;;;###autoload
-(defun counsel-fd-dired-jump (&optional initial-input initial-directory)
-  "Jump to a directory (in dired) below the current directory.
-List all subdirectories within the current directory.
-INITIAL-INPUT can be given as the initial minibuffer input.
-INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
-  (interactive
-   (list nil
-         (when current-prefix-arg
-           (read-directory-name "From directory: "))))
-  (counsel-require-program (car (split-string counsel-fd-command)))
-  (let* ((default-directory (or initial-directory default-directory)))
-    (ivy-read "Directory: "
-              (split-string
-               (shell-command-to-string
-                (concat counsel-fd-command "--type d --exclude '*.git'"))
-               "\n" t)
-              :initial-input initial-input
-              :action (lambda (d) (dired-x-find-file (expand-file-name d)))
-              :caller 'counsel-fd-dired-jump)))
 
 ;;;###autoload
 (defun counsel-fd-file-jump (&optional initial-input initial-directory)
@@ -788,16 +744,15 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    (list nil
          (when current-prefix-arg
            (read-directory-name "From directory: "))))
-  (counsel-require-program (car (split-string counsel-fd-command)))
-  (let* ((default-directory (or initial-directory default-directory)))
-    (ivy-read "File: "
-              (split-string
-               (shell-command-to-string
-                (concat counsel-fd-command "--type l --exclude '*.git'"))
-               "\n" t)
-              :initial-input initial-input
-              :action (lambda (d) (find-file (expand-file-name d)))
-              :caller 'counsel-fd-file-jump)))
+  (let* ((default-directory (or initial-directory default-directory))
+	 (d (completing-read "File: "
+		      (split-string
+		       (shell-command-to-string
+			(concat gwp--fd-command "--type l --exclude '*.git'"))
+		       "\n" t)
+		      nil
+		      t)))
+    (find-file (expand-file-name d))))
 
 (defun gwp::find-file-in-notes ()
   "Find a file under `~/.cache/notes', recursively."
