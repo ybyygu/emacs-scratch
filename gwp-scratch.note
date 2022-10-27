@@ -10,7 +10,7 @@
 - [[https://github.com/SystemCrafters/crafted-emacs/tree/master/modules][crafted-emacs/modules at master · SystemCrafters/crafted-emacs]]
 - [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
-* Memo [2/4]
+* Memo [3/6]
 ** TODO [2022-10-26 Wed] 定义 prefix-map 的方法
 John Wiegley 写的, 也许用这个替代 general?
 
@@ -34,7 +34,17 @@ John Wiegley 写的, 也许用这个替代 general?
 也可以这样
 - [[https://github.com/SystemCrafters/crafted-emacs/blob/master/modules/crafted-windows.el][crafted-emacs/crafted-windows.el at master · SystemCrafters/crafted-emacs]]
 
-** TODO [2022-10-24 Mon] 用 vertico 等替换 ivy/counsel 等包
+** DONE [2022-10-24 Mon] 用 vertico 等替换 ivy/counsel 等包
+- Note taken on [2022-10-27 Thu 20:23] \\
+  还挺适应的
+- State "DONE"       from "TODO"       [2022-10-27 Thu 20:23]
+
+理由
+- vertico 只 hack completing-read, 兼容性比 ivy 更强, 与 emacs 集成度更高, 更不易出错, 或出错会更容易找到原因.
+- 性能更好, 据说搜索速度更快一些
+
+资料
+- [[https://www.youtube.com/watch?v=J0OaRy85MOo][Streamline Your Emacs Completions with Vertico - YouTube]]
 - [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
 - [[https://www.youtube.com/watch?v=HzlLxWTD6QY][21天学会Emacs 2022 Edition（第四天：vertico, orderless, marginalia, embark） - YouTube]]
 - [[https://www.youtube.com/watch?v=UtqE-lR2HCA][System Crafters Live! - Replacing Ivy and Counsel with Vertico and Consult - YouTube]]
@@ -48,16 +58,10 @@ John Wiegley 写的, 也许用这个替代 general?
 + [[https://github.com/mclear-tools/tabspaces][mclear-tools/tabspaces]]
 + [[https://github.com/alphapapa/burly.el#usage][alphapapa/burly.el: Save and restore frames and windows with their buffers in Emacs]]
 
-** TODO [2022-10-17 Mon] 试用 verticol/consult 等补全框架
-- [[https://macowners.club/posts/from-ivy-to-vertico/][From Ivy & Counsel to Vertico & Consult | macOS & (open-source) Software]]
-- [[https://www.youtube.com/watch?v=J0OaRy85MOo][Streamline Your Emacs Completions with Vertico - YouTube]]
-
-理由
-- vertico 只 hack completing-read, 兼容性比 ivy 更强, 与 emacs 集成度更高, 更不易出错, 或出错会更容易找到原因.
-- 性能更好, 据说搜索速度更快一些
-
 ** DONE [2022-10-14 Fri] 还是得从头搞起. doom 的容易出问题
 
+- Note taken on [2022-10-27 Thu 20:25] \\
+  服务器上简单修改下也是可用的
 - State "DONE"       from "TODO"       [2022-10-17 Mon 17:57] \\
   基本可用
 ** DONE [2021-10-14 Thu] 简简单单从零开始, 配一个完全合心意的
@@ -118,7 +122,8 @@ use-package emacs
 - [[https://github.com/jwiegley/use-package][jwiegley/use-package: A use-package declaration for simplifying your .emacs]]
 
 ** bindings
-[[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
+- [[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
+- [[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
 
 * user-lisp
 ** init-core.el
@@ -644,6 +649,13 @@ C-u C-@: 这是轮换当前的 mark ring
 ;; -*- lexical-binding: t; -*-
 #+end_src
 
+*** mouse
+中端粘贴时以当前编辑位置为准, 而非鼠标光标所在位置.
+#+name: f794969f
+#+begin_src elisp
+(setq mouse-yank-at-point t)
+#+end_src
+
 *** crafted
 #+name: d8ca820b
 #+begin_src elisp
@@ -886,6 +898,9 @@ embark-act, 切换可能的操作对象.
 #+end_src
 
 *** which-key
+可 mode 对应的按键:
+: which-key-show-major-mode
+: which-key-show-minor-mode-keymap
 #+name: b0577e97
 #+begin_src elisp
 (use-package which-key
@@ -896,6 +911,7 @@ embark-act, 切换可能的操作对象.
   :custom
   (which-key-idle-delay 1)
   (which-key-sort-uppercase-first nil)
+  :bind (([remap describe-keymap] . which-key-show-keymap))
   :config
   )
 #+end_src
@@ -1306,10 +1322,17 @@ meow 默认 C-d 只删除一个字符?
   ";" '(goto-last-change :which-key "Go to where the last edit was made")
   )
 #+end_src
+
 *** avy goto
 #+name: c84fab18
 #+begin_src elisp
-;; (use-package avy)
+(use-package avy
+  :config
+  (setq avy-all-windows t)
+  :bind
+  ([remap goto-line] . avy-goto-line)
+  ([remap goto-char] . avy-goto-char-timer)
+  )
 #+end_src
 
 *** insert date
@@ -1599,12 +1622,6 @@ cycle-spacing
   (call-interactively #'ace-swap-window)
   (call-interactively #'aw-flip-window)
   )
-
-(use-package avy
-  :config
-  (setq avy-all-windows t)
-  :bind
-  ([remap goto-line] . avy-goto-line))
 #+end_src
 
 **** save layout
@@ -1903,28 +1920,58 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+name: e59d26a0
 #+begin_src elisp
 ;;; -*- lexical-binding: t -*-
-
-;; Hook up dired-x global bindings without loading it up-front
-(define-key ctl-x-map "\C-j" 'dired-jump)
-(define-key ctl-x-4-map "\C-j" 'dired-jump-other-window)
-
-(with-eval-after-load 'dired
-  (setq dired-recursive-deletes 'top)
-  (define-key dired-mode-map [mouse-2] 'dired-find-file)
-  (define-key dired-mode-map (kbd "j") 'dired-next-line)
-  (define-key dired-mode-map (kbd "k") 'dired-previous-line)
-  (define-key dired-mode-map (kbd "h") 'dired-up-directory)
-  (define-key dired-mode-map (kbd "l") 'dired-view-file)
-  (define-key dired-mode-map (kbd "K") 'dired-kill-file) ; 移除 dired buffer 中某行, 不影响文件, 相当于过滤
-  (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
-  (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
-  (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode))
 #+end_src
 
-*** TODO COMMENT settings
+*** utils
+#+name: c18cdaa7
+#+begin_src elisp
+(use-package fd-dired)
+
+;; 用于在dired中复制当前文件的全路径.
+;;;###autoload
+(defun gwp::dired-copy-file-path()
+  (interactive)
+  (let ((current-prefix-arg '(0)))
+    (call-interactively 'dired-copy-filename-as-kill)))
+
+;;;###autoload
+(defun gwp::dired-fd ()
+  "用于递归搜索文件名, 生成 dired 视图"
+  (interactive)
+  (require 'fd-dired)
+  (let ((args (read-string
+               "Run fd (with args and search): "
+               fd-dired-input-fd-args
+               '(fd-dired-args-history . 1))))
+    (fd-dired "." args)))
+
+(gwp::local-leader-def
+      :keymaps 'dired-mode-map
+      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
+      "h" '(dired-omit-mode :which-key "toggle hidden files")
+      "!" '(dired-do-async-shell-command :which-key "Async shell command")
+      "f" '(gwp::dired-fd :which-key "fd files"))
+#+end_src
+
+*** COMMENT dired-omit
+隐藏.dotfiles, doom中默认omit的太少
+#+name: 47bd2234
+#+begin_src emacs-lisp
+(use-package dired-x
+  :custom
+  (dired-omit-verbose t)
+  (dired-omit-files (rx (or
+                         (seq bol (? ".") "#")
+                         (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
+                         ))))
+#+end_src
+
+
+*** settings
 #+name: f3b2a13e
 #+begin_src elisp
 (use-package dired
+  :ensure nil
   :custom
   ;; 方便多个文件夹文件互动
   ;; Set this variable to non-nil, Dired will try to guess a default
@@ -1945,51 +1992,29 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   ;;  -v : Do natural sort .. so the file names starting with . will show up first.
   (dired-listing-switches "-alhvG --group-directories-first") ; default: "-al"
 
-  :binding
-  ("q"     #'gwp::dired-quit-window)
-  ("C-n"   #'dired-hacks-next-file)     ; mapping to j; 下一文件, 忽略非文件行
-  ("C-p"   #'dired-hacks-previous-file) ; mapping to k; 上一文件, 忽略非文件行
-  ("C-b"   #'gwp::dired-up-directory)   ; mapping to h;
-  ("C-f"   #'dired-view-file)           ; mapping to l;
-  ("DEL"   #'gwp::dired-up-directory)   ; BACKSPACE
-  ("RET"   #'gwp::dired-find-alternate-file)
-  ("K"     #'dired-kill-line)           ; 移除 dired buffer 中某行, 不影响文件, 相当于过滤
-  ("M-<"   #'gwp::dired-goto-first)
-  ("M->"   #'gwp::dired-goto-last)
-  ("C-S-n" #'dired-create-directory)
-  ("C-S-f" #'dired-create-empty-file)
-
   :config
-  ;; 这里不管用?
-  ;; (add-hook! 'dired-mode-hook #'gwp::dired-hook)
   ;; Don't complain about this command being disabled when we use it
   (put 'dired-find-alternate-file 'disabled nil)
   ;; 安全第一
-  (setq delete-by-moving-to-trash t)
-  (progn
-    ;; 用于在dired中复制当前文件的全路径.
-    (defun gwp/dired-copy-file-path()
-      (interactive)
-      (let ((current-prefix-arg '(0)))
-        (call-interactively 'dired-copy-filename-as-kill)))
+  (setq delete-by-moving-to-trash t))
+#+end_src
 
-    ;; 使用BACKSPACE来上一级目录, 使用Ctrl-shift-n来新建目录(默认为"+")
-    (map! :map dired-mode-map
-          )
-
-    (gwp::local-leader-def
-      :keymaps 'dired-mode-map
-      "k" '(gwp::dired-quit-all :which-key "kill all dired buffers")
-      "c" '(dired-collapse-mode :which-key "collapse empty dirs")
-      "h" '(dired-omit-mode :which-key "toggle hidden files")
-      "f" '(gwp::dired-fd :which-key "fd files")
-      "y" '(gwp/dired-copy-file-path :which-key "Copy file path")
-      "l" '(dired-do-symlink :which-key "Make symlink")
-      "o" '(dired-find-file-other-window :which-key "display in other window")
-      "SPC" '(dired-view-file :which-key "preview file")
-      "!" '(dired-do-async-shell-command :which-key "Async shell command")
-      "S" '(gwp::dired-open-current-as-sudo :which-key "sudo open file")
-      )))
+*** bindings
+#+name: 5a48a92b
+#+begin_src elisp
+(with-eval-after-load 'dired
+  (setq dired-recursive-deletes 'top)
+  (define-key dired-mode-map [mouse-2] 'dired-find-file)
+  (define-key dired-mode-map (kbd "j") 'dired-next-line)
+  (define-key dired-mode-map (kbd "k") 'dired-previous-line)
+  (define-key dired-mode-map (kbd "h") 'dired-up-directory)
+  (define-key dired-mode-map (kbd "l") 'dired-view-file)
+  (define-key dired-mode-map (kbd "K") 'dired-kill-file) ; 移除 dired buffer 中某行, 不影响文件, 相当于过滤
+  (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
+  (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
+  (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)
+  (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 #+end_src
 
 *** provide
@@ -2007,7 +2032,6 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+begin_src elisp
 ;; -*- lexical-binding: t; -*-
 #+end_src
-
 
 *** bindings
 默认为 mark-page, 用处不大. 取消为与 meow 中按键方便. "x p" 可直达 project-mode 相关按键.
@@ -3694,6 +3718,7 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "c" 'goto-char
   "." 'goto-line
   )
 #+end_src
@@ -3805,6 +3830,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "j" '(:ignore t :which-key "jump")
  "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
  "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
+ "jc" '(gwp::hydra-last-change/body :which-key "last changed positions")
  )
 #+end_src
 
@@ -3897,6 +3923,10 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 #+begin_src elisp
 (gwp::leader-def
  "h" '(:keymap help-map :which-key "Help" :package emacs))
+
+;; 可以查看不同 mode 下的按键绑定
+(bind-key "m" 'describe-keymap help-map)
+(bind-key "M" 'describe-mode help-map)
 #+end_src
 
 *** bindings: SPC-w window

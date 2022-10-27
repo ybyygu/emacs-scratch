@@ -2,6 +2,10 @@
 ;; -*- lexical-binding: t; -*-
 ;; docs:1 ends here
 
+;; [[file:../gwp-scratch.note::f794969f][f794969f]]
+(setq mouse-yank-at-point t)
+;; f794969f ends here
+
 ;; [[file:../gwp-scratch.note::d8ca820b][d8ca820b]]
 ;; credit: crafted-defaults.el
 ;;

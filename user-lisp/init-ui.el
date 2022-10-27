@@ -200,12 +200,6 @@
   (call-interactively #'ace-swap-window)
   (call-interactively #'aw-flip-window)
   )
-
-(use-package avy
-  :config
-  (setq avy-all-windows t)
-  :bind
-  ([remap goto-line] . avy-goto-line))
 ;; 34bcfc6f ends here
 
 ;; [[file:../gwp-scratch.note::a207c706][a207c706]]

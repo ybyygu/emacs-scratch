@@ -46,7 +46,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(goto-chg goto-last-change yasnippet which-key vertico use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download orderless meow marginalia magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general find-file-in-project embark-consult el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
+   '(fd-dired goto-chg goto-last-change yasnippet which-key vertico use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download orderless meow marginalia magit-popup magit ivy-rich ivy-hydra helpful golden-ratio general find-file-in-project embark-consult el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

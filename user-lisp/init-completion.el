@@ -177,9 +177,12 @@
   :init
   (which-key-mode)
   :diminish which-key-mode
+  :custom
+  (which-key-idle-delay 1)
+  (which-key-sort-uppercase-first nil)
+  :bind (([remap describe-keymap] . which-key-show-keymap))
   :config
-  (setq which-key-idle-delay 3
-        which-key-sort-uppercase-first nil))
+  )
 ;; b0577e97 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]

@@ -9,6 +9,7 @@
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "c" 'goto-char
   "." 'goto-line
   )
 ;; 6cb02a16 ends here
@@ -187,6 +188,10 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]
 (gwp::leader-def
  "h" '(:keymap help-map :which-key "Help" :package emacs))
+
+;; 可以查看不同 mode 下的按键绑定
+(bind-key "m" 'describe-keymap help-map)
+(bind-key "M" 'describe-mode help-map)
 ;; e7792733 ends here
 
 ;; [[file:../gwp-scratch.note::c54b17b5][c54b17b5]]
