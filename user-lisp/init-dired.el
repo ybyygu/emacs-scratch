@@ -1,8 +1,5 @@
-;; [[file:../gwp-scratch.note::f3b2a13e][f3b2a13e]]
-;;; init-dired.el --- Dired customisations -*- lexical-binding: t -*-
-;;; Commentary:
-;;; Code:
-(setq-default dired-dwim-target t)
+;; [[file:../gwp-scratch.note::e59d26a0][e59d26a0]]
+;;; -*- lexical-binding: t -*-
 
 ;; Hook up dired-x global bindings without loading it up-front
 (define-key ctl-x-map "\C-j" 'dired-jump)
@@ -19,6 +16,8 @@
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode))
+;; e59d26a0 ends here
 
+;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-dired)
-;; f3b2a13e ends here
+;; provide:1 ends here

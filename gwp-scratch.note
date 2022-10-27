@@ -100,6 +100,7 @@ John Wiegley 写的, 也许用这个替代 general?
 (require 'init-defaults)
 (require 'init-core)
 (require 'init-edit)
+(require 'init-xxx)
 (require 'init-ui)
 (require 'init-dired)
 (require 'init-workspace)
@@ -107,52 +108,8 @@ John Wiegley 写的, 也许用这个替代 general?
 (require 'init-develop)
 (require 'init-note)
 (require 'init-completion)
-#+end_src
-
-[[https://github.com/emacs-eaf/emacs-application-framework/wiki/Chemacs][Chemacs · emacs-eaf/emacs-application-framework Wiki]]
-#+name: f1b9d1b9
-#+begin_src elisp
-(use-package eaf
-  :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
-  :after org
-  :config
-  ;; (require 'eaf-file-manager)
-  (require 'eaf-browser)
-  (require 'eaf-image-viewer)
-  (require 'eaf-pdf-viewer)
-  (require 'eaf-demo)
-  (require 'eaf-org)
-  ;; (require 'eaf-interleave)
-  ;; (require 'eaf-terminal)
-  ;; (require 'eaf-evil)
-
-  ;; 按键绑定等
-  (defalias 'browse-web #'eaf-open-browser)
-  (eaf-bind-key close_buffer "q" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key add_annot_highlight "d"  eaf-pdf-viewer-keybinding)
-  (eaf-bind-key add_annot_underline "a" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key add_annot_squiggly "s" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key undo_annot_action "u" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key nil "SPC" eaf-pdf-viewer-keybinding) ;; unbind, see more in the Wiki
-  (eaf-bind-key zoom_in "=" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key zoom_out "-" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key jump_to_page "p" eaf-pdf-viewer-keybinding)
-  ;; (define-key eaf-mode-map* (kbd "C-c B") #'eaf-open-bookmark)
-
-  (defun eaf-org-open-file (file &optional link)
-    "An wrapper function on `eaf-open'."
-    (eaf-open file))
-
-  ;; use `emacs-application-framework' to open PDF file: link
-  (add-to-list 'org-file-apps '("\\.pdf\\'" . eaf-org-open-file))
-  :custom
-  ;; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
-  ;; (eaf-browser-continue-where-left-off t)
-  ;; (eaf-browser-enable-adblocker t)
-  (eaf-pdf-dark-mode nil)
-  (confirm-kill-processes nil)	; 退出不需要确认杀死进程
-  ;; (browse-url-browser-function 'eaf-open-browser)
-  )
+(require 'init-eaf)
+(require 'init-bindings)
 #+end_src
 
 * docs
@@ -169,7 +126,7 @@ use-package emacs
 :header-args: :tangle user-lisp/init-core.el
 :END:
 *** docs
-这里处理最核心的设置或功能扩充
+这里处理最核心的设置或必要的功能扩充
 
 #+name: 4cd1adaf
 #+begin_src elisp
@@ -677,6 +634,7 @@ C-u C-@: 这是轮换当前的 mark ring
 #+begin_src elisp
 (provide 'init-core)
 #+end_src
+
 ** init-defaults.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-defaults.el
@@ -1292,244 +1250,101 @@ meow 默认 C-d 只删除一个字符?
   (meow-setup-indicator))
 #+end_src
 
-*** bindings: goto
-仿 helix 编辑器
-#+name: 6cb02a16
+
+*** provide
+#+name: 0e5a2fde
 #+begin_src elisp
+(provide 'init-edit)
+#+end_src
+
+** init-xxx.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-xxx.el
+:END:
+*** docs
+暂时不好归类的内容
+#+name: 9e836961
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+*** upcase/downcase
+解决大小写, 首字母大写等问题. 仅在 meow insert mode 下生效
+
+#+name: b76494d2
+#+begin_src elisp
+(gwp::text-edit-def
+  "M-u" #'upcase-dwim
+  "M-l" #'downcase-dwim
+  "M-c" #'capitalize-dwim
+  )
+#+end_src
+
+*** goto last change
+#+name: 28526451
+#+begin_src elisp
+;; 比 goto-last-change 好用一些?
+(use-package goto-chg)
+
+(defhydra gwp::hydra-last-change ()
+  ("j" goto-last-change "last change")  ; 用 p 按键容易误操作, 用N 安全些
+  ("k" goto-last-change-reverse "previous change")
+  ("c" recenter "recenter")
+  ;; ("r" gwp::org-show-context-at-point "org show context")
+  ("q" nil "quit"))
+
 (gwp::goto-leader-def
-  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
-  "g" (general-simulate-key "M-<" :which-key "goto first line")
-  "e" (general-simulate-key "M->" :which-key "goto last line")
-  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
-  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." 'goto-line
+  :keymaps '(prog-mode-map org-mode-map)
+  ;; "g" '(beginning-of-buffer :which-key "goto first line")
+  ;; "e" '(end-of-buffer :which-key "goto last line")
+  ;; "l" '(end-of-line :which-key "goto the end of line")
+  ;; "h" '(beginning-of-line :which-key "goto the beginning of line")
+  ;; "d" '(+lookup/definition :which-key "Jump to definition")
+  ;; "f" '(+lookup/file :which-key "Locate file")
+  ;; "d" '(xref-find-definitions :which-key "Jump to definition")
+  ;; "d" (general-simulate-key "M-.")
+  "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
+  ";" '(goto-last-change :which-key "Go to where the last edit was made")
   )
 #+end_src
-*** bindings: SPC
-#+name: 4cf8c86c
+*** avy goto
+#+name: c84fab18
 #+begin_src elisp
-(defun gwp::switch-to-previous-buffer ()
-  "Switch to previously open buffer.
-Repeated invocations toggle between the two most recently open buffers."
-  (interactive)
-  (switch-to-buffer (other-buffer (current-buffer) 1)))
-
-(gwp::leader-def
- "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
- "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
- "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
- "u" '(universal-argument :which-key "Universal argument")
- )
-#+end_src
-*** bindings: SPC-b
-#+name: 33105bcf
-#+begin_src elisp
-(gwp::leader-def
- "b" '(:ignore t :which-key "buffer")
- "bb" '(switch-to-buffer :which-key "switch buffer")
- "bd" '(kill-current-buffer :which-key "kill buffer")
- "bk" '(kill-current-buffer :which-key "kill buffer")
- "br" '(revert-buffer :which-key "revert buffer")
- "bn" '(next-buffer :which-key "next buffer")
- "bp" '(previous-buffer :which-key "previous buffer")
- "bm" '(bookmark-set :which-key "set bookmark")
- "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
- )
+;; (use-package avy)
 #+end_src
 
-*** bindings: SPC-s search
-#+name: f220a2a2
-#+begin_src elisp
-(gwp::leader-def
- "s" '(:ignore t :which-key "search")
- "ss" '(isearch-forward :which-key "search buffer")
- "si" '(imenu :which-key "jump to symbol(imenu)")
- ;; gwp::rg 会虚拟命令, 待 consult remap
- "sd" '(gwp::rg :which-key "search directory")
- )
-#+end_src
-
-*** bindings: SPC-f
-从spacemacs中改过来的
-#+name: e13c7903
+*** insert date
+#+name: ab440ea2
 #+begin_src emacs-lisp
-(defun spacemacs/open-in-external-app (file-path)
-  "Open `file-path' in external application."
-  (let ((process-connection-type nil))
-    (start-process "" nil "xdg-open" file-path)))
-
-(defun spacemacs/open-file-or-directory-in-external-app (arg)
-  "Open current file in external application.
-If the universal prefix argument is used then open the folder
-containing the current file by the default explorer.
-If two universal prefix arguments are used, then prompt for command to use."
-  (interactive "P")
-  (if (equal arg '(4))                  ; C-u
-      (spacemacs/open-in-external-app (expand-file-name default-directory))
-    (let ((file-path (if (derived-mode-p 'dired-mode)
-                         (dired-get-file-for-visit)
-                       buffer-file-name)))
-      (if file-path
-          (if (equal arg '(16))         ; C-u C-u
-              (progn
-                (let ((program (read-shell-command "Open current file with: ")))
-                  (call-process program nil 0 nil file-path)))
-            (spacemacs/open-in-external-app file-path))
-        ;; for EAF pdf
-        (if (derived-mode-p 'eaf-mode)
-            (eaf-open-external)
-          (message "No file associated to this buffer."))))))
-#+end_src
-
-#+name: 45f27ad1
-#+begin_src elisp
-(gwp::leader-def
- "f" '(:ignore t :which-key "file")
- "ff" '(find-file :which-key "find files")
- "fr" '(recentf-open-files :which-key "recent files")
- "fs" '(write-file :which-key "save file as")
- "fj" '(dired-jump :which-key "jump to dired buffer")
- "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
- "fb" '(bookmark-jump :which-key "open bookmarks")
- "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
- )
-#+end_src
-
-*** bindings: SPC-q
-#+name: 860eb4b2
-#+begin_src elisp
-(gwp::leader-def
- "q" '(:ignore t :which-key "quit/session")
- "qq" '(save-buffers-kill-terminal :which-key "Quit Emacs")
- "qk" '(save-buffers-kill-emacs :which-key "Kill Emacs (and daemon)")
- )
-#+end_src
-
-*** bindings: SPC-j
-#+name: 92af756a
-#+begin_src emacs-lisp
-(gwp::leader-def
- "j" '(:ignore t :which-key "jump")
- "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
- "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
- )
-#+end_src
-
-*** bindings: SPC-o
-emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
-
-#+name: 826282dd
-#+begin_src elisp
-(defun gwp/open-in-gnome-terminal (the-directory)
-  "Open `the-directory' in external gnome-terminal."
-  (let ((process-connection-type nil))
-    ;; (start-process "" nil "terminal-dwim.sh" (concat "--working-directory=" the-directory) "-e" "tmux")
-    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")
-    ))
-
-(defun gwp::open-terminal-here ()
-  "Open the current dir in a new terminal window"
-  (interactive)
-  (let ((default-directory (or (and (eq major-mode 'dired-mode)
-                                    (dired-current-directory))
-                               default-directory)))
-    (gwp/open-in-gnome-terminal (expand-file-name default-directory))))
-
-(gwp::leader-def
- "o" '(:ignore t :which-key "open")
- "ot" '(gwp::open-terminal-here :which-key "open terminal here")
- )
-#+end_src
-*** bindings: SPC-r resume/ring
-#+name: 574271f2
-#+begin_src elisp
-(gwp::leader-def
- "r" '(:ignore t :which-key "resume/ring")
- "rb" '(bookmark-jump :which-key "bookmarks")
- "rm" '(gwp::mark-ring :which-key "mark rings")
- ;; consult 里没有匹配的函数
- "rl" '(ivy-resume :which-key "resume last search")
- "rj" '(list-registers :which-key "resume registers")
-  )
-#+end_src
-
-*** bindings: SPC-d develop
-#+name: e724170b
-#+begin_src elisp
-(require 'recentf)
-(defun gwp::zoxide-recent-directories ()
-  (let* ((output (shell-command-to-string "zoxide query --list"))
-         (dirs (split-string output "[\r\n]+" t)))
-    dirs))
-
-(defun gwp::dired-recent-directories ()
-  (let* ((recent-dirs
-          (mapcar (lambda (file)
-                    (if (file-directory-p file) file (file-name-directory file)))
-                  recentf-list)))
-    recent-dirs))
-
-(defun gwp::zoxide-add-directory (dir)
-  "将 dir 加入 zoxide 数据库中"
-  (message "add %s" dir)
-  (when dir (call-process "zoxide" nil nil nil "add" dir)))
-
-;; open recent directory
-;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
 ;;;###autoload
-(defun gwp::recent-dirs ()
-  "Present a list of recently used directories and open the selected one in dired"
-  (interactive)
-  (let* ((recent-dirs (delete-dups
-		       (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories))))
-	 ;; do not sort candidates
-	 (vertico-sort-function nil)
-	 (default-directory (completing-read "Directory: " recent-dirs nil t)))
-    (gwp::zoxide-add-directory default-directory)
-    (dired-jump)))
+(defun gwp::insert-date (arg)
+  "Insert date at point. With prefix argument, insert date and time."
+  (interactive "P")
+  (insert (format-time-string "%Y-%m-%d"))
+  (when arg
+    (insert (format-time-string " %H:%M"))))
 
-(gwp::leader-def
-  "d" '(:ignore t :which-key "develop")
-  "dr" '(gwp::recent-dirs :which-key "recent dirs")
-  "dl" '(comment-dwim :which-key "comment/uncomment lines")
-  "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+;; make it easier to update time-stamp
+(gwp::text-edit-def "C-c i" #'gwp::insert-date)
+#+end_src
+
+*** white space
+just-one-space
+cycle-spacing
+#+name: 989c4b3c
+#+begin_src emacs-lisp
+(setq show-trailing-whitespace t)
+
+(gwp::text-edit-def
+  ;; 删除多余空行, 仅保留一行
+  "C-x C-o" #'delete-blank-lines
+  ;; "C-c C-o" #'delete-blank-lines
+  "C-o" #'cycle-spacing
   )
-#+end_src
-
-*** bindings: SPC-h help
-帮助系统
-- apropos-value
-
-#+name: e7792733
-#+begin_src elisp
-(gwp::leader-def
- "h" '(:keymap help-map :which-key "Help" :package emacs))
-#+end_src
-
-*** bindings: SPC-w window
-#+name: c54b17b5
-#+begin_src elisp
-(gwp::leader-def
- "w" '(:keymap gwp::window-map :which-key "Window" :package emacs))
-#+end_src
-
-*** bindings: SPC-g magit
-#+name: 185fc283
-#+begin_src elisp
-(gwp::leader-def
- "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
-#+end_src
-
-*** bindings: SPC-n note
-#+name: 51e6b46e
-#+begin_src elisp
-(general-define-key :prefix-map 'gwp::note-map)
-(gwp::leader-def "n" '(:keymap gwp::note-map :which-key "note" :package emacs))
 #+end_src
 
 *** provide
 #+begin_src elisp
-(provide 'init-edit)
+(provide 'init-xxx)
 #+end_src
 
 ** init-ui.el
@@ -2077,12 +1892,17 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-dired.el
 :END:
-#+name: f3b2a13e
+*** docs
+- [[https://www.emacswiki.org/emacs/DiredOmitMode][EmacsWiki: Dired Omit Mode]]
+- note: [[id:2d226fe6-2010-490e-99cf-1a53b511cc8c][dired 文件管理]]
+- 据说这个很好, 可试一下 [[https://github.com/alexluigit/dirvish][alexluigit/dirvish: Dired can be a nice file manager.]]
+
+常用命令:
+- 在其它窗口打开文件: ,o 或 M-RET
+
+#+name: e59d26a0
 #+begin_src elisp
-;;; init-dired.el --- Dired customisations -*- lexical-binding: t -*-
-;;; Commentary:
-;;; Code:
-(setq-default dired-dwim-target t)
+;;; -*- lexical-binding: t -*-
 
 ;; Hook up dired-x global bindings without loading it up-front
 (define-key ctl-x-map "\C-j" 'dired-jump)
@@ -2099,7 +1919,81 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode))
+#+end_src
 
+*** TODO COMMENT settings
+#+name: f3b2a13e
+#+begin_src elisp
+(use-package dired
+  :custom
+  ;; 方便多个文件夹文件互动
+  ;; Set this variable to non-nil, Dired will try to guess a default
+  ;; target directory. This means: if there is a dired buffer
+  ;; displayed in the next window, use its current subdir, instead
+  ;; of the current subdir of this dired buffer. The target is used
+  ;; in the prompt for file copy, rename etc.
+  (dired-dwim-target t)
+  (dired-auto-revert-buffer t)          ; don't prompt to revert; just do it
+  (dired-recursive-copies  'always)
+  (dired-recursive-deletes 'top)
+
+  ;; Dired listing switches
+  ;;  -a : Do not ignore entries starting with .
+  ;;  -l : Use long listing format.
+  ;;  -G : Do not print group names like 'users'
+  ;;  -h : Human-readable sizes like 1K, 234M, ..
+  ;;  -v : Do natural sort .. so the file names starting with . will show up first.
+  (dired-listing-switches "-alhvG --group-directories-first") ; default: "-al"
+
+  :binding
+  ("q"     #'gwp::dired-quit-window)
+  ("C-n"   #'dired-hacks-next-file)     ; mapping to j; 下一文件, 忽略非文件行
+  ("C-p"   #'dired-hacks-previous-file) ; mapping to k; 上一文件, 忽略非文件行
+  ("C-b"   #'gwp::dired-up-directory)   ; mapping to h;
+  ("C-f"   #'dired-view-file)           ; mapping to l;
+  ("DEL"   #'gwp::dired-up-directory)   ; BACKSPACE
+  ("RET"   #'gwp::dired-find-alternate-file)
+  ("K"     #'dired-kill-line)           ; 移除 dired buffer 中某行, 不影响文件, 相当于过滤
+  ("M-<"   #'gwp::dired-goto-first)
+  ("M->"   #'gwp::dired-goto-last)
+  ("C-S-n" #'dired-create-directory)
+  ("C-S-f" #'dired-create-empty-file)
+
+  :config
+  ;; 这里不管用?
+  ;; (add-hook! 'dired-mode-hook #'gwp::dired-hook)
+  ;; Don't complain about this command being disabled when we use it
+  (put 'dired-find-alternate-file 'disabled nil)
+  ;; 安全第一
+  (setq delete-by-moving-to-trash t)
+  (progn
+    ;; 用于在dired中复制当前文件的全路径.
+    (defun gwp/dired-copy-file-path()
+      (interactive)
+      (let ((current-prefix-arg '(0)))
+        (call-interactively 'dired-copy-filename-as-kill)))
+
+    ;; 使用BACKSPACE来上一级目录, 使用Ctrl-shift-n来新建目录(默认为"+")
+    (map! :map dired-mode-map
+          )
+
+    (gwp::local-leader-def
+      :keymaps 'dired-mode-map
+      "k" '(gwp::dired-quit-all :which-key "kill all dired buffers")
+      "c" '(dired-collapse-mode :which-key "collapse empty dirs")
+      "h" '(dired-omit-mode :which-key "toggle hidden files")
+      "f" '(gwp::dired-fd :which-key "fd files")
+      "y" '(gwp/dired-copy-file-path :which-key "Copy file path")
+      "l" '(dired-do-symlink :which-key "Make symlink")
+      "o" '(dired-find-file-other-window :which-key "display in other window")
+      "SPC" '(dired-view-file :which-key "preview file")
+      "!" '(dired-do-async-shell-command :which-key "Async shell command")
+      "S" '(gwp::dired-open-current-as-sudo :which-key "sudo open file")
+      )))
+#+end_src
+
+*** provide
+#+begin_src elisp
 (provide 'init-dired)
 #+end_src
 
@@ -3713,6 +3607,341 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
 #+name: 8d4b377b
 #+begin_src elisp
 (provide 'init-note)
+#+end_src
+** init-eaf.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-eaf.el
+:END:
+*** docs
+[[https://github.com/emacs-eaf/emacs-application-framework/wiki/Chemacs][Chemacs · emacs-eaf/emacs-application-framework Wiki]]
+
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+*** load
+#+name: f1b9d1b9
+#+begin_src elisp
+(use-package eaf
+  :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
+  :after org
+  :config
+  ;; (require 'eaf-file-manager)
+  (require 'eaf-browser)
+  (require 'eaf-image-viewer)
+  (require 'eaf-pdf-viewer)
+  (require 'eaf-demo)
+  (require 'eaf-org)
+  ;; (require 'eaf-interleave)
+  ;; (require 'eaf-terminal)
+  ;; (require 'eaf-evil)
+
+  ;; 按键绑定等
+  (defalias 'browse-web #'eaf-open-browser)
+  (eaf-bind-key close_buffer "q" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_highlight "d"  eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_underline "a" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key add_annot_squiggly "s" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key undo_annot_action "u" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key nil "SPC" eaf-pdf-viewer-keybinding) ;; unbind, see more in the Wiki
+  (eaf-bind-key zoom_in "=" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key zoom_out "-" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key jump_to_page "p" eaf-pdf-viewer-keybinding)
+  ;; (define-key eaf-mode-map* (kbd "C-c B") #'eaf-open-bookmark)
+
+  (defun eaf-org-open-file (file &optional link)
+    "An wrapper function on `eaf-open'."
+    (eaf-open file))
+
+  ;; use `emacs-application-framework' to open PDF file: link
+  (add-to-list 'org-file-apps '("\\.pdf\\'" . eaf-org-open-file))
+  :custom
+  ;; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
+  ;; (eaf-browser-continue-where-left-off t)
+  ;; (eaf-browser-enable-adblocker t)
+  (eaf-pdf-dark-mode nil)
+  (confirm-kill-processes nil)	; 退出不需要确认杀死进程
+  ;; (browse-url-browser-function 'eaf-open-browser)
+  )
+#+end_src
+
+
+*** provide
+#+name: ba2c433d
+#+begin_src elisp
+(provide 'init-eaf)
+#+end_src
+
+** init-bindings.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-bindings.el
+:END:
+*** docs
+全局按键绑定等, 不依赖于具体的 mode
+
+#+name: a4d73c60
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+*** bindings: goto
+仿 helix 编辑器
+#+name: 6cb02a16
+#+begin_src elisp
+(gwp::goto-leader-def
+  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+  "g" (general-simulate-key "M-<" :which-key "goto first line")
+  "e" (general-simulate-key "M->" :which-key "goto last line")
+  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
+  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "." 'goto-line
+  )
+#+end_src
+
+*** bindings: SPC
+#+name: 4cf8c86c
+#+begin_src elisp
+(defun gwp::switch-to-previous-buffer ()
+  "Switch to previously open buffer.
+Repeated invocations toggle between the two most recently open buffers."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+
+(gwp::leader-def
+ "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
+ "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
+ "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
+ "u" '(universal-argument :which-key "Universal argument")
+ )
+#+end_src
+*** bindings: SPC-b
+#+name: 33105bcf
+#+begin_src elisp
+(gwp::leader-def
+ "b" '(:ignore t :which-key "buffer")
+ "bb" '(switch-to-buffer :which-key "switch buffer")
+ "bd" '(kill-current-buffer :which-key "kill buffer")
+ "bk" '(kill-current-buffer :which-key "kill buffer")
+ "br" '(revert-buffer :which-key "revert buffer")
+ "bn" '(next-buffer :which-key "next buffer")
+ "bp" '(previous-buffer :which-key "previous buffer")
+ "bm" '(bookmark-set :which-key "set bookmark")
+ "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
+ )
+#+end_src
+
+*** bindings: SPC-s search
+#+name: f220a2a2
+#+begin_src elisp
+(gwp::leader-def
+ "s" '(:ignore t :which-key "search")
+ "ss" '(isearch-forward :which-key "search buffer")
+ "si" '(imenu :which-key "jump to symbol(imenu)")
+ ;; gwp::rg 会虚拟命令, 待 consult remap
+ "sd" '(gwp::rg :which-key "search directory")
+ )
+#+end_src
+
+*** bindings: SPC-f
+从spacemacs中改过来的
+#+name: e13c7903
+#+begin_src emacs-lisp
+(defun spacemacs/open-in-external-app (file-path)
+  "Open `file-path' in external application."
+  (let ((process-connection-type nil))
+    (start-process "" nil "xdg-open" file-path)))
+
+(defun spacemacs/open-file-or-directory-in-external-app (arg)
+  "Open current file in external application.
+If the universal prefix argument is used then open the folder
+containing the current file by the default explorer.
+If two universal prefix arguments are used, then prompt for command to use."
+  (interactive "P")
+  (if (equal arg '(4))                  ; C-u
+      (spacemacs/open-in-external-app (expand-file-name default-directory))
+    (let ((file-path (if (derived-mode-p 'dired-mode)
+                         (dired-get-file-for-visit)
+                       buffer-file-name)))
+      (if file-path
+          (if (equal arg '(16))         ; C-u C-u
+              (progn
+                (let ((program (read-shell-command "Open current file with: ")))
+                  (call-process program nil 0 nil file-path)))
+            (spacemacs/open-in-external-app file-path))
+        ;; for EAF pdf
+        (if (derived-mode-p 'eaf-mode)
+            (eaf-open-external)
+          (message "No file associated to this buffer."))))))
+#+end_src
+
+#+name: 45f27ad1
+#+begin_src elisp
+(gwp::leader-def
+ "f" '(:ignore t :which-key "file")
+ "ff" '(find-file :which-key "find files")
+ "fr" '(recentf-open-files :which-key "recent files")
+ "fs" '(write-file :which-key "save file as")
+ "fj" '(dired-jump :which-key "jump to dired buffer")
+ "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
+ "fb" '(bookmark-jump :which-key "open bookmarks")
+ "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
+ )
+#+end_src
+
+*** bindings: SPC-q
+#+name: 860eb4b2
+#+begin_src elisp
+(gwp::leader-def
+ "q" '(:ignore t :which-key "quit/session")
+ "qq" '(save-buffers-kill-terminal :which-key "Quit Emacs")
+ "qk" '(save-buffers-kill-emacs :which-key "Kill Emacs (and daemon)")
+ )
+#+end_src
+
+*** bindings: SPC-j
+#+name: 92af756a
+#+begin_src emacs-lisp
+(gwp::leader-def
+ "j" '(:ignore t :which-key "jump")
+ "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
+ "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
+ )
+#+end_src
+
+*** bindings: SPC-o
+emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
+
+#+name: 826282dd
+#+begin_src elisp
+(defun gwp/open-in-gnome-terminal (the-directory)
+  "Open `the-directory' in external gnome-terminal."
+  (let ((process-connection-type nil))
+    ;; (start-process "" nil "terminal-dwim.sh" (concat "--working-directory=" the-directory) "-e" "tmux")
+    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")
+    ))
+
+(defun gwp::open-terminal-here ()
+  "Open the current dir in a new terminal window"
+  (interactive)
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
+    (gwp/open-in-gnome-terminal (expand-file-name default-directory))))
+
+(gwp::leader-def
+ "o" '(:ignore t :which-key "open")
+ "ot" '(gwp::open-terminal-here :which-key "open terminal here")
+ )
+#+end_src
+*** bindings: SPC-r resume/ring
+#+name: 574271f2
+#+begin_src elisp
+(gwp::leader-def
+ "r" '(:ignore t :which-key "resume/ring")
+ "rb" '(bookmark-jump :which-key "bookmarks")
+ "rm" '(gwp::mark-ring :which-key "mark rings")
+ ;; consult 里没有匹配的函数
+ "rl" '(ivy-resume :which-key "resume last search")
+ "rj" '(list-registers :which-key "resume registers")
+  )
+#+end_src
+
+*** bindings: SPC-d develop
+#+name: e724170b
+#+begin_src elisp
+(require 'recentf)
+(defun gwp::zoxide-recent-directories ()
+  (let* ((output (shell-command-to-string "zoxide query --list"))
+         (dirs (split-string output "[\r\n]+" t)))
+    dirs))
+
+(defun gwp::dired-recent-directories ()
+  (let* ((recent-dirs
+          (mapcar (lambda (file)
+                    (if (file-directory-p file) file (file-name-directory file)))
+                  recentf-list)))
+    recent-dirs))
+
+(defun gwp::zoxide-add-directory (dir)
+  "将 dir 加入 zoxide 数据库中"
+  (message "add %s" dir)
+  (when dir (call-process "zoxide" nil nil nil "add" dir)))
+
+;; open recent directory
+;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
+;;;###autoload
+(defun gwp::recent-dirs ()
+  "Present a list of recently used directories and open the selected one in dired"
+  (interactive)
+  (let* ((recent-dirs (delete-dups
+		       (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories))))
+	 ;; do not sort candidates
+	 (vertico-sort-function nil)
+	 (default-directory (completing-read "Directory: " recent-dirs nil t)))
+    (gwp::zoxide-add-directory default-directory)
+    (dired-jump)))
+
+(gwp::leader-def
+  "d" '(:ignore t :which-key "develop")
+  "dr" '(gwp::recent-dirs :which-key "recent dirs")
+  "dl" '(comment-dwim :which-key "comment/uncomment lines")
+  "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+  )
+#+end_src
+
+*** bindings: SPC-h help
+帮助系统
+- apropos-value
+
+#+name: e7792733
+#+begin_src elisp
+(gwp::leader-def
+ "h" '(:keymap help-map :which-key "Help" :package emacs))
+#+end_src
+
+*** bindings: SPC-w window
+#+name: c54b17b5
+#+begin_src elisp
+(gwp::leader-def
+ "w" '(:keymap gwp::window-map :which-key "Window" :package emacs))
+#+end_src
+
+*** bindings: SPC-g magit
+#+name: 185fc283
+#+begin_src elisp
+(gwp::leader-def
+ "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
+#+end_src
+
+*** bindings: SPC-n note
+#+name: 51e6b46e
+#+begin_src elisp
+(general-define-key :prefix-map 'gwp::note-map)
+(gwp::leader-def "n" '(:keymap gwp::note-map :which-key "note" :package emacs))
+#+end_src
+
+*** provide
+#+name: 1d4f6e72
+#+begin_src elisp
+(provide 'init-bindings)
+#+end_src
+
+** COMMENT init-xxx.el
+:PROPERTIES:
+:header-args: :tangle user-lisp/init-xxx.el
+:END:
+*** docs
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+*** core
+#+begin_src elisp
+#+end_src
+
+*** provide
+#+begin_src elisp
+(provide 'init-xxx)
 #+end_src
 
 * COMMENT Local variables
