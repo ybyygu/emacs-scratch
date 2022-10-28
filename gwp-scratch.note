@@ -68,6 +68,15 @@ John Wiegley 写的, 也许用这个替代 general?
 
 - State "DONE"       from "TODO"       [2022-10-17 Mon 17:57]
 
+* docs
+** use-package
+use-package emacs
+- [[https://github.com/jwiegley/use-package][jwiegley/use-package: A use-package declaration for simplifying your .emacs]]
+
+** bindings
+- [[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
+- [[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
+
 * init.el
 :PROPERTIES:
 :header-args: :tangle init.el
@@ -115,15 +124,6 @@ John Wiegley 写的, 也许用这个替代 general?
 (require 'init-eaf)
 (require 'init-bindings)
 #+end_src
-
-* docs
-** use-package
-use-package emacs
-- [[https://github.com/jwiegley/use-package][jwiegley/use-package: A use-package declaration for simplifying your .emacs]]
-
-** bindings
-- [[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
-- [[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
 
 * user-lisp
 ** init-core.el
@@ -1015,6 +1015,17 @@ embark-act, 切换可能的操作对象.
   ;; 取消某些容易误按, 不习惯的键
   (general-unbind "C-v" "C-z" "C-x C-z"))
 #+end_src
+*** local keymaps
+#+name: edaec1b8
+#+begin_src elisp
+(general-define-key
+ :prefix-map 'gwp::edit-map
+ )
+
+(general-define-key
+ :prefix-map 'gwp::develop-map
+ )
+#+end_src
 
 *** meow utils
 #+name: 4e63ecbf
@@ -1323,11 +1334,16 @@ meow 默认 C-d 只删除一个字符?
   :config
   :after init-bindings
   (setq avy-all-windows t)
+  :config
+
   ;; 2022-10-28: 不太管用
   ;; :bind
   ;; ([remap goto-line] . avy-goto-line)
   ;; ([remap goto-char] . avy-goto-char-timer)
   )
+
+(bind-key "l" 'avy-copy-line gwp::edit-map)
+(bind-key "L" 'avy-copy-region gwp::edit-map)
 #+end_src
 
 *** insert date
@@ -1377,6 +1393,7 @@ cycle-spacing
 #+end_src
 
 *** provide
+#+name: 382df7e2
 #+begin_src elisp
 (provide 'init-xxx)
 #+end_src
@@ -4066,6 +4083,13 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
   )
 #+end_src
 
+*** bindings: SPC-e edit
+#+name: b357bbd9
+#+begin_src elisp
+(gwp::leader-def
+  "e" '(:keymap gwp::edit-map :which-key "edit" :package emacs))
+#+end_src
+
 *** bindings: SPC-d develop
 #+name: e724170b
 #+begin_src elisp
@@ -4102,6 +4126,7 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
     (dired-jump)))
 
 (gwp::leader-def
+  ;; "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
   "d" '(:ignore t :which-key "develop")
   "dr" '(gwp::recent-dirs :which-key "recent dirs")
   "dl" '(comment-dwim :which-key "comment/uncomment lines")

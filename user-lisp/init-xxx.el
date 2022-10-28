@@ -32,11 +32,16 @@
   :config
   :after init-bindings
   (setq avy-all-windows t)
+  :config
+
   ;; 2022-10-28: 不太管用
   ;; :bind
   ;; ([remap goto-line] . avy-goto-line)
   ;; ([remap goto-char] . avy-goto-char-timer)
   )
+
+(bind-key "l" 'avy-copy-line gwp::edit-map)
+(bind-key "L" 'avy-copy-region gwp::edit-map)
 ;; c84fab18 ends here
 
 ;; [[file:../gwp-scratch.note::ab440ea2][ab440ea2]]
@@ -76,6 +81,6 @@
   )
 ;; 6cb02a16 ends here
 
-;; [[file:../gwp-scratch.note::*provide][provide:1]]
+;; [[file:../gwp-scratch.note::382df7e2][382df7e2]]
 (provide 'init-xxx)
-;; provide:1 ends here
+;; 382df7e2 ends here

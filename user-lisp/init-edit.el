@@ -48,6 +48,16 @@
   (general-unbind "C-v" "C-z" "C-x C-z"))
 ;; f3f75fec ends here
 
+;; [[file:../gwp-scratch.note::edaec1b8][edaec1b8]]
+(general-define-key
+ :prefix-map 'gwp::edit-map
+ )
+
+(general-define-key
+ :prefix-map 'gwp::develop-map
+ )
+;; edaec1b8 ends here
+
 ;; [[file:../gwp-scratch.note::4e63ecbf][4e63ecbf]]
 ;;;###autoload
 ;; https://www.emacswiki.org/emacs/CopyingWholeLines

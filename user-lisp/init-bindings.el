@@ -133,6 +133,11 @@ If two universal prefix arguments are used, then prompt for command to use."
   )
 ;; 574271f2 ends here
 
+;; [[file:../gwp-scratch.note::b357bbd9][b357bbd9]]
+(gwp::leader-def
+  "e" '(:keymap gwp::edit-map :which-key "edit" :package emacs))
+;; b357bbd9 ends here
+
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
 (require 'recentf)
 (defun gwp::zoxide-recent-directories ()
@@ -167,6 +172,7 @@ If two universal prefix arguments are used, then prompt for command to use."
     (dired-jump)))
 
 (gwp::leader-def
+  ;; "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
   "d" '(:ignore t :which-key "develop")
   "dr" '(gwp::recent-dirs :which-key "recent dirs")
   "dl" '(comment-dwim :which-key "comment/uncomment lines")
