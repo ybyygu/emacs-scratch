@@ -10,11 +10,11 @@ Repeated invocations toggle between the two most recently open buffers."
   (switch-to-buffer (other-buffer (current-buffer) 1)))
 
 (gwp::leader-def
- "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
- "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
- "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
- "u" '(universal-argument :which-key "Universal argument")
- )
+  "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
+  "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
+  "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
+  "u" '(universal-argument :which-key "Universal argument")
+  )
 ;; 4cf8c86c ends here
 
 ;; [[file:../gwp-scratch.note::33105bcf][33105bcf]]
@@ -171,6 +171,7 @@ If two universal prefix arguments are used, then prompt for command to use."
   "dr" '(gwp::recent-dirs :which-key "recent dirs")
   "dl" '(comment-dwim :which-key "comment/uncomment lines")
   "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+  "dj" '(:keymap gwp::citre-map :package citre :which-key "citre jump")
   )
 ;; e724170b ends here
 

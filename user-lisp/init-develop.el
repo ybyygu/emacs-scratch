@@ -82,6 +82,20 @@
           ("YAML" prettier))))
 ;; f2289888 ends here
 
+;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]
+(use-package citre
+  :init
+  ;; This is needed in `:init' block for lazy load to work.
+  (require 'citre-config)
+  ;; 用 transient 不如下面的好. 下面的可以用"."命令来重做上次的操作.
+  :config
+  (general-define-key :prefix-map 'gwp::citre-map
+                      "j" 'citre-jump
+                      "b" 'citre-jump-back
+                      "c" 'citre-create-tags-file
+                      "p" 'citre-peek))
+;; f8651bde ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here

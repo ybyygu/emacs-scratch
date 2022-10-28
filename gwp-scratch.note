@@ -2164,21 +2164,25 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
           ("YAML" prettier))))
 #+end_src
 
-*** TODO COMMENT citre
+*** citre
+关于 [[https://github.com/universal-ctags/citre/blob/master/docs/user-manual/citre-peek.md][citre-peek]]
+
+- [[https://emacs-china.org/t/citre-ctags/17604][Citre: 先进的 Ctags 前端 - Emacs-general - Emacs China]]
+- (citre-jump-back): 需要定义tag文件(citre-create-tags-file), 支持跳转至函数定义, 很帅 (SPC-j-c-d, SPC-j-c-b)
+
 #+name: f8651bde
 #+begin_src elisp
 (use-package citre
   :init
   ;; This is needed in `:init' block for lazy load to work.
   (require 'citre-config)
-  ;; (map! :leader
-  ;;       (:prefix-map ("j" . "jump")
-  ;;        (:prefix-map ("c" . "citre")
-  ;;         :desc "citre jump to definition"                    "d" #'citre-jump
-  ;;         :desc "citre jump back"                             "b" #'citre-jump-back
-  ;;         :desc "citre peek"                                  "p" #'citre-peek
-  ;;         )))
-  )
+  ;; 用 transient 不如下面的好. 下面的可以用"."命令来重做上次的操作.
+  :config
+  (general-define-key :prefix-map 'gwp::citre-map
+                      "j" 'citre-jump
+                      "b" 'citre-jump-back
+                      "c" 'citre-create-tags-file
+                      "p" 'citre-peek))
 #+end_src
 
 *** provide
@@ -3951,6 +3955,7 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
   "dr" '(gwp::recent-dirs :which-key "recent dirs")
   "dl" '(comment-dwim :which-key "comment/uncomment lines")
   "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+  "dj" '(:keymap gwp::citre-map :package citre :which-key "citre jump")
   )
 #+end_src
 

@@ -40,3 +40,16 @@
 (require 'init-eaf)
 (require 'init-bindings)
 ;; 158fcd0c ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(citre yasnippet which-key vertico use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download orderless meow marginalia magit-popup magit ivy-rich ivy-hydra helpful goto-last-change goto-chg golden-ratio general format-all find-file-in-project fd-dired embark-consult el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold)))))
