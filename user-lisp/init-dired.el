@@ -5,16 +5,16 @@
 ;; [[file:../gwp-scratch.note::c18cdaa7][c18cdaa7]]
 (use-package fd-dired)
 
-;; 用于在dired中复制当前文件的全路径.
 ;;;###autoload
 (defun gwp::dired-copy-file-path()
+  "复制当前文件全路径"
   (interactive)
   (let ((current-prefix-arg '(0)))
     (call-interactively 'dired-copy-filename-as-kill)))
 
 ;;;###autoload
 (defun gwp::dired-fd ()
-  "用于递归搜索文件名, 生成 dired 视图"
+  "使用 fd 递归搜索文件名, 生成 dired 视图"
   (interactive)
   (require 'fd-dired)
   (let ((args (read-string
@@ -22,14 +22,24 @@
                fd-dired-input-fd-args
                '(fd-dired-args-history . 1))))
     (fd-dired "." args)))
-
-(gwp::local-leader-def
-      :keymaps 'dired-mode-map
-      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
-      "h" '(dired-omit-mode :which-key "toggle hidden files")
-      "!" '(dired-do-async-shell-command :which-key "Async shell command")
-      "f" '(gwp::dired-fd :which-key "fd files"))
 ;; c18cdaa7 ends here
+
+;; [[file:../gwp-scratch.note::47bd2234][47bd2234]]
+;; emacs 内置的包
+(use-package dired-x
+  :ensure nil
+  :custom
+  (dired-omit-verbose t)
+  (dired-omit-files (rx (or
+                         (seq bol (? ".") "#")
+                         (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
+                         ))))
+
+(use-package dired-collapse
+  :commands (dired-collapse-mode)
+  :init
+  (add-hook 'dired-mode-hook #'dired-collapse-mode))
+;; 47bd2234 ends here
 
 ;; [[file:../gwp-scratch.note::f3b2a13e][f3b2a13e]]
 (use-package dired
@@ -75,6 +85,14 @@
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)
   (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+
+(gwp::local-leader-def
+      :keymaps 'dired-mode-map
+      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
+      "h" '(dired-omit-mode :which-key "toggle hidden files")
+      "t" '(dired-hide-details-mode :which-key "hide details")
+      "!" '(dired-do-async-shell-command :which-key "Async shell command")
+      "f" '(gwp::dired-fd :which-key "fd files"))
 ;; 5a48a92b ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]

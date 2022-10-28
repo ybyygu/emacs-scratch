@@ -158,7 +158,7 @@
          ("C-c C-o" . embark-export)
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
-         ("C-h B" . embark-bindings)
+         ;; ("C-h B" . embark-bindings)
          )
   :custom
   ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
@@ -169,6 +169,9 @@
 (use-package embark-consult
   :if (featurep 'embark)
   :after consult)
+
+;; 查看不同 mode 下的按键更方便(C-h RET)
+(bind-key "C-m" 'embark-bindings-in-keymap help-map)
 ;; 74ebe55a ends here
 
 ;; [[file:../gwp-scratch.note::b0577e97][b0577e97]]

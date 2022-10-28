@@ -853,7 +853,7 @@ C-u C-@: 这是轮换当前的 mark ring
 #+end_src
 
 *** embark
-一个新的神器.
+一个新的神器, 相当于 text 版的右键菜单.
 
 重要文档
 - [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
@@ -871,6 +871,9 @@ embark-act, 切换可能的操作对象.
 也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
 : embark-target-finders
 
+查看按键
+: embark-bindings-in-keymap
+
 #+name: 74ebe55a
 #+begin_src emacs-lisp
 ;; 补全窗口显示补助等信息
@@ -886,7 +889,6 @@ embark-act, 切换可能的操作对象.
          ("C-c C-o" . embark-export)
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
-         ("C-h B" . embark-bindings)
          )
   :custom
   ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
@@ -897,6 +899,9 @@ embark-act, 切换可能的操作对象.
 (use-package embark-consult
   :if (featurep 'embark)
   :after consult)
+
+;; 查看不同 mode 下的按键更方便(C-h RET)
+(bind-key "C-m" 'embark-bindings-in-keymap help-map)
 #+end_src
 
 *** which-key
@@ -1260,7 +1265,7 @@ meow 默认 C-d 只删除一个字符?
   ;; 选择文字区域时光标位置与 vim 及其它软件一致
   ;; 2022-03-19: 会出一些怪问题, 禁用
   ;; (meow-cursor-type-normal 'hbar)
-  (meow-use-cursor-position-hack t)
+  ;; (meow-use-cursor-position-hack t)
   :config
   (setq meow-cursor-type-normal '(box . 2))
   (setq meow-cursor-type-insert '(bar . 2))
@@ -1962,7 +1967,6 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 :header-args: :tangle user-lisp/init-dired.el
 :END:
 *** docs
-- [[https://www.emacswiki.org/emacs/DiredOmitMode][EmacsWiki: Dired Omit Mode]]
 - note: [[id:2d226fe6-2010-490e-99cf-1a53b511cc8c][dired 文件管理]]
 - 据说这个很好, 可试一下 [[https://github.com/alexluigit/dirvish][alexluigit/dirvish: Dired can be a nice file manager.]]
 
@@ -1979,16 +1983,16 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
 #+begin_src elisp
 (use-package fd-dired)
 
-;; 用于在dired中复制当前文件的全路径.
 ;;;###autoload
 (defun gwp::dired-copy-file-path()
+  "复制当前文件全路径"
   (interactive)
   (let ((current-prefix-arg '(0)))
     (call-interactively 'dired-copy-filename-as-kill)))
 
 ;;;###autoload
 (defun gwp::dired-fd ()
-  "用于递归搜索文件名, 生成 dired 视图"
+  "使用 fd 递归搜索文件名, 生成 dired 视图"
   (interactive)
   (require 'fd-dired)
   (let ((args (read-string
@@ -1996,26 +2000,26 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
                fd-dired-input-fd-args
                '(fd-dired-args-history . 1))))
     (fd-dired "." args)))
-
-(gwp::local-leader-def
-      :keymaps 'dired-mode-map
-      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
-      "h" '(dired-omit-mode :which-key "toggle hidden files")
-      "!" '(dired-do-async-shell-command :which-key "Async shell command")
-      "f" '(gwp::dired-fd :which-key "fd files"))
 #+end_src
 
-*** COMMENT dired-omit
+*** dired-omit/dired-collapse
 隐藏.dotfiles, doom中默认omit的太少
 #+name: 47bd2234
 #+begin_src emacs-lisp
+;; emacs 内置的包
 (use-package dired-x
+  :ensure nil
   :custom
   (dired-omit-verbose t)
   (dired-omit-files (rx (or
                          (seq bol (? ".") "#")
                          (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
                          ))))
+
+(use-package dired-collapse
+  :commands (dired-collapse-mode)
+  :init
+  (add-hook 'dired-mode-hook #'dired-collapse-mode))
 #+end_src
 
 
@@ -2067,6 +2071,14 @@ clone 出的 buffer 可独立编辑, 视图变化互不影响. 有用.
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)
   (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+
+(gwp::local-leader-def
+      :keymaps 'dired-mode-map
+      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
+      "h" '(dired-omit-mode :which-key "toggle hidden files")
+      "t" '(dired-hide-details-mode :which-key "hide details")
+      "!" '(dired-do-async-shell-command :which-key "Async shell command")
+      "f" '(gwp::dired-fd :which-key "fd files"))
 #+end_src
 
 *** provide

@@ -264,7 +264,7 @@
   ;; 选择文字区域时光标位置与 vim 及其它软件一致
   ;; 2022-03-19: 会出一些怪问题, 禁用
   ;; (meow-cursor-type-normal 'hbar)
-  (meow-use-cursor-position-hack t)
+  ;; (meow-use-cursor-position-hack t)
   :config
   (setq meow-cursor-type-normal '(box . 2))
   (setq meow-cursor-type-insert '(bar . 2))
