@@ -659,7 +659,16 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; 097db727 ends here
 
 ;; [[file:../gwp-scratch.note::82ecc499][82ecc499]]
-
+(defun gwp::org-mark-link ()
+  "Marks an org text link."
+  (interactive)
+  (let ((case-fold-search t)
+        (re "\\[\\["))
+    (unless (looking-at re)
+      (search-backward-regexp re))
+    (set-mark (point))
+    (search-forward "]]")
+    (exchange-point-and-mark)))
 ;; 82ecc499 ends here
 
 ;; [[file:../gwp-scratch.note::4971b464][4971b464]]
@@ -933,6 +942,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  "m." #'org-mark-element
  "mm" #'org-mark-ring-push
  "mp" #'org-mark-ring-goto
+ "ml" #'gwp::org-mark-link
  "ms" #'org-babel-mark-block)
 
 (gwp::local-leader-def
