@@ -1416,9 +1416,33 @@ cycle-spacing
   :ensure t
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
+#+end_src
 
+*** theme
+#+name: 62b5d5bd
+#+begin_src elisp
 (use-package doom-themes
-  :init (load-theme 'doom-nova t))
+  :init (load-theme 'doom-nova t)
+  :config
+  )
+
+(custom-set-faces
+ '(org-todo ((t (:background "#263238" :foreground "yellow" :weight bold))))
+ '(org-done ((t (:foreground "yellow" :weight bold :background "#263238"))))
+ '(org-table ((t (:foreground "#e3f2fd"))))
+ '(org-level-1 ((t (:foreground "#e3f2fd" :height 1.1 :background nil :weight normal :box nil))))
+ '(org-level-2 ((t (:foreground "#e3f2fd" :height 1.0 :background nil :weight normal :box nil))))
+ '(org-headline-done ((t (:foreground "gray" :weight normal))))
+ )
+
+(custom-set-faces
+ ;; 当前行
+ '(hl-line ((t (:background "#37474f"))))
+ '(region ((t (:background "#555555"))))
+ '(solaire-hl-line-face ((t (:background "#37474f"))))
+ ;; meow-grab 时, 配色更清楚些
+ '(secondary-selection ((t (:foreground "green"))))
+ )
 #+end_src
 
 *** chinese font
@@ -2195,6 +2219,13 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 :header-args: :tangle user-lisp/init-org.el
 :END:
 *** docs
+关于Tab键
+- 默认是expand outline. 如果连续按会展开更深层的. 此时可移动下光标, 再回去按TAB就会缩回outline状态.
+
+配置参考:
+- [[http://doc.norang.ca/org-mode.html][Org Mode - Organize Your Life In Plain Text!]]
+- [[https://github.com/kaushalmodi/.emacs.d/blob/master/setup-files/setup-org.el][.emacs.d/setup-org.el at master · kaushalmodi/.emacs.d]]
+
 #+name: b402e642
 #+begin_src elisp
 ;; -*- lexical-binding: t; -*-
@@ -2672,6 +2703,13 @@ org-add-note: C-c C-z
 #+end_src
 
 *** babel
+**** docs
+参考
+- [[https://org-babel.readthedocs.io/en/latest/][Org Babel reference card]]
+
+如何察看noweb展开后的代码:
+- C-c C-v v: org-babel-expand-src-block
+
 **** settings
 #+name: 99465500
 #+begin_src elisp
@@ -3102,6 +3140,48 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  )
 #+end_src
 
+**** TODO COMMENT update cache
+需要 rebuild-note-cache.sh 命令 [[rebuild-notes][rebuild-notes]]
+
+#+name: da4e0834
+#+begin_src elisp
+(defun gwp::update-notes-cache ()
+  (interactive)
+  (message (shell-command-to-string "rebuild-note-cache.sh")))
+
+(require 'midnight)
+(midnight-mode t)
+(midnight-delay-set 'midnight-delay "3:30am")
+
+(add-hook! midnight #'gwp::update-notes-cache)
+#+end_src
+
+*** capture
+占位符:
+| %:link                            | URL of the web-page                                  |
+| %:description                     | The title of the web-page                            |
+| %:initial / %i                    | Selected text.                                       |
+| %x                                | Content of the X clipboard.                          |
+| %(org-get-x-clipboard 'CLIPBOARD) | 强制使用X clipboard复制的内容, 而非primary clipboard |
+
+#+name: 5dc0bf0f
+#+begin_src emacs-lisp
+(setq org-capture-templates
+      '(
+        ("n" "Note" entry (file "~/Notes/refile.note")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %:initial\n" :prepend t)
+        ("t" "Task" entry (file+headline "~/Notes/life.note" "Tasks")
+         "* TODO %^T %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i" :prepend t)
+        ("r" "Research Memo" entry (file+headline "~/Notes/research.note" "Memo")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("p" "Paper" entry (file+headline "~/Notes/research.note" "Literature")
+         "* TODO %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("j" "Life Journal" entry (file+headline "~/Notes/life.note" "Journals")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("N" "Note from protocol" entry (file "~/Notes/refile.note")
+         "* %u %? [[%:link][%:description]]\n  %:initial\n" :prepend t)))
+#+end_src
+
 *** agenda
 重要日程打 TODO+ASAP 标签.
 **** 基本设置
@@ -3281,8 +3361,85 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  '(idle-org-agenda-mode t)
  )
 #+end_src
+*** encryption
+#+name: 6f58facc
+#+begin_src emacs-lisp
+(require 'org-crypt)
+(require 'epa-file)
+(epa-file-enable)
+
+;; Encrypt all entries before saving
+(org-crypt-use-before-save-magic)
+(setq org-crypt-tag-matcher "crypt")
+(setq org-tags-exclude-from-inheritance (quote ("crypt")))
+;; GPG key to use for encryption
+(setq org-crypt-key "38D95BC6411A87E7") ; ybyygu@gmail.com
+(setq org-crypt-disable-auto-save nil)
+#+end_src
+
+*** protocol
+#+begin_src elisp
+(require 'org-protocol)
+#+end_src
+
+*** COMMENT read/done
+基本弃用. 有待改进.
+#+begin_src elisp
+(defun gwp/enter-to-read-state()
+  "evoke external shell script when entering READ state"
+  (when (equal org-state "READ")
+    (setq file (gwp/get-org-file-link-path))
+    (if file
+        (progn
+          (setq cmd (concat "org-to-read.sh " (shell-quote-argument file)))
+          (message cmd)
+          (shell-command cmd))))
+  (when (equal org-last-state "READ")
+    (message "try to remove READ state")
+    (setq file (gwp/get-org-file-link-path))
+    (if file
+        (progn
+          (setq cmd (concat "org-read-done.sh " (shell-quote-argument file)))
+          (message cmd)
+          (shell-command cmd)))))
+(add-hook 'org-after-todo-state-change-hook 'gwp/enter-to-read-state)
+
+;; show a sparse-tree in READ keyword
+(defun gwp/org-show-read-tree ()
+  "show a sparse-tree in READ keyword"
+  (interactive)
+
+  (let ((base-vector [?\C-u ?\M-x ?o ?r ?g ?- ?s ?h ?o ?w ?- ?t ?o ?d ?o ?- ?t ?r ?e ?e return ?R ?E ?A ?D return]))
+    ;; create new macro of the form
+    ;; C-u M-x org-show-todo-tree RET READ RET
+    (execute-kbd-macro (vconcat base-vector
+                                (vector 'return)))))
+#+end_src
+
+
+*** dwim
+#+name: 27b71342
+#+begin_src elisp
+(gwp::dwim-leader-def
+  :keymaps 'org-mode-map
+  "g" 'org-goto                                ; goto
+  "t" 'org-todo                                ; todo
+  "e" 'org-edit-special                        ; edit
+  "a" 'org-attach                              ; attach
+  "b" 'gwp::org-babel-tangle-dwim              ; babel
+  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
+  )
+
+(gwp::dwim-leader-def
+  :keymaps 'org-src-mode-map
+  ;; "b" 'gwp/org-babel-tangle-dwim
+  "q" 'org-edit-src-exit
+  )
+#+end_src
 
 *** bindings
+优化最常用的按键
 #+name: dfee4224
 #+begin_src elisp
 ;; org-insert-structure-template
@@ -3360,23 +3517,6 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  "M-p" #'org-backward-element
  "M-n" #'org-forward-element
  )
-
-(gwp::dwim-leader-def
-  :keymaps 'org-mode-map
-  "g" 'org-goto                                ; goto
-  "t" 'org-todo                                ; todo
-  "e" 'org-edit-special                        ; edit
-  "a" 'org-attach                              ; attach
-  "b" 'gwp::org-babel-tangle-dwim              ; babel
-  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
-  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
-  )
-
-(gwp::dwim-leader-def
-  :keymaps 'org-src-mode-map
-  ;; "b" 'gwp/org-babel-tangle-dwim
-  "q" 'org-edit-src-exit
-  )
 #+end_src
 
 *** provide

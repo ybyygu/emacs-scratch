@@ -784,6 +784,23 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  )
 ;; 515195f9 ends here
 
+;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
+(setq org-capture-templates
+      '(
+        ("n" "Note" entry (file "~/Notes/refile.note")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %:initial\n" :prepend t)
+        ("t" "Task" entry (file+headline "~/Notes/life.note" "Tasks")
+         "* TODO %^T %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i" :prepend t)
+        ("r" "Research Memo" entry (file+headline "~/Notes/research.note" "Memo")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("p" "Paper" entry (file+headline "~/Notes/research.note" "Literature")
+         "* TODO %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("j" "Life Journal" entry (file+headline "~/Notes/life.note" "Journals")
+         "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+        ("N" "Note from protocol" entry (file "~/Notes/refile.note")
+         "* %u %? [[%:link][%:description]]\n  %:initial\n" :prepend t)))
+;; 5dc0bf0f ends here
+
 ;; [[file:../gwp-scratch.note::43fd72e2][43fd72e2]]
 (require 'org-agenda)
 
@@ -909,6 +926,39 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  )
 ;; ded2ea25 ends here
 
+;; [[file:../gwp-scratch.note::6f58facc][6f58facc]]
+(require 'org-crypt)
+(require 'epa-file)
+(epa-file-enable)
+
+;; Encrypt all entries before saving
+(org-crypt-use-before-save-magic)
+(setq org-crypt-tag-matcher "crypt")
+(setq org-tags-exclude-from-inheritance (quote ("crypt")))
+;; GPG key to use for encryption
+(setq org-crypt-key "38D95BC6411A87E7") ; ybyygu@gmail.com
+(setq org-crypt-disable-auto-save nil)
+;; 6f58facc ends here
+
+;; [[file:../gwp-scratch.note::27b71342][27b71342]]
+(gwp::dwim-leader-def
+  :keymaps 'org-mode-map
+  "g" 'org-goto                                ; goto
+  "t" 'org-todo                                ; todo
+  "e" 'org-edit-special                        ; edit
+  "a" 'org-attach                              ; attach
+  "b" 'gwp::org-babel-tangle-dwim              ; babel
+  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
+  )
+
+(gwp::dwim-leader-def
+  :keymaps 'org-src-mode-map
+  ;; "b" 'gwp/org-babel-tangle-dwim
+  "q" 'org-edit-src-exit
+  )
+;; 27b71342 ends here
+
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
 ;; org-insert-structure-template
 ;; 换到 org-edit-special 上更方便
@@ -985,23 +1035,6 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  "M-p" #'org-backward-element
  "M-n" #'org-forward-element
  )
-
-(gwp::dwim-leader-def
-  :keymaps 'org-mode-map
-  "g" 'org-goto                                ; goto
-  "t" 'org-todo                                ; todo
-  "e" 'org-edit-special                        ; edit
-  "a" 'org-attach                              ; attach
-  "b" 'gwp::org-babel-tangle-dwim              ; babel
-  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
-  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
-  )
-
-(gwp::dwim-leader-def
-  :keymaps 'org-src-mode-map
-  ;; "b" 'gwp/org-babel-tangle-dwim
-  "q" 'org-edit-src-exit
-  )
 ;; dfee4224 ends here
 
 ;; [[file:../gwp-scratch.note::183d2d8f][183d2d8f]]

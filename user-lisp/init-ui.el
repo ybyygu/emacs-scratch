@@ -25,10 +25,32 @@
   :ensure t
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
-
-(use-package doom-themes
-  :init (load-theme 'doom-nova t))
 ;; 2f79944b ends here
+
+;; [[file:../gwp-scratch.note::62b5d5bd][62b5d5bd]]
+(use-package doom-themes
+  :init (load-theme 'doom-nova t)
+  :config
+  )
+
+(custom-set-faces
+ '(org-todo ((t (:background "#263238" :foreground "yellow" :weight bold))))
+ '(org-done ((t (:foreground "yellow" :weight bold :background "#263238"))))
+ '(org-table ((t (:foreground "#e3f2fd"))))
+ '(org-level-1 ((t (:foreground "#e3f2fd" :height 1.1 :background nil :weight normal :box nil))))
+ '(org-level-2 ((t (:foreground "#e3f2fd" :height 1.0 :background nil :weight normal :box nil))))
+ '(org-headline-done ((t (:foreground "gray" :weight normal))))
+ )
+
+(custom-set-faces
+ ;; 当前行
+ '(hl-line ((t (:background "#37474f"))))
+ '(region ((t (:background "#555555"))))
+ '(solaire-hl-line-face ((t (:background "#37474f"))))
+ ;; meow-grab 时, 配色更清楚些
+ '(secondary-selection ((t (:foreground "green"))))
+ )
+;; 62b5d5bd ends here
 
 ;; [[file:../gwp-scratch.note::91a3ef0e][91a3ef0e]]
 (when (display-graphic-p)
