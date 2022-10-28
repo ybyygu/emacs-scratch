@@ -18,26 +18,25 @@
   ("j" goto-last-change "last change")  ; 用 p 按键容易误操作, 用N 安全些
   ("k" goto-last-change-reverse "previous change")
   ("c" recenter "recenter")
-  ;; ("r" gwp::org-show-context-at-point "org show context")
+  ("r" gwp::org-show-context-at-point "org show context")
   ("q" nil "quit"))
 
 (gwp::goto-leader-def
   :keymaps '(prog-mode-map org-mode-map)
-  ;; "g" '(beginning-of-buffer :which-key "goto first line")
-  ;; "e" '(end-of-buffer :which-key "goto last line")
-  ;; "l" '(end-of-line :which-key "goto the end of line")
-  ;; "h" '(beginning-of-line :which-key "goto the beginning of line")
-  ;; "d" '(+lookup/definition :which-key "Jump to definition")
-  ;; "f" '(+lookup/file :which-key "Locate file")
-  ;; "d" '(xref-find-definitions :which-key "Jump to definition")
-  ;; "d" (general-simulate-key "M-.")
-  "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
   ";" '(goto-last-change :which-key "Go to where the last edit was made")
   )
 ;; 28526451 ends here
 
 ;; [[file:../gwp-scratch.note::c84fab18][c84fab18]]
-;; (use-package avy)
+(use-package avy
+  :config
+  :after init-bindings
+  (setq avy-all-windows t)
+  ;; 2022-10-28: 不太管用
+  ;; :bind
+  ;; ([remap goto-line] . avy-goto-line)
+  ;; ([remap goto-char] . avy-goto-char-timer)
+  )
 ;; c84fab18 ends here
 
 ;; [[file:../gwp-scratch.note::ab440ea2][ab440ea2]]
@@ -63,6 +62,19 @@
   "C-o" #'cycle-spacing
   )
 ;; 989c4b3c ends here
+
+;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
+(gwp::goto-leader-def
+  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+  "g" (general-simulate-key "M-<" :which-key "goto first line")
+  "e" (general-simulate-key "M->" :which-key "goto last line")
+  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
+  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "." '(avy-goto-line :which-key "goto line")
+  "c" '(avy-goto-char-timer :which-key "goto char")
+  "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
+  )
+;; 6cb02a16 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-xxx)

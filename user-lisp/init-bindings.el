@@ -2,18 +2,6 @@
 ;; -*- lexical-binding: t; -*-
 ;; a4d73c60 ends here
 
-;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
-(gwp::goto-leader-def
-  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
-  "g" (general-simulate-key "M-<" :which-key "goto first line")
-  "e" (general-simulate-key "M->" :which-key "goto last line")
-  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
-  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "c" 'goto-char
-  "." 'goto-line
-  )
-;; 6cb02a16 ends here
-
 ;; [[file:../gwp-scratch.note::4cf8c86c][4cf8c86c]]
 (defun gwp::switch-to-previous-buffer ()
   "Switch to previously open buffer.
@@ -108,6 +96,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "j" '(:ignore t :which-key "jump")
  "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
  "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
+ "jc" '(gwp::hydra-last-change/body :which-key "last changed positions")
  )
 ;; 92af756a ends here
 
@@ -198,6 +187,15 @@ If two universal prefix arguments are used, then prompt for command to use."
 (gwp::leader-def
  "w" '(:keymap gwp::window-map :which-key "Window" :package emacs))
 ;; c54b17b5 ends here
+
+;; [[file:../gwp-scratch.note::703c9a6f][703c9a6f]]
+(gwp::leader-def
+ "t" '(:ignore t :which-key "toggle")
+ "td" '(toggle-debug-on-error :which-key "debug on error")
+ "tr" '(read-only-mode :which-key "read only")
+ "tw" '(visual-line-mode :which-key "soft line wrapping")
+ )
+;; 703c9a6f ends here
 
 ;; [[file:../gwp-scratch.note::185fc283][185fc283]]
 (gwp::leader-def

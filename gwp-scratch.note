@@ -761,6 +761,8 @@ C-u C-@: 这是轮换当前的 mark ring
 #+end_src
 
 *** vertico
+在补全窗口处, 按M-RET 强制以接受用户录入的内容, 忽略补全项(vertico-exit-input).
+
 #+name: 3702e7df
 #+begin_src elisp
 ;; Enable vertico
@@ -915,7 +917,6 @@ embark-act, 切换可能的操作对象.
   :config
   )
 #+end_src
-
 *** COMMENT ivy
 #+name: dd8cc577
 #+begin_src elisp
@@ -1283,6 +1284,7 @@ meow 默认 C-d 只删除一个字符?
 #+begin_src elisp
 ;; -*- lexical-binding: t; -*-
 #+end_src
+
 *** upcase/downcase
 解决大小写, 首字母大写等问题. 仅在 meow insert mode 下生效
 
@@ -1305,20 +1307,11 @@ meow 默认 C-d 只删除一个字符?
   ("j" goto-last-change "last change")  ; 用 p 按键容易误操作, 用N 安全些
   ("k" goto-last-change-reverse "previous change")
   ("c" recenter "recenter")
-  ;; ("r" gwp::org-show-context-at-point "org show context")
+  ("r" gwp::org-show-context-at-point "org show context")
   ("q" nil "quit"))
 
 (gwp::goto-leader-def
   :keymaps '(prog-mode-map org-mode-map)
-  ;; "g" '(beginning-of-buffer :which-key "goto first line")
-  ;; "e" '(end-of-buffer :which-key "goto last line")
-  ;; "l" '(end-of-line :which-key "goto the end of line")
-  ;; "h" '(beginning-of-line :which-key "goto the beginning of line")
-  ;; "d" '(+lookup/definition :which-key "Jump to definition")
-  ;; "f" '(+lookup/file :which-key "Locate file")
-  ;; "d" '(xref-find-definitions :which-key "Jump to definition")
-  ;; "d" (general-simulate-key "M-.")
-  "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
   ";" '(goto-last-change :which-key "Go to where the last edit was made")
   )
 #+end_src
@@ -1328,10 +1321,12 @@ meow 默认 C-d 只删除一个字符?
 #+begin_src elisp
 (use-package avy
   :config
+  :after init-bindings
   (setq avy-all-windows t)
-  :bind
-  ([remap goto-line] . avy-goto-line)
-  ([remap goto-char] . avy-goto-char-timer)
+  ;; 2022-10-28: 不太管用
+  ;; :bind
+  ;; ([remap goto-line] . avy-goto-line)
+  ;; ([remap goto-char] . avy-goto-char-timer)
   )
 #+end_src
 
@@ -1362,6 +1357,22 @@ cycle-spacing
   "C-x C-o" #'delete-blank-lines
   ;; "C-c C-o" #'delete-blank-lines
   "C-o" #'cycle-spacing
+  )
+#+end_src
+
+*** bindings: goto
+仿 helix 编辑器
+#+name: 6cb02a16
+#+begin_src elisp
+(gwp::goto-leader-def
+  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+  "g" (general-simulate-key "M-<" :which-key "goto first line")
+  "e" (general-simulate-key "M->" :which-key "goto last line")
+  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
+  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
+  "." '(avy-goto-line :which-key "goto line")
+  "c" '(avy-goto-char-timer :which-key "goto char")
+  "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
   )
 #+end_src
 
@@ -2126,6 +2137,48 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 
 (eval-after-load 'rust-mode
   '(require 'smartparens-rust))
+#+end_src
+*** format all
+[[https://github.com/lassik/emacs-format-all-the-code][lassik/emacs-format-all-the-code: Auto-format source code in many languages with one command]]
+
+#+name: f2289888
+#+begin_src elisp
+;; 2022-10-28: 不设置的话不能正常处理 elisp 代码(org src block 中)
+(use-package format-all
+  :demand t
+  :bind ("C-c C-f" . format-all-buffer)
+  :config
+  (setq format-all-default-formatters
+        '(("Emacs Lisp" emacs-lisp)
+          ("Python" black)
+          ("Rust" rustfmt)
+          ("Shell" shfmt)
+          ("TOML" prettier)
+          ("Lua" lua-fmt)
+          ("Dockerfile" dockfmt)
+          ("CMake" cmake-format)
+          ("C" clang-format)
+          ("C++" clang-format)
+          ("HTML" html-tidy)
+          ("JSON" prettier)
+          ("YAML" prettier))))
+#+end_src
+
+*** TODO COMMENT citre
+#+name: f8651bde
+#+begin_src elisp
+(use-package citre
+  :init
+  ;; This is needed in `:init' block for lazy load to work.
+  (require 'citre-config)
+  ;; (map! :leader
+  ;;       (:prefix-map ("j" . "jump")
+  ;;        (:prefix-map ("c" . "citre")
+  ;;         :desc "citre jump to definition"                    "d" #'citre-jump
+  ;;         :desc "citre jump back"                             "b" #'citre-jump-back
+  ;;         :desc "citre peek"                                  "p" #'citre-peek
+  ;;         )))
+  )
 #+end_src
 
 *** provide
@@ -3708,21 +3761,6 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
 ;; -*- lexical-binding: t; -*-
 #+end_src
 
-*** bindings: goto
-仿 helix 编辑器
-#+name: 6cb02a16
-#+begin_src elisp
-(gwp::goto-leader-def
-  :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
-  "g" (general-simulate-key "M-<" :which-key "goto first line")
-  "e" (general-simulate-key "M->" :which-key "goto last line")
-  "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
-  "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "c" 'goto-char
-  "." 'goto-line
-  )
-#+end_src
-
 *** bindings: SPC
 #+name: 4cf8c86c
 #+begin_src elisp
@@ -3733,12 +3771,13 @@ Repeated invocations toggle between the two most recently open buffers."
   (switch-to-buffer (other-buffer (current-buffer) 1)))
 
 (gwp::leader-def
- "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
- "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
- "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
- "u" '(universal-argument :which-key "Universal argument")
- )
+  "SPC" '(gwp::mark-and-save-buffer :which-key "Save buffer")
+  "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
+  "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
+  "u" '(universal-argument :which-key "Universal argument")
+  )
 #+end_src
+
 *** bindings: SPC-b
 #+name: 33105bcf
 #+begin_src elisp
@@ -3934,6 +3973,17 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 #+begin_src elisp
 (gwp::leader-def
  "w" '(:keymap gwp::window-map :which-key "Window" :package emacs))
+#+end_src
+
+*** bindings: SPC-t toggle
+#+name: 703c9a6f
+#+begin_src elisp
+(gwp::leader-def
+ "t" '(:ignore t :which-key "toggle")
+ "td" '(toggle-debug-on-error :which-key "debug on error")
+ "tr" '(read-only-mode :which-key "read only")
+ "tw" '(visual-line-mode :which-key "soft line wrapping")
+ )
 #+end_src
 
 *** bindings: SPC-g magit

@@ -60,6 +60,28 @@
   '(require 'smartparens-rust))
 ;; a267f2ee ends here
 
+;; [[file:../gwp-scratch.note::f2289888][f2289888]]
+;; 2022-10-28: 不设置的话不能正常处理 elisp 代码(org src block 中)
+(use-package format-all
+  :demand t
+  :bind ("C-c C-f" . format-all-buffer)
+  :config
+  (setq format-all-default-formatters
+        '(("Emacs Lisp" emacs-lisp)
+          ("Python" black)
+          ("Rust" rustfmt)
+          ("Shell" shfmt)
+          ("TOML" prettier)
+          ("Lua" lua-fmt)
+          ("Dockerfile" dockfmt)
+          ("CMake" cmake-format)
+          ("C" clang-format)
+          ("C++" clang-format)
+          ("HTML" html-tidy)
+          ("JSON" prettier)
+          ("YAML" prettier))))
+;; f2289888 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here
