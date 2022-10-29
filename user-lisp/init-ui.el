@@ -207,6 +207,30 @@
   :hook (prog-mode . hl-todo-mode))
 ;; 3d5eeec1 ends here
 
+;; [[file:../gwp-scratch.note::2b13453c][2b13453c]]
+(use-package helpful
+  :demand t
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+;; 2b13453c ends here
+
+;; [[file:../gwp-scratch.note::4cd1143d][4cd1143d]]
+(bind-key "n" 'help-go-forward helpful-mode-map)
+(bind-key "p" 'help-go-back helpful-mode-map)
+(bind-key "j" 'next-line helpful-mode-map)
+(bind-key "k" 'previous-line helpful-mode-map)
+(bind-key "h" 'backward-char helpful-mode-map)
+(bind-key "l" 'forward-char helpful-mode-map)
+(bind-key "*" 'meow-mark-symbol helpful-mode-map)
+;; 4cd1143d ends here
+
 ;; [[file:../gwp-scratch.note::885c9fa9][885c9fa9]]
 ;; 方便绑定到 SPC-t-l
 ;;

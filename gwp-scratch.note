@@ -70,6 +70,38 @@ John Wiegley 写的, 也许用这个替代 general?
 
 * docs
 ** meow
+- [[https://github.com/meow-edit/meow/blob/master/TUTORIAL.org][meow/TUTORIAL.org at master · meow-edit/meow]]
+- 高级用法说明: [[https://github.com/meow-edit/meow/blob/master/EXPLANATION.org][meow/EXPLANATION.org at master · meow-edit/meow]]
+- [[https://github.com/meow-edit/meow/blob/master/CUSTOMIZATIONS.org][meow/CUSTOMIZATIONS.org at master · meow-edit/meow]]
+
+*** 如何切换 meow state?
+一共有四种模式: Normal, Insert, Motion, Keypad
+
+Motion state 相当于是只读模式下的状态, 主要用于 dired, help 等模式.
+
+*** secondary-selection
+二级选区, 可以理解为临时选区. 可用鼠标+Alt 键来选中.
+
+几个有关的命令:
+: meow-swap-grab
+: meow-sync-grab
+
+可将当前选区和临时选区的内容进行交互或同步.
+
+*** 如何为特定的模式定义相关的按键, 比如 dired?
+可以按 keypad 模式来处理, 按键序列来对应过去.
+
+缺点:
+- 没有 which-key 提示
+  - [2022-10-22 Sat] 最近版本已有初步支持, 但不能显示用户自定义描述文字)
+- 不能使用 C-, M- 等修饰键
+
+*** 按键设置 [[meow-settings]]
+hklj
+
+*** 如果进行列块操作
+[[https://github.com/meow-edit/meow/blob/master/TUTORIAL.org#beacon][meow/TUTORIAL.org at master · meow-edit/meow]]
+
 - [[https://github.com/meow-edit/meow][meow-edit/meow: Yet another modal editing on Emacs / 猫态编辑]]
 ** use-package
 use-package emacs
@@ -972,7 +1004,7 @@ C-u C-@: 这是轮换当前的 mark ring
   ;; (setq vertico-scroll-margin 0)
 
   ;; Show more candidates
-  ;; (setq vertico-count 20)
+  (setq vertico-count 15)
 
   ;; Grow and shrink the Vertico minibuffer
   ;; (setq vertico-resize t)
@@ -1065,9 +1097,10 @@ TUI 的用户暂时不适合用 Corfu
 
 *** embark
 一个新的神器, 相当于 text 版的右键菜单.
-
+**** docs
 重要文档
 - [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+- [[https://github.com/oantolin/embark/wiki/Default-Actions][Default Actions · oantolin/embark Wiki]]
 - [[https://karthinks.com/software/fifteen-ways-to-use-embark/][Fifteen ways to use Embark | Karthinks]]
 
 常规的 emacs 操作流程时选择命令, 然后再将命令应用于操作对象. embark 则相反流程.
@@ -1076,17 +1109,24 @@ embark 先选定对象, 再根据对象不同, 执行动作, 类似 ivy action, 
 在文本窗口中, 可自动识别 url, symbol 等动象, 并分配适用的执行函数. 可以多次执行
 embark-act, 切换可能的操作对象.
 
-可用的 keymap:
-: embark-keymap-alist
-
-也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
-: embark-target-finders
-
 查看按键
 : embark-bindings-in-keymap
 
 在M-x 命令窗口可按 "I" 键查看命令所对应的 info.
 
+不同使用场景下对应的功能, 可查看
+: embark-keymap-alist
+对应的功能 map, 就是普通的 keymap, 可自由定义.
+
+不同场景下都用的功能 map:
+: embark-general-map
+
+也可自定义目标类型 [[https://github.com/oantolin/embark#defining-actions-for-new-categories-of-targets][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
+: embark-target-finders
+
+按 C-; 激活 embark 菜单, 再按 C-h 出现 embark mini-buffer, 此时可搜索过滤.
+
+**** install
 #+name: 74ebe55a
 #+begin_src emacs-lisp
 ;; 补全窗口显示补助等信息
@@ -1135,6 +1175,7 @@ embark-act, 切换可能的操作对象.
   :config
   )
 #+end_src
+
 *** COMMENT ivy
 #+name: dd8cc577
 #+begin_src elisp
@@ -1390,6 +1431,8 @@ embark-act, 切换可能的操作对象.
    '("S" . meow-bounds-of-thing)
    '("<" . meow-beginning-of-thing)
    '(">" . meow-end-of-thing)
+   '("P" . meow-sync-grab)         ; 用当前选区内容替换二级选区
+   '("X" . meow-swap-grab)         ; 将当前选区内容和二级选区内容互换
    '("U" . meow-pop-selection)     ; 撤销前一步选择
    '("v" . meow-cancel-selection)  ; 仿 vi
    '("V" . meow-block)             ; 逐级扩选, 按 U 回退, 可替代 expand-region
@@ -1412,7 +1455,6 @@ embark-act, 切换可能的操作对象.
    ;; "W"
    ;; "T"
    ;; "Y"
-   ;; "P"
    ;; "?"
    ;; "["
    ;; "|"
@@ -1899,7 +1941,9 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   :hook (prog-mode . hl-todo-mode))
 #+end_src
 
-*** COMMENT helpful
+*** helpful
+[[https://github.com/Wilfred/helpful][Wilfred/helpful: A better Emacs *help* buffer]]
+
 #+name: 2b13453c
 #+begin_src elisp
 (use-package helpful
@@ -1913,6 +1957,18 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
+#+end_src
+
+让 help 页面中的按键更容易一些
+#+name: 4cd1143d
+#+begin_src elisp
+(bind-key "n" 'help-go-forward helpful-mode-map)
+(bind-key "p" 'help-go-back helpful-mode-map)
+(bind-key "j" 'next-line helpful-mode-map)
+(bind-key "k" 'previous-line helpful-mode-map)
+(bind-key "h" 'backward-char helpful-mode-map)
+(bind-key "l" 'forward-char helpful-mode-map)
+(bind-key "*" 'meow-mark-symbol helpful-mode-map)
 #+end_src
 
 *** line numbers
@@ -1974,7 +2030,8 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   )
 #+end_src
 
-**** burly: save layout
+**** save layout
+***** burly
 可保存窗口的布局及对应的 buffer, 可正常处理 narrowed, indirect buffers
 等特殊情况. 但目前不能正常处理中文编码, 遇到中文 heading 可能出错.
 
@@ -1994,6 +2051,27 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
  "C-s" #'burly-bookmark-windows
  )
 #+end_src
+
+***** COMMENT bookmark-view
+不如 burly 功能强大, 不能保存 narrowed heading
+
+[[https://github.com/minad/bookmark-view][minad/bookmark-view: bookmark-view.el - Use bookmarks to persist the current view]]
+
+#+begin_src elisp
+(use-package bookmark-view
+  :init
+  )
+
+;; (general-define-key
+;;  :prefix-map 'gwp::window-map
+;;  "S" #'burly-bookmark-windows
+;;  "C-s" #'burly-bookmark-windows
+;;  )
+#+end_src
+***** COMMENT tab-bookmark
+保存标签页. 还不可是很好用.
+
+[[https://github.com/minad/tab-bookmark][minad/tab-bookmark: Persist Emacs Tabs as Bookmarks]]
 
 **** COMMENT bookmark/workspace
 保存的 burly layout 可直接在新的 workspace 中打开. 可完全替代 doom 的功能, 但更
@@ -2573,18 +2651,6 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
   "b" #'eval-buffer
   "d" #'eval-defun
   )
-#+end_src
-*** help
-让 help 页面中的按键更容易一些
-#+name: 4cd1143d
-#+begin_src elisp
-(bind-key "n" 'help-go-forward help-mode-map)
-(bind-key "p" 'help-go-back help-mode-map)
-(bind-key "j" 'next-line help-mode-map)
-(bind-key "k" 'previous-line help-mode-map)
-(bind-key "h" 'backward-char help-mode-map)
-(bind-key "l" 'forward-char help-mode-map)
-(bind-key "*" 'meow-mark-symbol help-mode-map)
 #+end_src
 
 *** provide

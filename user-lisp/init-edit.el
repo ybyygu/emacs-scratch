@@ -190,6 +190,8 @@
    '("S" . meow-bounds-of-thing)
    '("<" . meow-beginning-of-thing)
    '(">" . meow-end-of-thing)
+   '("P" . meow-sync-grab)         ; 用当前选区内容替换二级选区
+   '("X" . meow-swap-grab)         ; 将当前选区内容和二级选区内容互换
    '("U" . meow-pop-selection)     ; 撤销前一步选择
    '("v" . meow-cancel-selection)  ; 仿 vi
    '("V" . meow-block)             ; 逐级扩选, 按 U 回退, 可替代 expand-region
@@ -212,7 +214,6 @@
    ;; "W"
    ;; "T"
    ;; "Y"
-   ;; "P"
    ;; "?"
    ;; "["
    ;; "|"

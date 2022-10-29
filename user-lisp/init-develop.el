@@ -128,16 +128,6 @@
   )
 ;; 985a2495 ends here
 
-;; [[file:../gwp-scratch.note::4cd1143d][4cd1143d]]
-(bind-key "n" 'help-go-forward help-mode-map)
-(bind-key "p" 'help-go-back help-mode-map)
-(bind-key "j" 'next-line help-mode-map)
-(bind-key "k" 'previous-line help-mode-map)
-(bind-key "h" 'backward-char help-mode-map)
-(bind-key "l" 'forward-char help-mode-map)
-(bind-key "*" 'meow-mark-symbol help-mode-map)
-;; 4cd1143d ends here
-
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here
