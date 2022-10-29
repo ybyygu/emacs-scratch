@@ -84,6 +84,13 @@
   ([remap ivy-resume] . vertico-repeat)
   )
 
+;; 可用鼠标操纵 minibuffer
+(use-package vertico-mouse
+  :ensure nil
+  :after vertico
+  :config
+  (vertico-mouse-mode))
+
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
   :init
@@ -123,6 +130,7 @@
          ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
          ([remap imenu] . consult-imenu)
          ([remap list-registers] . consult-register)
+         ([remap point-to-register] . consult-register-store)
          ([remap gwp::rg] . consult-ripgrep)
          ([remap gwp::mark-ring] . consult-mark)
          ;; Minibuffer history
@@ -158,7 +166,6 @@
          ("C-c C-o" . embark-export)
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
-         ;; ("C-h B" . embark-bindings)
          )
   :custom
   ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选

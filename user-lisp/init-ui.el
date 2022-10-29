@@ -202,6 +202,9 @@
   ;; (define-key gwp::symbol-overlay-map (kbd "q") 'symbol-overlay-query-replace)
   ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
   )
+
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode))
 ;; 3d5eeec1 ends here
 
 ;; [[file:../gwp-scratch.note::885c9fa9][885c9fa9]]

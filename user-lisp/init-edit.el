@@ -107,18 +107,32 @@
 ;; [[file:../gwp-scratch.note::00b73661][00b73661]]
 ;;;###autoload
 (defun meow/setup-states ()
-  (add-to-list 'meow-mode-state-list '(org-agenda-mode . motion))
-  ;; start shell/eshell in insert
-  (add-to-list 'meow-mode-state-list '(shell-mode . insert))
-  (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
+  ;; 按自己需要, 逐个加
+  (setq meow-mode-state-list
+        '((fundamental-mode . normal)
+          (text-mode . normal)
+          (prog-mode . normal)
+          (help-mode . motion)
+          (org-agenda-mode . motion)
+          ;; start shell/eshell in insert
+          (shell-mode . insert)
+          (eshell-mode . insert)
+          ))
+  ;; (add-to-list 'meow-mode-state-list '(text-mode . normal))
+  ;; (add-to-list 'meow-mode-state-list '(prog-mode . normal))
+  ;; (add-to-list 'meow-mode-state-list '(help-mode . motion))
+  ;; (add-to-list 'meow-mode-state-list '(org-agenda-mode . motion))
+  ;; (add-to-list 'meow-mode-state-list '(shell-mode . insert))
+  ;; (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
   )
 ;; 00b73661 ends here
 
 ;; [[file:../gwp-scratch.note::672c2d79][672c2d79]]
+(require 'smartparens)
+
 (defun meow/setup-normal ()
   ;; normal commands
   (meow-normal-define-key
-   ;; (cons "SPC" meow-space-keymap)
    '("<escape>" . keyboard-quit)
    '("9" . meow-expand-9)
    '("8" . meow-expand-8)
@@ -154,57 +168,77 @@
    '("d" . meow-delete)             ; 删除当前字符或选区(不进入 kill-ring)
    '("DEL" . meow-backward-delete)
    '("D" . meow-kill-whole-line)
-   ;; 选区扩展操作
-   '("." . meow-line)                ; 向下扩选一行, 按 "-." 向上扩选
-   '("e" . meow-next-word)           ; 向前扩选, 以 word 为单位
-   '("E" . meow-next-symbol)         ; 向前扩选, 以 symbol 为单位 (包括连字符等)
-   '("b" . meow-back-word)           ; 反向操作, 等效于 "-e"
-   '("B" . meow-back-symbol)         ; 反向操作, 等效于 "-E"
-   '("o" . meow-reverse)             ; 反转选区方向. 若无选区, 则相当于 vi 中为 o
    '("u" . gwp::undo-dwim)
-   '("U" . meow-pop-selection)       ; 撤销选择
+   ;; 选区扩展操作
+   '("." . meow-line)           ; 向下扩选一行, 按 "-." 向上扩选
+   '("e" . meow-next-word)      ; 向前扩选, 以 word 为单位
+   '("E" . meow-next-symbol)    ; 向前扩选, 以 symbol 为单位 (包括连字符等)
+   '("b" . meow-back-word)      ; 反向操作, 等效于 "-e"
+   '("B" . meow-back-symbol)    ; 反向操作, 等效于 "-E"
+   '("o" . meow-reverse)        ; 反转选区方向. 若无选区, 则相当于 vi 中为 o
    ;; 搜索与跳转
-   '("/" . meow-visit)            ; 快速搜索, 按C-M-j 搜索任意字串
-   '("n" . meow-search)           ; 向选区方向搜索, 可按 o 键改变当前选区方向
-   '("f" . meow-find)             ; 含搜索字符
-   '("t" . meow-till)             ; 不含搜索字符
+   '("/" . meow-visit)             ; 快速搜索, 按C-M-j (ivy), M-RET (consult) 搜索任意字串
+   '("n" . meow-search)            ; 向选区方向搜索, 可按 o 键改变当前选区方向
+   '("N" . meow-pop-search)        ; 恢复上一次搜索
+   '("f" . meow-find)              ; 含搜索字符
+   '("t" . meow-till)              ; 不含搜索字符
    '("m" . point-to-register)
-   '("`" . jump-to-register)
    ;; 常规选择
    '("%" . gwp::match-paren)
    '("*" . meow-mark-symbol)
-   ;; '("q" . meow-mark-word)
    '("s" . meow-inner-of-thing)
    '("S" . meow-bounds-of-thing)
-   '("(" . meow-beginning-of-thing)
-   '(")" . meow-end-of-thing)
-   '(";" . meow-cancel-selection)
-   '("v" . meow-cancel-selection) ; 仿 vi
-   '("V" . meow-block)            ; 逐级扩选, 按U 回退, 可替代 expand-region
-   '("G" . meow-grab)             ; 相当于 vi 中的 visual mode
-   '("C-v" . meow-grab)
+   '("<" . meow-beginning-of-thing)
+   '(">" . meow-end-of-thing)
+   '("U" . meow-pop-selection)     ; 撤销前一步选择
+   '("v" . meow-cancel-selection)  ; 仿 vi
+   '("V" . meow-block)             ; 逐级扩选, 按 U 回退, 可替代 expand-region
+   '("G" . meow-grab)              ; 相当于 vi 中的 visual mode
+   '("C-v" . meow-grab)            ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
+   '("q" . meow-quit)               ; 退出window 或 buffer
+   '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
+   '(";" . meow-comment)            ; 相当于 M-;
    '("]" . sp-unwrap-sexp)
-   '("R" . sp-unwrap-sexp)                         ; 比] 容易按一些
+   '("R" . sp-unwrap-sexp)          ; 比] 容易按一些
+   '(":" . meow-M-x)                ; 可能用 macro 更方便些?
    '("$" . ispell-word)
-   '("=" . meow-goto-line)
-   ;; '("z" . avy-goto-char-in-line)
-   '("z" . meow-pop-selection)
-   '("'" . repeat-complex-command)      ; 重复上一个需要 minibuffer 输入的命令
-   '("Z" . repeat)                      ; 重复上一个命令
+   '("=" . count-words-region)      ; 默认为 M-=
+   '("z" . repeat)                  ; 重复上一个命令; 默认为 C-x z
+   '("Z" . repeat-complex-command)  ; 重复上一个需要 minibuffer 输入的命令
+   ;; TODO
+   ;; "F"
+   ;; "Q"
+   ;; "W"
+   ;; "T"
+   ;; "Y"
+   ;; "P"
+   ;; "?"
+   ;; "["
+   ;; "|"
+   ;; "~"
+   ;; "!"
+   ;; "@"
+   ;; "&"
+   ;; "+"
+   ;; "\\"
+   ;; "\""
    )
 
   ;; 当无选区时执行的功能
   (setq
    meow-selection-command-fallback
    '(
+     (meow-cancel . keyboard-quit)
      (meow-reverse . meow-open-below)
      (meow-kill . meow-keypad-start)    ; for C-x
      (meow-change . meow-keypad-start)  ; for C-c
      (meow-save . gwp::copy-current-line)
-     ;; (meow-pop-selection . meow-pop-grab)
      (meow-beacon-change . meow-beacon-change-char)
      (meow-cancel-selection . meow-right-expand) ; 仿vi, 取消选择或扩选
+     (meow-pop-selection . meow-pop-grab) ; 取消二级选区(类 Alt-mouse 选择)
+     ;; (meow-replace . meow-yank) ; 似乎没什么必要设置
+     ;; (meow-beacon-change . meow-pop-grab)
      )))
 ;; 672c2d79 ends here
 
@@ -243,15 +277,13 @@
 ;; 比如 dired, magit 生成的 buffer, 也许单独处理更好?
 (defun meow/setup-motion ()
   (meow-motion-overwrite-define-key
-   '("j"  "meow-next")
-   '("k"  "meow-prev")
-   '("<escape>" . ignore)
-   )
-  (meow-motion-overwrite-define-key
    '("," . "s-,")
    '("g" . "s-g")
    '("w" . "s-w")
-   ))
+   )
+  ;; 可在这里统一定义, 但似乎不是最好的方式
+  ;; (bind-key "*" 'meow-mark-symbol meow-motion-state-keymap)
+  )
 ;; 60483a2d ends here
 
 ;; [[file:../gwp-scratch.note::37628911][37628911]]
