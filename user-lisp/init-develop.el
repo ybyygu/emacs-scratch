@@ -30,26 +30,34 @@
 
   :bind
   (:map gwp::magit-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ("g" . magit-status)
-   ("s" . magit-status)
-   ("x" . magit-checkout)
-   ("c" . magit-commit)
-   ("p" . magit-push)
-   ("u" . magit-pull)
-   ("e" . magit-ediff-resolve)
-   ("r" . magit-rebase-interactive)
-   :map magit-status-mode-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   :map magit-hunk-section-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ))
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        ("g" . magit-status)
+        ("s" . magit-status)
+        ("x" . magit-checkout)
+        ("c" . magit-commit)
+        ("p" . magit-push)
+        ("u" . magit-pull)
+        ("e" . magit-ediff-resolve)
+        ("r" . magit-rebase-interactive)
+        :map magit-status-mode-map
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        :map magit-hunk-section-map
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        ))
 
 
 (use-package magit-popup)
+
+;; 显示 src 中的 TODO FIXME 等项
+(use-package magit-todos
+  :diminish
+  :after magit
+  :config
+  (magit-todos-mode)
+  )
 ;; 8970c514 ends here
 
 ;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]

@@ -77,6 +77,177 @@ use-package emacs
 - [[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
 - [[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
 
+* Tips
+** keybindings
+为各种按键生成一个漂亮的 org 文档
+: general-describe-keybindings
+
+弹窗列表显示
+: which-key-show-keymap
+
+minibuffer 显示, 可搜索过滤
+: embark-bindings-in-keymap
+** 大小写转换
+仅在 insert mode 下有效
+: M-l, M-u, M-c
+
+** 统计字符数
+M=
+: count-words-region
+
+** 拼写检查(spell)
+$
+: ispell-word
+
+** 查看buffer major mode
+eval: major-mode
+
+** org-mode
+| org-kill-note-or-show-branches | C-c C-k | 查看headlines, 当前上下文TAB键无效时有用 |
+| org-edit-special               | C-c '   | 默认按键难按, C-c C-,                    |
+
+Movement
+| Key Binding | Description                            |
+|-------------+----------------------------------------|
+| ~g h~       | Move up one level in headings          |
+| ~g j~       | Move to next heading on same level     |
+| ~g k~       | Move to previous heading on same level |
+| ~g l~       | Move down one level in headings        |
+
+refile流程:
+- 打开refile.note
+- 检查其中的条目, 找到可能的合适的归档note文件, 打开之.
+- SPC-m-r-r, org-refile
+- SPC-u SPC-m-r-r: 跳转至refile targets
+
+
+** TODO 自动补全(completion)
+- [[https://github.com/hlissner/doom-emacs/blob/develop/modules/completion/company/README.org][doom-emacs/README.org at develop · hlissner/doom-emacs]]
+
+查看evil-insert-state-map中的绑定可知:
+
+| C-x C-f | company-files 补全文件名, 类vim   |
+| C-x C-s | company-yasnippet: 补全 yasnippet |
+| C-x C-l | +company/whole-lines 补全行       |
+
+** 各种跳转(jump/goto)
+对于重要的位置, 可以按 m 键来标记, 随后可用 (SPC-r-j) ivy/jump-list 来跳转. 对于
+简单的位置, 可以用 emacs marker ring, 保存时(SPC-SPC) 会自动记录.
+
+register
+- 使用单个字符来标记: mx
+- 跳转到标记位置: `x 其中 x 为之前的标记.
+- 查看已标记的列表: `C-h 或 C-r m (counsel-register)
+
+| SPC-r-j         | better jump list         |
+| g;              | goto-last-change         |
+| g,              | goto-last-change-reverse |
+| gi              | evil-insert-resume       |
+| gv              | evil-visual-resume       |
+| SPC-s-i         | imenu symbol             |
+| Alt-mouse-wheel | jump backward/foraward   |
+| SPC-j-m         | emacs mark ring          |
+
+行内跳转
+- f: 向行尾搜索单字母(evil-snipe-f)
+- ?: 向行始搜索单字母(evil-ex-search-backward)
+
+搜索跳转:
+- 搜索单字母: avy-goto-char
+- 搜索双字母: avy-goto-char-2
+- 搜索任意字符: isearch + avy-search
+- swiper + ivy-avy
+- 在evil中按*或/键搜索当前word或任意词, 再SPC-j-j 启用avy jump
+
+marking ring跳转
+- 不同buffer: SPC-`
+- 同一buffer: ``
+- 同一buffer或不同buffer, 更远的位置:
+  - emacs mark ring: SPC-j-m
+
+** window/frame
+| SPC w v   | vertical split                       |
+| SPC w s   | horizontally split                   |
+| SPC w d   | remove window                        |
+| SPC w r   | swap windows                         |
+| SPC w f   | tear off window, float window 很有用 |
+| SPC w o   | 最大化popup                          |
+| SPC w z   | 自动将当前window放大至合格大小       |
+| SPC w u   | 撤销窗口改动                         |
+| SPC o f   | 新开窗口, make-frame                 |
+
+在新的 window 打开
+: C-x 4 4
+在新的 frame 打开
+: C-x 5 5
+
+在新的 tab 打开
+: C-x t t
+
+** 调试emacs
+真好用.
+: debug-on-error
+
+在doom里可以用 SPC-h-d-d
+
+也可启用profiler, SPC-h-d-t, 查看命令调用堆栈
+
+** 书签管理
+: SPC-f-b
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(consult-bookmark)
+#+END_SRC
+
+** 切换只读模式
+: C-x C-q
+: SPC-t r
+
+** magit
+- 在magit status窗口, 可以直接使用dired访问文件: magit-dired-jump (C-M-i)
+- 使用yadm管理dotfiles, SPC-g-.
+
+| magit-status          | SPC-g-g                     |
+| magit-stage-file      | s                           |
+| magit-file-dispatch   | SPC-g-.                     |
+| magit-log-buffer-file | Show log for current buffer |
+| magit-delete-thing    | 按x, 可删除光标前文件       |
+
+: reset: O
+: discard: x
+: git rm --cached: K
+
+*** timemachine
+: <normal-state> C-n    git-timemachine-show-next-revision
+: <normal-state> C-p    git-timemachine-show-previous-revision
+
+
+*** 处理当前文件的编辑历史
+: magit-file-dispatch
+
+*** fixup/rebase
+当修改代码时发现之前某个commit 有误, 部分需要修补时, 可用 fixup 功能. 按 c 进入
+commit 界面, 按f 进入 fixup 界面.
+
+随后可用 rebase -> autosquash 自动将 fixup commit 与之前的合并.
+
+参考: [[https://fle.github.io/git-tip-keep-your-branch-clean-with-fixup-and-autosquash.html][GIT tip : Keep your branch clean with fixup and autosquash - Florent Lebreton]]
+
+
+
+
+** 粘贴替换选中文字
+vi模式下使用P命令. meow 中可用 C-y
+
+** 使用外部程序打开文件的方式
+emacs 默认使用 docview mode 来打开链接的文件, 比如 PDF 等, 不太方便. 操作步骤:
+1. dired-jump (SPC-f-j): 使用 dired 打开当前文件所在目录
+2. 在 dired 界面上选择某个文件, 使用 external 程序打开 (SPC-f-o).
+3. 也可以在 dired 界面上用"!"或"&"命令, 指定任意程序打开.
+
+** 打开buffer文件所在目录
+~SPC-u SPC-f-o~
+
 * init.el
 :PROPERTIES:
 :header-args: :tangle init.el
@@ -536,13 +707,6 @@ C-u C-@: 这是轮换当前的 mark ring
 (auto-save-visited-mode +1)
 #+end_src
 
-*** white space
-显示行尾的空格. doom 中会在保存时自动清理, 在编辑时会打扰思路.
-
-#+name: 41b7e7c5
-#+begin_src elisp
-(setq show-trailing-whitespace t)
-#+end_src
 *** smartparens
 #+name: 649668b1
 #+begin_src elisp
@@ -696,7 +860,7 @@ C-u C-@: 这是轮换当前的 mark ring
 ;; -*- lexical-binding: t; -*-
 #+end_src
 
-*** TODO yasnippet
+*** yasnippet
 注意, 这里如果在 org 前加载 M-i 按键会被覆盖. 可能得用 general 来绑定?
 
 #+name: 7db2aa5a
@@ -851,6 +1015,11 @@ C-u C-@: 这是轮换当前的 mark ring
 ;;   (setq consult-notes-sources `(("GTD"  ?g  "~/Notes/") ("all notes"  ?o  "~/.cache/notes")))
 ;;   )
 #+end_src
+*** TODO corfu
+- [[https://github.com/minad/corfu][minad/corfu: corfu.el - Completion Overlay Region FUnction]]
+- [[https://emacs-china.org/t/corfu/19688/78][Corfu 补全的使用姿势 - Emacs-general - Emacs China]]
+
+TUI 的用户暂时不适合用 Corfu
 
 *** embark
 一个新的神器, 相当于 text 版的右键菜单.
@@ -873,6 +1042,8 @@ embark-act, 切换可能的操作对象.
 
 查看按键
 : embark-bindings-in-keymap
+
+在M-x 命令窗口可按 "I" 键查看命令所对应的 info.
 
 #+name: 74ebe55a
 #+begin_src emacs-lisp
@@ -1367,8 +1538,8 @@ meow 默认 C-d 只删除一个字符?
 #+end_src
 
 *** white space
-just-one-space
-cycle-spacing
+just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
+
 #+name: 989c4b3c
 #+begin_src emacs-lisp
 (setq show-trailing-whitespace t)
@@ -1681,13 +1852,15 @@ cycle-spacing
   )
 #+end_src
 
-**** save layout
-可保存窗口的布局及对应的 buffer, 可正常处理 narrowed, indirect buffers 等特殊情
-况.
+**** burly: save layout
+可保存窗口的布局及对应的 buffer, 可正常处理 narrowed, indirect buffers
+等特殊情况. 但目前不能正常处理中文编码, 遇到中文 heading 可能出错.
 
 使用 SPC-W-s 来保存窗口布局, 使用 SPC-r-b 加载.
 
 临时保存也可用 ivy-push-view, 该视图可用 buffer 切换.
+
+也可用 consult-register-store, 但似乎不太灵光.
 
 #+name: a207c706
 #+begin_src elisp
@@ -1703,6 +1876,7 @@ cycle-spacing
 **** COMMENT bookmark/workspace
 保存的 burly layout 可直接在新的 workspace 中打开. 可完全替代 doom 的功能, 但更
 好用, bug 更少.
+[2022-10-28 Fri] 以下为 doom 中可用的函数, 现弃之.
 #+name: 14897c7b
 #+begin_src elisp
 (require 'ivy)
@@ -2161,27 +2335,36 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 
   :bind
   (:map gwp::magit-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ("g" . magit-status)
-   ("s" . magit-status)
-   ("x" . magit-checkout)
-   ("c" . magit-commit)
-   ("p" . magit-push)
-   ("u" . magit-pull)
-   ("e" . magit-ediff-resolve)
-   ("r" . magit-rebase-interactive)
-   :map magit-status-mode-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   :map magit-hunk-section-map
-   ;; ("j" . magit-next-line)
-   ;; ("k" . magit-previous-line)
-   ))
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        ("g" . magit-status)
+        ("s" . magit-status)
+        ("x" . magit-checkout)
+        ("c" . magit-commit)
+        ("p" . magit-push)
+        ("u" . magit-pull)
+        ("e" . magit-ediff-resolve)
+        ("r" . magit-rebase-interactive)
+        :map magit-status-mode-map
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        :map magit-hunk-section-map
+        ;; ("j" . magit-next-line)
+        ;; ("k" . magit-previous-line)
+        ))
 
 
 (use-package magit-popup)
+
+;; 显示 src 中的 TODO FIXME 等项
+(use-package magit-todos
+  :diminish
+  :after magit
+  :config
+  (magit-todos-mode)
+  )
 #+end_src
+
 *** rust
 #+name: a267f2ee
 #+begin_src elisp
@@ -3559,6 +3742,9 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 :header-args: :tangle user-lisp/init-note.el
 :END:
 *** docs
+可以 embark 改进
+- [[https://github.com/emacs-citar/citar][emacs-citar/citar: Emacs package to quickly find and act on bibliographic references, and edit org, markdown, and latex academic documents.]]
+
 仿 org-noter 但, 简化操作, 不依赖于 pdf-tools 等包, 可使用外部的 pdf 阅读器来处
 理 pdf 文件.
 
@@ -4033,6 +4219,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
  "fb" '(bookmark-jump :which-key "open bookmarks")
  "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
+ "fw" '(write-region :which-key "write region to file")
  )
 #+end_src
 
@@ -4080,8 +4267,10 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 (gwp::leader-def
  "o" '(:ignore t :which-key "open")
  "ot" '(gwp::open-terminal-here :which-key "open terminal here")
+ "of" '(make-frame :which-key "open in new frame")
  )
 #+end_src
+
 *** bindings: SPC-r resume/ring
 #+name: 574271f2
 #+begin_src elisp

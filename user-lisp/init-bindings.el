@@ -80,6 +80,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
  "fb" '(bookmark-jump :which-key "open bookmarks")
  "fo" '(spacemacs/open-file-or-directory-in-external-app :which-key "open externally")
+ "fw" '(write-region :which-key "write region to file")
  )
 ;; 45f27ad1 ends here
 
@@ -119,6 +120,7 @@ If two universal prefix arguments are used, then prompt for command to use."
 (gwp::leader-def
  "o" '(:ignore t :which-key "open")
  "ot" '(gwp::open-terminal-here :which-key "open terminal here")
+ "of" '(make-frame :which-key "open in new frame")
  )
 ;; 826282dd ends here
 

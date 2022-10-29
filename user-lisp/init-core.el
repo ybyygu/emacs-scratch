@@ -334,10 +334,6 @@
 (auto-save-visited-mode +1)
 ;; 1a29ba42 ends here
 
-;; [[file:../gwp-scratch.note::41b7e7c5][41b7e7c5]]
-(setq show-trailing-whitespace t)
-;; 41b7e7c5 ends here
-
 ;; [[file:../gwp-scratch.note::649668b1][649668b1]]
 ;; 高亮括号配对
 (use-package paren
