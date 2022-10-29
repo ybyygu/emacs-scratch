@@ -835,7 +835,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; 43fd72e2 ends here
 
 ;; [[file:../gwp-scratch.note::f1b60139][f1b60139]]
-(setq org-agenda-window-setup 'other-tab)
+(setq org-agenda-window-setup 'current-window)
 ;; f1b60139 ends here
 
 ;; [[file:../gwp-scratch.note::ded2ea25][ded2ea25]]
@@ -925,6 +925,16 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  "b" '(gwp::org-agenda-gtd-task-this-buffer :which-key "org agenda (gtd) this buffer")
  )
 ;; ded2ea25 ends here
+
+;; [[file:../gwp-scratch.note::fc776ca8][fc776ca8]]
+;; (unbind-key "h" org-agenda-mode-map)
+;; (unbind-key "l" org-agenda-mode-map)
+;; (unbind-key "j" org-agenda-mode-map)
+;; (unbind-key "k" org-agenda-mode-map)
+
+(bind-key "j" #'org-agenda-next-line org-agenda-mode-map)
+(bind-key "k" #'org-agenda-previous-line org-agenda-mode-map)
+;; fc776ca8 ends here
 
 ;; [[file:../gwp-scratch.note::6f58facc][6f58facc]]
 (require 'org-crypt)

@@ -104,6 +104,16 @@
   (call-interactively #'gwp::meow-change-to-the-end))
 ;; 4e63ecbf ends here
 
+;; [[file:../gwp-scratch.note::00b73661][00b73661]]
+;;;###autoload
+(defun meow/setup-states ()
+  (add-to-list 'meow-mode-state-list '(org-agenda-mode . motion))
+  ;; start shell/eshell in insert
+  (add-to-list 'meow-mode-state-list '(shell-mode . insert))
+  (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
+  )
+;; 00b73661 ends here
+
 ;; [[file:../gwp-scratch.note::672c2d79][672c2d79]]
 (defun meow/setup-normal ()
   ;; normal commands
@@ -276,6 +286,7 @@
   (meow/setup-leader)
   (meow/setup-motion)
   (meow/setup-insert)
+  (meow/setup-states)
   ;; If you want relative line number in NORMAL state(for display-line-numbers-mode)
   (meow-setup-line-number)
   ;; If you need setup indicator, see `meow-indicator' for customizing  hand.
