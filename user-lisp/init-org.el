@@ -708,11 +708,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; 4971b464 ends here
 
 ;; [[file:../gwp-scratch.note::05419467][05419467]]
-(use-package find-file-in-project
-  :config
-  (setq ffip-use-rust-fd t))
-
-(use-package simpleclip)
+(require 'simpleclip)
 
 (defun gwp::find-file-from-clipboard ()
   "打开 clipboard 中复制的文件路径"
@@ -838,6 +834,10 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (setq org-agenda-restore-windows-after-quit t)
 ;; 43fd72e2 ends here
 
+;; [[file:../gwp-scratch.note::f1b60139][f1b60139]]
+(setq org-agenda-window-setup 'other-tab)
+;; f1b60139 ends here
+
 ;; [[file:../gwp-scratch.note::ded2ea25][ded2ea25]]
 ;; description for "g" prefix
 (setq org-agenda-custom-commands '(("g" . "GTD contexts")))
@@ -939,6 +939,10 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (setq org-crypt-key "38D95BC6411A87E7") ; ybyygu@gmail.com
 (setq org-crypt-disable-auto-save nil)
 ;; 6f58facc ends here
+
+;; [[file:../gwp-scratch.note::*protocol][protocol:1]]
+(require 'org-protocol)
+;; protocol:1 ends here
 
 ;; [[file:../gwp-scratch.note::27b71342][27b71342]]
 (gwp::dwim-leader-def

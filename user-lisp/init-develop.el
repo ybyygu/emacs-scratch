@@ -14,6 +14,20 @@
 (add-hook 'with-editor-mode-hook 'meow-insert-mode)
 ;; 24325443 ends here
 
+;; [[file:../gwp-scratch.note::81cb1ab5][81cb1ab5]]
+(use-package find-file-in-project
+  :config
+  (setq ffip-use-rust-fd t))
+
+;;;###autoload
+(defun gwp::find-file-from-clipboard ()
+  "打开 clipboard 中复制的文件路径"
+  (interactive)
+  (require 'find-file-in-project)
+  (let ((path (simpleclip-get-contents)))
+    (ffip-find-files path nil)))
+;; 81cb1ab5 ends here
+
 ;; [[file:../gwp-scratch.note::8970c514][8970c514]]
 (general-define-key :prefix-map 'gwp::magit-map)
 
@@ -103,6 +117,16 @@
                       "c" 'citre-create-tags-file
                       "p" 'citre-peek))
 ;; f8651bde ends here
+
+;; [[file:../gwp-scratch.note::985a2495][985a2495]]
+(gwp::local-leader-def
+  :keymaps 'emacs-lisp-mode-map
+  "e" #'eval-last-sexp
+  "r" #'eval-region
+  "b" #'eval-buffer
+  "d" #'eval-defun
+  )
+;; 985a2495 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)

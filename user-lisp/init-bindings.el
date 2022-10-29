@@ -203,6 +203,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "td" '(toggle-debug-on-error :which-key "debug on error")
  "tr" '(read-only-mode :which-key "read only")
  "tw" '(visual-line-mode :which-key "soft line wrapping")
+ "tl" '(gwp::toggle-line-numbers :which-key "display line numbers")
  )
 ;; 703c9a6f ends here
 
@@ -210,6 +211,24 @@ If two universal prefix arguments are used, then prompt for command to use."
 (gwp::leader-def
  "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
 ;; 185fc283 ends here
+
+;; [[file:../gwp-scratch.note::035db3ed][035db3ed]]
+;;;###autoload
+(defun gwp::yank-relative-file-path ()
+  "将 clipboard 的路径以相对路径的形式插入"
+  (interactive)
+  (let ((relative-path (file-relative-name (current-kill 0))))
+    (unless (string= relative-path "")
+      (kill-new relative-path)
+      (call-interactively #'gwp::yank-dwim)
+      )))
+
+(gwp::leader-def
+ "y" '(:ignore t :which-key "yank/clipboard")
+ "yo" '(gwp::find-file-from-clipboard :which-key "find file from clipboard")
+ "yf" '(gwp::yank-relative-file-path :which-key "yank relative file path")
+ )
+;; 035db3ed ends here
 
 ;; [[file:../gwp-scratch.note::51e6b46e][51e6b46e]]
 (general-define-key :prefix-map 'gwp::note-map)

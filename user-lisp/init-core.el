@@ -8,6 +8,32 @@
   (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
 ;; 20ff3f1b ends here
 
+;; [[file:../gwp-scratch.note::3eff5fa2][3eff5fa2]]
+(defun gwp::duplicate-region (beg end)
+  (interactive "r")
+  (save-excursion
+    (let* ((beg (or beg (region-beginning)))
+           (end (or end (region-end)))
+           (region (buffer-substring beg end)))
+      (goto-char end)
+      (insert region))))
+
+(defun gwp::duplicate-line (&optional stay)
+  (save-excursion
+    (move-end-of-line nil)
+    (save-excursion
+      (insert (buffer-substring (point-at-bol) (point-at-eol))))
+    (newline)))
+
+(defun gwp::duplicate-line-or-region()
+  "复制当前行或选定区域"
+  (interactive)
+  (if (region-active-p)
+      ;; 也可用 crux-duplicate-current-line-or-region
+      (call-interactively #'gwp::duplicate-region)
+    (gwp::duplicate-line)))
+;; 3eff5fa2 ends here
+
 ;; [[file:../gwp-scratch.note::b5a74212][b5a74212]]
 (setq kill-ring-max 999)
 

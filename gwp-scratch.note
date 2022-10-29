@@ -317,6 +317,38 @@ emacs 默认使用 docview mode 来打开链接的文件, 比如 PDF 等, 不太
   (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
 #+end_src
 
+*** duplicate
+可用的
+- delete-duplicate-lines
+
+#+name: 3eff5fa2
+#+begin_src elisp
+(defun gwp::duplicate-region (beg end)
+  (interactive "r")
+  (save-excursion
+    (let* ((beg (or beg (region-beginning)))
+           (end (or end (region-end)))
+           (region (buffer-substring beg end)))
+      (goto-char end)
+      (insert region))))
+
+(defun gwp::duplicate-line (&optional stay)
+  (save-excursion
+    (move-end-of-line nil)
+    (save-excursion
+      (insert (buffer-substring (point-at-bol) (point-at-eol))))
+    (newline)))
+
+(defun gwp::duplicate-line-or-region()
+  "复制当前行或选定区域"
+  (interactive)
+  (if (region-active-p)
+      ;; 也可用 crux-duplicate-current-line-or-region
+      (call-interactively #'gwp::duplicate-region)
+    (gwp::duplicate-line)))
+#+end_src
+
+
 *** kill/delete/yank
 #+name: b5a74212
 #+begin_src elisp
@@ -1820,6 +1852,33 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   ([remap describe-key] . helpful-key))
 #+end_src
 
+*** line numbers
+如果能显示相对行号, avy-goto-line可能就没必要了?
+#+name: 885c9fa9
+#+begin_src elisp
+;; 方便绑定到 SPC-t-l
+;;
+;; 仅切换relative和none两种状态, doom的要切三种
+(defun gwp::toggle-line-numbers ()
+  (interactive)
+  (if display-line-numbers
+      (setq display-line-numbers 'nil)
+    (setq display-line-numbers t)))
+
+(defun gwp::display-line-numbers ()
+  (setq display-line-numbers 'relative)
+  (setq display-line-numbers t))
+
+;; NOTE: org-mode在折叠状态下, 相对行号显示的是实际数目, 而非折叠后的, 这对编辑操作没多大帮助了.
+;; ;; (add-hook 'org-mode-hook #'gwp::display-line-numbers)
+(add-hook 'org-src-mode-hook #'gwp::display-line-numbers)
+;; (add-hook 'prog-mode-hook #'gwp::display-line-numbers)
+(add-hook 'rust-mode-hook #'gwp::display-line-numbers)
+
+;; 全局设置
+(setq display-line-numbers-type 'relative)
+#+end_src
+
 *** window/frame
 **** ace window
 [[https://github.com/abo-abo/ace-window][abo-abo/ace-window: Quickly switch windows in Emacs]]
@@ -2317,6 +2376,25 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 (add-hook 'with-editor-mode-hook 'meow-insert-mode)
 #+end_src
 
+*** find file in project
+很有用的一个包
+- [[https://github.com/redguardtoo/find-file-in-project][redguardtoo/find-file-in-project: Quick access to project files in Emacs]]
+
+#+name: 81cb1ab5
+#+begin_src elisp
+(use-package find-file-in-project
+  :config
+  (setq ffip-use-rust-fd t))
+
+;;;###autoload
+(defun gwp::find-file-from-clipboard ()
+  "打开 clipboard 中复制的文件路径"
+  (interactive)
+  (require 'find-file-in-project)
+  (let ((path (simpleclip-get-contents)))
+    (ffip-find-files path nil)))
+#+end_src
+
 *** magit
 #+name: 8970c514
 #+begin_src elisp
@@ -2374,6 +2452,7 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
 (eval-after-load 'rust-mode
   '(require 'smartparens-rust))
 #+end_src
+
 *** format all
 [[https://github.com/lassik/emacs-format-all-the-code][lassik/emacs-format-all-the-code: Auto-format source code in many languages with one command]]
 
@@ -2419,6 +2498,18 @@ vi, 来进行编辑.  比如 shell 中的 edit-command-line (C-X E) 功
                       "b" 'citre-jump-back
                       "c" 'citre-create-tags-file
                       "p" 'citre-peek))
+#+end_src
+
+*** elisp
+#+name: 985a2495
+#+begin_src elisp
+(gwp::local-leader-def
+  :keymaps 'emacs-lisp-mode-map
+  "e" #'eval-last-sexp
+  "r" #'eval-region
+  "b" #'eval-buffer
+  "d" #'eval-defun
+  )
 #+end_src
 
 *** provide
@@ -3274,11 +3365,7 @@ exit 0
 **** find notes
 #+name: 05419467
 #+begin_src elisp
-(use-package find-file-in-project
-  :config
-  (setq ffip-use-rust-fd t))
-
-(use-package simpleclip)
+(require 'simpleclip)
 
 (defun gwp::find-file-from-clipboard ()
   "打开 clipboard 中复制的文件路径"
@@ -3433,6 +3520,12 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 ;; 退出 agenda buffer 时还原之前的窗口
 (setq org-agenda-restore-windows-after-quit t)
+#+end_src
+**** window
+在其它 tab 中显示 agenda
+#+name: f1b60139
+#+begin_src elisp
+(setq org-agenda-window-setup 'other-tab)
 #+end_src
 
 **** 自定义agenda命令
@@ -4365,6 +4458,7 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
  "td" '(toggle-debug-on-error :which-key "debug on error")
  "tr" '(read-only-mode :which-key "read only")
  "tw" '(visual-line-mode :which-key "soft line wrapping")
+ "tl" '(gwp::toggle-line-numbers :which-key "display line numbers")
  )
 #+end_src
 
@@ -4374,6 +4468,28 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 (gwp::leader-def
  "g" '(:keymap gwp::magit-map :which-key "Magit" :package magit))
 #+end_src
+
+
+*** bindings: SPC-y yank/clipboard
+#+name: 035db3ed
+#+begin_src elisp
+;;;###autoload
+(defun gwp::yank-relative-file-path ()
+  "将 clipboard 的路径以相对路径的形式插入"
+  (interactive)
+  (let ((relative-path (file-relative-name (current-kill 0))))
+    (unless (string= relative-path "")
+      (kill-new relative-path)
+      (call-interactively #'gwp::yank-dwim)
+      )))
+
+(gwp::leader-def
+ "y" '(:ignore t :which-key "yank/clipboard")
+ "yo" '(gwp::find-file-from-clipboard :which-key "find file from clipboard")
+ "yf" '(gwp::yank-relative-file-path :which-key "yank relative file path")
+ )
+#+end_src
+
 
 *** bindings: SPC-n note
 #+name: 51e6b46e

@@ -204,6 +204,30 @@
   )
 ;; 3d5eeec1 ends here
 
+;; [[file:../gwp-scratch.note::885c9fa9][885c9fa9]]
+;; 方便绑定到 SPC-t-l
+;;
+;; 仅切换relative和none两种状态, doom的要切三种
+(defun gwp::toggle-line-numbers ()
+  (interactive)
+  (if display-line-numbers
+      (setq display-line-numbers 'nil)
+    (setq display-line-numbers t)))
+
+(defun gwp::display-line-numbers ()
+  (setq display-line-numbers 'relative)
+  (setq display-line-numbers t))
+
+;; NOTE: org-mode在折叠状态下, 相对行号显示的是实际数目, 而非折叠后的, 这对编辑操作没多大帮助了.
+;; ;; (add-hook 'org-mode-hook #'gwp::display-line-numbers)
+(add-hook 'org-src-mode-hook #'gwp::display-line-numbers)
+;; (add-hook 'prog-mode-hook #'gwp::display-line-numbers)
+(add-hook 'rust-mode-hook #'gwp::display-line-numbers)
+
+;; 全局设置
+(setq display-line-numbers-type 'relative)
+;; 885c9fa9 ends here
+
 ;; [[file:../gwp-scratch.note::34bcfc6f][34bcfc6f]]
 (use-package ace-window
   :custom
