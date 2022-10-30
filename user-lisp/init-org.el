@@ -780,6 +780,19 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  )
 ;; 515195f9 ends here
 
+;; [[file:../gwp-scratch.note::da4e0834][da4e0834]]
+(defun gwp::update-notes-cache ()
+  (interactive)
+  (message (shell-command-to-string "rebuild-note-cache.sh")))
+
+(require 'midnight)
+(midnight-mode t)
+;; 默认延时为 3600 秒
+(midnight-delay-set 'midnight-delay 7200)
+
+(add-hook 'midnight #'gwp::update-notes-cache)
+;; da4e0834 ends here
+
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
 (setq org-capture-templates
       '(
@@ -934,6 +947,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (bind-key "j" #'org-agenda-next-line org-agenda-mode-map)
 (bind-key "k" #'org-agenda-previous-line org-agenda-mode-map)
+(bind-key "h" #'backward-char org-agenda-mode-map)
+(bind-key "l" #'forward-char org-agenda-mode-map)
 ;; fc776ca8 ends here
 
 ;; [[file:../gwp-scratch.note::6f58facc][6f58facc]]

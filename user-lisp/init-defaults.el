@@ -28,7 +28,6 @@
 ;; Better support for files with long lines
 (setq-default bidi-paragraph-direction 'left-to-right)
 (setq-default bidi-inhibit-bpa t)
-(global-so-long-mode 1)
 
 (provide 'init-defaults)
 ;; d8ca820b ends here

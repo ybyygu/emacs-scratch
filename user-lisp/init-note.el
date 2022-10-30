@@ -40,12 +40,30 @@
     (make-symbolic-link (file-truename document-in-read) document-path)))
 
 ;;;###autoload
+(defun gwp::org-note::annotate-pdf-in-READ (file)
+  "将 file (PDF) 放至READ 目录下"
+  (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
+    (gwp::org-note::to-read-file-in-READ file read-dir)))
+
+;;;###autoload
+(defun gwp::org-note::symbol-link-move-back (this-file)
+  "将当前软链所指向的文件取回来, 同时删除源文件"
+  (let* ((target-path (file-truename this-file)))
+    (if (file-symlink-p this-file)
+        (when (file-exists-p target-path)
+          (delete-file this-file)
+          (rename-file target-path this-file 1)
+          (message "Moved from: %s" target-path))
+      (user-error "not a symlink file"))))
+
+;;;###autoload
 (defun gwp::org-note::dired-annotate-pdf-in-READ ()
   "将 dired buffer 中所选定的(pdf)文件放至READ 目录下"
   (interactive)
+
   (if (derived-mode-p 'dired-mode)
-      (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
-        (gwp::org-note::to-read-file-in-READ (dired-get-file-for-visit) read-dir)
+      (let* ((file (dired-get-file-for-visit)))
+        (gwp::org-note::annotate-pdf-in-READ file)
         (dired-do-redisplay))
     (user-error "not in dired buffer")))
 
@@ -55,15 +73,9 @@
   (interactive)
 
   (if (derived-mode-p 'dired-mode)
-      (let* ((this-file (dired-get-file-for-visit))
-             (target-path (file-truename this-file)))
-        (if (file-symlink-p this-file)
-            (when (file-exists-p target-path)
-              (delete-file this-file)
-              (rename-file target-path this-file 1)
-              (dired-do-redisplay)
-              (message "Moved from: %s" target-path))
-          (user-error "not a symlink file")))
+      (let* ((this-file (dired-get-file-for-visit)))
+        (gwp::org-note::symbol-link-move-back this-file)
+        (dired-do-redisplay))
     (user-error "not in dired buffer")))
 ;; 7f3b3bee ends here
 
@@ -219,6 +231,13 @@
       ;; (start-process "okular" nil "okular" pdf)
       )))
 ;; 1773f1a3 ends here
+
+;; [[file:../gwp-scratch.note::43d2dac5][43d2dac5]]
+(require 'embark)
+
+(bind-key "R" 'gwp::org-note::annotate-pdf-in-READ embark-file-map)
+(bind-key "T" 'gwp::org-note::symbol-link-move-back embark-file-map)
+;; 43d2dac5 ends here
 
 ;; [[file:../gwp-scratch.note::8ae833e2][8ae833e2]]
 (require 'dired)

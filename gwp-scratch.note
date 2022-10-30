@@ -113,6 +113,297 @@ use-package emacs
 - [[https://github.com/jwiegley/use-package/blob/master/bind-key.el][use-package/bind-key.el at master · jwiegley/use-package]]
 - [[https://github.com/noctuid/general.el][noctuid/general.el: More convenient key definitions in emacs]]
 
+** Meow
+- [[https://github.com/linuxing3/.dog.emacs.d/blob/master/README.md][.dog.emacs.d/README.md at master · linuxing3/.dog.emacs.d]]
+- [[https://github.com/meow-edit/meow/blob/master/CUSTOMIZATIONS.org][meow/CUSTOMIZATIONS.org at master · meow-edit/meow]]
+
+*** 如何切换 meow state?
+一共有四种模式: Normal, Insert, Motion, Keypad
+
+*** 如何为特定的模式定义相关的按键, 比如 dired?
+可以按 keypad 模式来处理, 按键序列来对应过去.
+
+缺点:
+- 没有 which-key 提示
+  - [2022-10-22 Sat] 最近版本已有初步支持, 但不能显示用户自定义描述文字)
+- 不能使用 C-, M- 等修饰键
+
+*** 按键设置 [[meow-settings]]
+hklj
+
+*** 如果进行列块操作
+[[https://github.com/meow-edit/meow/blob/master/TUTORIAL.org#beacon][meow/TUTORIAL.org at master · meow-edit/meow]]
+** TODO emacs client
+[[https://mina86.com/2021/emacs-remote/][Emacs remote file editing over TRAMP — mina86.com]]
+
+** TODO Note management
+- 火花笔记, fleeting note, slip-box: 这些用org-capture就很好, 关键是快, 电光石火
+- 永久笔记, permanent note: 这些可放置在zotero里. 使用zotero数据库, 可实现条目的
+  永久链接, 不受笔记路径变化的影响.
+
+搜索所有.note笔记名
+- SPC-n-f (gwp/find-file-in-notes)
+全文搜索所有.note笔记
+- SPC-s-n (gwp/search-all-notes)
+
+更新笔记软链接 <<rebuild-notes>>
+#+name: 5fe9313b
+#+begin_src shell :tangle ~/.local/bin/rebuild-note-cache.sh :shebang #! /usr/bin/env bash
+set -e
+set -x
+set -u
+
+cd ~/.cache || mkdir ~/.cache
+rm notes -rf
+notesearch.py -r ./notes -l 99999
+#+end_src
+
+*** roam research/org-roam
+我觉得可以基于zotero来实现类似roam的组织方式. 在zotero中可以打标签, 也可以设置
+related items. 同时zotero中的items也是平级组织, 统一命名, 使用zotero uri可以在
+org文档中自由引用跳转. 现在唯一欠缺的时像org-roam-server那样可以交互式的展现关联
+条目的network展现方式.
+
+org-roam可用于替代org-capture, 这样在浏览时随时记录, 并可保留note间的关联性. 同
+时由于是多文件, 可以减少文件同步冲突.
+
+org-roam-capture
+org-roam-node-find
+org-roam-node-insert
+org-roam-buffer-toggle
+
+关键功能:
+- 双向链接 backlinks
+- 块引用
+  - [[https://github.com/nobiot/org-transclusion][nobiot/org-transclusion: (alpha) Emacs package to enable transclusion with Org Mode]]
+  - [[https://github.com/Kinneyzhang/roam-block][Kinneyzhang/roam-block: An all-purpose block ref and block embed implement in emacs.]]
+- 图表展示(可用org-protocol链接)
+
+** TODO Literate Programming in Rust
+需要安装[[https://github.com/racer-rust/racer][racer]], 注意不能用系统库中的, 不然补全std会报错.
+
+: rustup toolchain add nightly
+: rustup component add rust-src
+: cargo +nightly install racer
+: racer complete std::io::B
+
+- 使用 "Ctrl-c Ctrl-d" 可以自动添加或删除dbg!
+- 使用 "Ctrl-c Ctrl-f" rustfmt格式化buffer
+- 以上按键在org代码块中也可直接执行, org-babel-do-key-sequence-in-edit-buffer
+- (citre-jump-back): 需要定义tag文件(citre-create-tags-file), 支持跳转至函数定义, 很帅 (SPC-j-c-d, SPC-j-c-b)
+- cargo compile功能: (gwp/rust-cargo-transient)
+- 在org中编辑代码, 选择当前代码, (gwp/org-babel-tangle-dwim)后可将代码所tangle至的目标文件及所有blocks都导出.
+- 可能用得上: rust-promote-module-into-dir
+
+** TODO Python Scripting
+- 使用tmux开一终端, 打开ipython
+- 在emacs中写代码, 使用 +tmux/send-region来发送代码到ipython窗口
+** TODO Research Writing Workflow
+*** 基本流程
+- 使用org-mode来完成文字, 图片, 表格, 公式等内容.
+- 导出为odt格式.
+- 使用[[http://zotero-odf-scan.github.io/zotero-odf-scan/][RTF/ODF-Scan for Zotero]] 来格式化zotero引用.
+  - [2018-01-05 Fri] 已自定义export函数, 不必使用odf-scan, odt导出一步到位.
+- 在Libreoffice中进行必要的修改.
+- 输出PDF和或doc.
+
+*** org odt export
+- odt导出功能非常强大, 对于普通用户, odt无疑比latex的易用性和可定制性更强.
+- 可以在org buffer里指定odt模板文件. 使用odt而不是ott格式会更方便一些, 因为打开
+  ott时没有具体的内容可参照修改结果.
+- 码公式的时候, 使用"begin{equation*}"block, odt会自动编号. 不能设置scale, width
+  等图片属性.
+
+References
+- [[https://github.com/emacsmirror/org/blob/master/lisp/ox-odt.el][org/ox-odt.el at master · emacsmirror/org]]
+- [[https://orgmode.org/manual/OpenDocument-Text-export.html][The Org Manual: OpenDocument Text export]]
+
+*** RTF/ODF-scan插件
+这个插件可以将纯文本的引文标记, 格式化为zotero word processor可处理的zotero引文.
+此外, 这个扩展还可以反向的将zotero word processor处理后的引文转换成纯文件标记.
+
+从官网下载扩展后, 在zotero standalone的addone窗口安装.
+
+1. 在zotero中设置好quick copy的输出格式为 "scannable cite".
+2. 在zotero中选择目标条目, 将其拖入org-mode当即可.
+3. 通过修改config选项(ODFScan.useZoteroSelect), odfscan marker字段中的最后一项也
+   可以为zotero链接. 但在格式化时不能正常生成odt文件, 这可能是一个bug.
+
+
+** TODO Research Literature Management Workflow
+- [[https://github.com/joostkremers/ebib][joostkremers/ebib: A BibTeX database manager for Emacs.]]
+- [[https://emacs-china.org/t/emacs/12580][你的emacs文献/知识管理方案是什么？ - Emacs-general - Emacs China]]
+
+将annotation.note放到zotero内置库里的优点和问题:
+- 优点: 以zotero为中心进行数据管理. 从文献到笔记很方便.
+- 优点: note和pdf路径相对稳定, 不用担心更换系统后文件路径变化导致的问题.
+- 优点: 方便实现类似roam等工具类似的功能.
+- 问题: 不能方便地在zotero界面里进行搜索 (需要fulltext index) (但可以用自编工具
+  notesearch来处理, 不过需要定期更新cache)
+
+*** Zotero笔记管理
+- 在Emacs中gwp/insert-new-zotero-item, 将在zotero中新添加一report类似的note
+- 在zotero界面, 使用zotfile的 "Attach New File"功能, 自动将annotation.note加入附
+  件. (注意需要修改设置, 将note列入zotfile可管理的文件类型)
+
+*** 批注PDF
+- [2022-09-30 Fri] eaf-pdf 功能更强, 速度更快
+- [2021-08-19 Thu] org-noter也很长时间没有更新了
+- [2020-01-01 Wed] org-noter比interleave功能更强.
+
+在 org zotero 链接中可以:
+- 打开 zotero item 附件, 包括.pdf/.note 文件
+- 在ivy 下 按C-o 可打开对应的功能菜单
+
+在 dired buffer 中可以:
+- ,R: 将选中的 PDF 文件置入 READ 目录下, 方便在移动设备中批注.
+- ,T: 待 READ 中的 PDF 更新完, 将 zotero data 目录下选中的 PDF 软链源文件取回来
+- ,n: 对选中的 PDF 文件生成 annotation.note, 方便 emacs 中的做笔记
+
+[2022-09-30 Fri] 现以 eaf-pdf 为主, pdf-tools 逐渐弃用.
+
+pdf-tools 中快捷键
+- pdf-view-scroll-down-or-previous-page: ctrl-d, ctrl-b
+- pdf-view-scroll-up-or-next-page: ctrl-u, ctrl-f
+- pdf-view-next-page-command: ctrl-j
+- pdf-view-previous-page-command: ctrl-k
+- pdf-view-first-page: gg
+- pdf-view-last-page: G
+- pdf-view-fit-width-to-window
+
+鼠标
+- 上一页: mouse-9
+- 下一页: mouse-10
+
+*** References
+- [[https://codearsonist.com/reading-for-programmers][Piotr Limanowski: Reading for Programmers]]
+- [[https://www.researchgate.net/post/What_reference_manager_is_used_for_Emacs_users][What reference manager is used for Emacs users?]]
+- [[http://www.mkbehr.com/posts/a-research-workflow-with-zotero-and-org-mode/][A research workflow with Zotero and Org mode | mkbehr.com]]
+- [[https://emacs.stackexchange.com/questions/24725/zotero-workflow-into-emacs][org mode - zotero workflow into emacs? - Emacs Stack Exchange]]
+
+** Literate Programming Workflow
+- 在代码窗口编辑时(org-edit-src), 使用C-x C-s来保存buffer(或SPC-f-s). 不要使用:w命令.
+- 代码修改后, 使用gwp/org-babel-tangle-dwim函数来仅tangle当前block对应的代码文
+  件. 可以在代码编辑窗口直接使用, 该函数会自动保存代码. (SPC-o-b, SPC-m-b-b)
+- 使用counsel来实现不同headline间的快速跳转(counsel-org-goto, SPC-m-.)
+- 可从org跳转至tangled src, 也可由tangled src跳转至org src. (SPC-j-t, SPC-j-o)
+- 重要的tangle参数已在配置文件中做全局设置, 比如: ~padline~ ~mkdirp~ ~comments~
+
+** 配置安装
+*** stow配置管理思路
+- tangle时仅导出到当目录下或子目录下, 方便git管理.
+- stow再 "install" 到主目录下.
+
+*** docker
+[2021-10-24 Sun] 不太好用
+[[https://github.com/JAremko/docker-emacs][JAremko/docker-emacs: Dockerized Emacs (GUI)]]
+#+name: bec94355
+#+begin_src bash :tangle /tmp/run.sh
+ip=$(ifconfig enp0s31f6 | grep inet | awk '$1=="inet" {print $2}')
+xhost + $ip
+docker run -ti --name emacs\
+ -e DISPLAY=$ip:0\
+ -e UNAME="ybyygu"\
+ -e GNAME="ybyygu"\
+ -e UID="1000"\
+ -e GID="1000"\
+ # -v <path_to_your_.emacs.d>:/home/emacs/.emacs.d\
+ # -v <path_to_your_workspace>:/mnt/workspace\
+ centaur/emacs emacs
+#+end_src
+
+*** pdf viewer
+**** zathura [[https://wiki.archlinux.org/title/Zathura][zathura - ArchWiki]]
+zathura-pdf-mupdf
+
+快捷键:
+- a: page fit
+- s: width fit
+
+**** llpp [[https://wiki.archlinux.org/title/Llpp][llpp - ArchWiki]]
+:PROPERTIES:
+:DIR:      data/9e/8dfd63-9aaf-42fe-a66a-86b68326cc85
+:END:
+有 GPU 加速, 但比较难用, 用户也少.
+
+代码: [[https://github.com/moosotc/llpp][github moosotc/llpp: PDF pager]]
+代码库被污了, 留一份备着吧.
+
+- 进入 llpp 后, 按 F1 会出现使用帮助.
+- 按 "=" 显示阅读进度(页码等)
+
+*** 使用chemacs做emacs双启动 [[https://github.com/plexus/chemacs][plexus/chemacs: Emacs profile switcher]]
+- [[https://github.com/plexus/chemacs2][plexus/chemacs2: Emacs version switcher, improved]]
+- [[https://github.com/Silex/docker-emacs][Silex/docker-emacs: Run Emacs in docker containers!]]
+
+使用
+- 进入chemacs目录, 执行install.sh即可.
+- 修改 ~/.emacs-profiles.el
+
+: [ -f ~/.emacs ] && mv ~/.emacs ~/.emacs.bak
+: [ -d ~/.emacs.d ] && mv ~/.emacs.d ~/.emacs.default
+: git clone https://github.com/plexus/chemacs2.git ~/.emacs.d
+
+#+name: 0fe5ff8e
+#+begin_src elisp :tangle ~/.emacs-profiles.el
+(("default" . ((user-emacs-directory . "~/Workspace/Programming/emacs/doom-emacs")
+               (env . (("DOOMDIR" . "~/.doom.d")))))
+ ("gwp" . ((user-emacs-directory . "~/Install/configs/emacs/gwp")))
+ ("gwp-doom" . ((user-emacs-directory . "~/Install/configs/emacs/gwp-doom/doom-emacs")))
+ ("centaur" . ((user-emacs-directory . "~/Install/configs/emacs/centaur/.emacs.d"))))
+#+end_src
+
+调用
+#+begin_src sh
+emacs --with-profile centaur
+#+end_src
+
+*** 安装doom-emacs
+- 进入doom-emacs目录, 执行:
+  : bin/doom install
+
+doom会根据~/.doom.d中的配置, 更新doom-emacs/.local目录中的内容. 如果doom-emacs目
+录位置发生变化, 需要删除.local/straints/build目录, 再重建:
+: doom-emacs/bin/doom build
+
+*** .note文件搜索
+- 安装locate/updatedb服务 (mlocate)
+- 在~/.cache/notes建立软链接
+  : notesearch.py -r ~/.cache/notes
+
+[2021-08-29 Sun] 使用counsel-rg来实现, 以下设置不需要了
+- 添加ripgrep配置文件, 添加--follow symlink选项.
+
+#+begin_src sh :tangle ~/.ripgreprc
+--follow
+#+end_src
+
+*** syncthing .stignore
+sycnthing同步时要避免同步某些文件, 以免不同机器间emacs冲
+突
+
+- https://docs.syncthing.net/users/ignoring.html
+
+需要写在~/Workspace目录下:
+/Programming/emacs/doom-emacs/.local/cache
+
+** 调试步骤
+*** How to extract a backtrace from an error
+If you encounter an error while using Doom Emacs, you’re probably about to head
+off and file a bug report (or request help on our Discord server). Before you
+do, please generate a backtrace to include with it.
+
+To do so you must enable debug-on-error then recreate the error.
+
+*** Enabling debug-on-error
+There are three ways to enable debug-on-error:
+
+Start Emacs with emacs --debug-init. Use this for errors that occur at startup.
+Evil users can press SPC h d d and non-evil users can press C-h d d. If the
+above don’t work, there’s always: M-x toggle-debug-on-error
+
+Now that debug-on-error is on, recreate the error. A window should pop up with a
+backtrace.
 * Tips
 ** keybindings
 为各种按键生成一个漂亮的 org 文档
@@ -283,6 +574,292 @@ emacs 默认使用 docview mode 来打开链接的文件, 比如 PDF 等, 不太
 
 ** 打开buffer文件所在目录
 ~SPC-u SPC-f-o~
+
+* scripts
+** dired.sh
+[[https://gist.github.com/alphapapa/9c4eea0f204f865d37e8c99963feb922][Standalone Dired launcher]]
+
+#+name: d45af5cf
+#+begin_src shell :tangle ~/.local/bin/dired.sh :shebang #! /usr/bin/env bash
+# Launch Dired in a plain Emacs configuration.
+
+# Arguments are passed to Emacs, e.g. "-nw" works as expected.
+
+emacs -q "$@" \
+      --eval "(dired default-directory)" \
+      --eval "(defun kill-window-or-emacs () (interactive) (if (one-window-p) (kill-emacs) (delete-window)))" \
+      --eval "(setq dired-dwim-target t delete-by-moving-to-trash t)" \
+      --eval "(define-key dired-mode-map (kbd \"q\") #'kill-window-or-emacs)"
+#+end_src
+
+** org-archive.py
+:PROPERTIES:
+:header-args: :tangle pkg/.local/bin/org-archive.py :comments link :padline yes :mkdirp yes :shebang #! /usr/bin/env python2
+:END:
+*** TODO [2015-11-29 Sun] 使用 Kitchin 的 ox-archive.el 代替旧的 org-archive.py [[https://github.com/jkitchin/jmax/blob/master/ox-archive.el][URL]]
+*** header
+#+begin_src python
+# -*- coding: utf-8 -*-
+#====================================================================#
+#   DESCRIPTION:  create tar.xz archive of org-mode file including
+#                 all files under current directory
+#
+#       OPTIONS:  ---
+#  REQUIREMENTS:  ---
+#         NOTES:  ---
+#        AUTHOR:  Wenping Guo (ybyygu)
+#         EMAIL:  winpng@gmail.com
+#       LICENCE:  GPL version 2 or upper
+#       CREATED:  <2011-11-18 Fri 13:29>
+#       UPDATED:  <>
+#====================================================================#
+#+end_src
+
+*** globals
+#+begin_src python
+__VERSION__ = '0.1'
+__UPDATED__ = '2013-01-16 14:13:56 ybyygu'
+
+import sys
+import os
+import re
+import urllib
+
+rex_file = re.compile(r'.*\[\[file:([^\]]+)\]')
+rex_css = re.compile(r'.*href="([^"]+)".*')
+
+#+end_src
+*** main
+#+begin_src python
+def find_linked_files(filename):
+    """
+    find linked files (image or css style etc) from filename in
+    org-mode syntax
+    """
+    files = []
+
+    with open(filename) as fp:
+        for line in fp:
+            if rex_file.match(line):
+                afile = rex_file.match(line).groups()[0]
+                if afile:
+                    files.append(afile)
+            elif rex_css.match(line):
+                afile = rex_css.match(line).groups()[0]
+                if afile and not afile.startswith("http"):
+                    files.append(afile)
+
+    return files
+
+def make_tar_archive(files, archive_name):
+    import tarfile
+
+    tar = tarfile.open(archive_name, mode="w", dereference=True)
+    lists = set([])
+    for afile in files:
+        afile = urllib.unquote(afile)
+        if os.path.exists(afile):
+            print("included {}".format(afile))
+            lists.add(afile)
+        else:
+            print("{} is not in current directory!".format(afile))
+    for afile in lists:
+        tar.add(afile)
+    tar.close()
+
+
+def main(argv=None):
+    import optparse
+
+    if argv == None: argv = sys.argv
+
+    # parsing cmdline
+    cmdl_usage = 'usage: %prog [options]...[queue_id]'
+    cmdl_version = "%prog " + __VERSION__
+    cmdl_parser = optparse.OptionParser(usage=cmdl_usage, \
+                                        version=cmdl_version, \
+                                        conflict_handler='resolve')
+    cmdl_parser.add_option('-h', '--help',
+                           action='help',
+                           help='print this help text and exit')
+    cmdl_parser.add_option('-v', '--version',
+                           action='version',
+                           help='print program version and exit')
+    # cmdl_parser.add_option('-f', '--file', dest='file',
+    #                         help='start from this gjf file')
+    # cmdl_parser.add_option('-p', '--pause', dest='pause',
+    #                         action="store_true", default=False,
+    #                         help='pause running job.')
+    (cmdl_opts, cmdl_args) = cmdl_parser.parse_args()
+
+    filename = cmdl_args[0]
+
+    files = find_linked_files(filename)
+    files.append(filename)
+    make_tar_archive(files, archive_name="{}.tar".format(filename))
+
+if __name__ == '__main__':
+    main()
+#+end_src
+
+** emacsclient-open
+:PROPERTIES:
+:header-args: :tangle pkg/.local/bin/emacsclient-open.py :comments link :padline yes :mkdirp yes :shebang #! /usr/bin/env python
+:END:
+[2021-09-09 Thu] 这个用不上了.
+*** header
+#+begin_src python
+# -*- coding: utf-8 -*-
+#==============================================================================#
+#   DESCRIPTION:  open text file with emacsclient and register the it into the
+#                 recently-used-files list (~/.recently-used.xbel)
+#
+#       OPTIONS:  ---
+#  REQUIREMENTS:  ---
+#         NOTES:
+#        AUTHOR:  Wenping Guo (ybyygu)
+#         EMAIL:  winpng@gmail.com
+#       LICENCE:  GPL version 2 or upper
+#       CREATED:  <2010-09-01 Wed 16:04>
+#       UPDATED:  <>
+#==============================================================================#
+#
+# basically, to make emacsclient perfect, there are three things need be done:
+# 1. use parameter "-a ''", that is, use a void alternate-editor to automatically start
+#    emacs daemon
+# 2. open the file without "-n" option to make sure the file buffer will be killed when frame
+#    is closed
+# 3. if the file has been opened, use "-n" option.
+#+end_src
+
+*** main
+#+begin_src python
+import os
+import sys
+import subprocess
+
+def check_emacs_client(path):
+    """check if the file has been opened by emacsclient"""
+    cmdlines = ["/usr/bin/pgrep", "-fa", "emacsclient -c"]
+    output = subprocess.Popen(cmdlines,
+                              universal_newlines=True,  # output is a str not bytes
+                              stdout=subprocess.PIPE).stdout.read()
+    print(output)
+    if path in output:
+        return True
+    return False
+
+if len(sys.argv) == 1:
+    print("%s: open file using emacsclient." % (__file__))
+    sys.exit(0)
+
+path = os.path.abspath(sys.argv[1])
+if check_emacs_client(path):
+    print("{:} is opened.".format(path))
+    args = ["emacsclient", "-n", path]
+    subprocess.call(args)
+else:
+    args = ["emacsclient", "-c", "-a", "", path]
+    subprocess.Popen(args)
+#+end_src
+** alacritty daemon
+开启tmux daemon, 方便alacritty等调用. 仿dropdown式的guake terminal
+
+#+begin_src shell :tangle ~/.local/bin/tmux.sh :shebang #! /bin/bash
+tmux new-session -A -D -s ala
+#+end_src
+
+#+begin_src shell :tangle ~/.local/bin/ala-daemon.sh :shebang #! /bin/bash
+alacritty -e tmux.sh
+#+end_src
+
+** pdf-view
+以全屏窗口打开PDF文件
+#+header: :shebang #! /usr/bin/env bash
+#+begin_src sh :tangle pkg/.local/bin/emacs-pdf.sh
+emacs --maximized --file "$*" --eval "(pdf-view-fit-width-to-window)"
+#+end_src
+
+** org-agenda
+#+header: :mkdirp yes :comments yes :padline yes
+#+header: :shebang #! /usr/bin/env bash
+#+begin_src sh :tangle pkg/.local/bin/org-agenda.sh
+emacsclient -c -e "(org-agenda nil \"gt\")" -e "(delete-other-windows)"
+#+end_src
+
+** org-scratch
+#+header: :mkdirp yes :comments yes :padline yes
+#+header: :shebang #! /usr/bin/env bash
+#+begin_src sh :tangle pkg/.local/bin/org-scratch.sh
+emacsclient -c -e "(find-file \"~/Notes/scratch.note\")" -e "(delete-other-windows)"
+#+end_src
+
+
+** org-capture
+[2021-09-01 Wed] 用doom自带的更好. doom-emacs/bin
+
+可绑定全局按键, 随时记录所思所想.
+
+#+header: :tangle pkg/.local/bin/org-capture.sh :shebang #! /usr/bin/env bash
+#+header: :mkdirp yes :comments yes :padline yes
+#+begin_src shell
+emacsclient -c -F "((fullscreen . maximized))" -e "(org-capture)"
+#+end_src
+
+** stop-daemon
+#+begin_src shell
+/usr/bin/emacsclient --no-wait --eval "(progn (setq kill-emacs-hook nil) (kill-emacs))"
+#+end_src
+
+** take-screenshot-dwim
+[2020-03-08 Sun] 用不上了, 现在clipboard方案.
+屏幕截图时隐藏当前窗口, 完成后再切回原窗口. 需要安装xdotool工具.
+#+header: :tangle no
+#+begin_src shell
+[[ $# < 1 ]] && echo "no image path" && exit 0
+
+# switch to active window
+xdotool keydown alt key Tab; xdotool keyup alt
+# take a screenshot
+deepin-screenshot -n -s "$1" 2>/dev/null
+# switch back
+xdotool keydown alt key Tab; xdotool keyup alt
+#+end_src
+
+** start-terminal
+gnome-terminal使用client/server架构, 没法在emacs中直接打开, 需要清除几个环境变量.
+#+header: :tangle pkg/.local/bin/terminal-dwim.sh :shebang #! /usr/bin/env bash
+#+begin_src shell
+unset GNOME_TERMINAL_SCREEN
+unset GNOME_TERMINAL_SERVICE
+gnome-terminal $*
+#+end_src
+
+[2021-04-05 Mon] alacritty现在真好用. 可以放弃gnome-terminal了.
+
+** org-read-todo
+#+BEGIN_SRC sh
+dir_read_root=~/ToDo/READ/Research
+dir_topic=$(basename "`pwd`")
+
+dir_read="$dir_read_root"/"$dir_topic"
+
+mkdir -p "$dir_read"
+
+cp "$(pwd)/${1#file:}" "$dir_read"/
+#+END_SRC
+
+** org-read-done
+#+BEGIN_SRC sh
+dir_read_root=~/ToDo/READ/Research
+dir_topic=$(basename "`pwd`")
+
+dir_read="$dir_read_root"/"$dir_topic"
+
+path="$dir_read"/$(basename "${1#file:}")
+
+[[ -f "$path" ]] && rm -f "$path"
+#+END_SRC
 
 * init.el
 :PROPERTIES:
@@ -912,7 +1489,6 @@ C-u C-@: 这是轮换当前的 mark ring
 ;; Better support for files with long lines
 (setq-default bidi-paragraph-direction 'left-to-right)
 (setq-default bidi-inhibit-bpa t)
-(global-so-long-mode 1)
 
 (provide 'init-defaults)
 #+end_src
@@ -3627,7 +4203,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
  )
 #+end_src
 
-**** TODO COMMENT update cache
+**** update cache
 需要 rebuild-note-cache.sh 命令 [[rebuild-notes][rebuild-notes]]
 
 #+name: da4e0834
@@ -3638,9 +4214,10 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (require 'midnight)
 (midnight-mode t)
-(midnight-delay-set 'midnight-delay "3:30am")
+;; 默认延时为 3600 秒
+(midnight-delay-set 'midnight-delay 7200)
 
-(add-hook! midnight #'gwp::update-notes-cache)
+(add-hook 'midnight #'gwp::update-notes-cache)
 #+end_src
 
 *** capture
@@ -3864,6 +4441,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (bind-key "j" #'org-agenda-next-line org-agenda-mode-map)
 (bind-key "k" #'org-agenda-previous-line org-agenda-mode-map)
+(bind-key "h" #'backward-char org-agenda-mode-map)
+(bind-key "l" #'forward-char org-agenda-mode-map)
 #+end_src
 
 *** encryption
@@ -4109,12 +4688,30 @@ keybinding [[id:424e51bc-9a50-49dd-bf4f-33795aec2eaa][keymap]]
     (make-symbolic-link (file-truename document-in-read) document-path)))
 
 ;;;###autoload
+(defun gwp::org-note::annotate-pdf-in-READ (file)
+  "将 file (PDF) 放至READ 目录下"
+  (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
+    (gwp::org-note::to-read-file-in-READ file read-dir)))
+
+;;;###autoload
+(defun gwp::org-note::symbol-link-move-back (this-file)
+  "将当前软链所指向的文件取回来, 同时删除源文件"
+  (let* ((target-path (file-truename this-file)))
+    (if (file-symlink-p this-file)
+        (when (file-exists-p target-path)
+          (delete-file this-file)
+          (rename-file target-path this-file 1)
+          (message "Moved from: %s" target-path))
+      (user-error "not a symlink file"))))
+
+;;;###autoload
 (defun gwp::org-note::dired-annotate-pdf-in-READ ()
   "将 dired buffer 中所选定的(pdf)文件放至READ 目录下"
   (interactive)
+
   (if (derived-mode-p 'dired-mode)
-      (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
-        (gwp::org-note::to-read-file-in-READ (dired-get-file-for-visit) read-dir)
+      (let* ((file (dired-get-file-for-visit)))
+        (gwp::org-note::annotate-pdf-in-READ file)
         (dired-do-redisplay))
     (user-error "not in dired buffer")))
 
@@ -4124,17 +4721,12 @@ keybinding [[id:424e51bc-9a50-49dd-bf4f-33795aec2eaa][keymap]]
   (interactive)
 
   (if (derived-mode-p 'dired-mode)
-      (let* ((this-file (dired-get-file-for-visit))
-             (target-path (file-truename this-file)))
-        (if (file-symlink-p this-file)
-            (when (file-exists-p target-path)
-              (delete-file this-file)
-              (rename-file target-path this-file 1)
-              (dired-do-redisplay)
-              (message "Moved from: %s" target-path))
-          (user-error "not a symlink file")))
+      (let* ((this-file (dired-get-file-for-visit)))
+        (gwp::org-note::symbol-link-move-back this-file)
+        (dired-do-redisplay))
     (user-error "not in dired buffer")))
 #+end_src
+
 *** backlinks
 双向链接/反向链接是 roam research 里重要的特性.
 
@@ -4319,6 +4911,14 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
       ;; (start-process "okular" nil "okular" pdf)
       )))
 #+end_src
+*** embark 集成
+#+name: 43d2dac5
+#+begin_src elisp
+(require 'embark)
+
+(bind-key "R" 'gwp::org-note::annotate-pdf-in-READ embark-file-map)
+(bind-key "T" 'gwp::org-note::symbol-link-move-back embark-file-map)
+#+end_src
 
 *** bindings
 #+name: 8ae833e2
@@ -4340,11 +4940,6 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
   "nb" #'gwp::org-backlinks
   "no" #'gwp::org-note::open-pdf
   )
-#+end_src
-
-embark 集成
-#+begin_src elisp :tangle no
-(bind-key "R" 'gwp::org-note::dired-annotate-pdf-in-read embark-file-map)
 #+end_src
 
 
@@ -4660,6 +5255,8 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 *** bindings: SPC-t toggle
 #+name: 703c9a6f
 #+begin_src elisp
+;; (global-so-long-mode 1)
+
 (gwp::leader-def
  "t" '(:ignore t :which-key "toggle")
  "td" '(toggle-debug-on-error :which-key "debug on error")
@@ -4728,6 +5325,238 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 #+begin_src elisp
 (provide 'init-xxx)
 #+end_src
+
+* snippets
+:PROPERTIES:
+:header-args: :comments nil
+:END:
+TAB自动补全很可怕, 无意按键, 补出很多没用的东西. doom系统下private snippets目录
+为 ~/.doom.d/snippets.
+
+- [[https://github.com/hlissner/doom-snippets][hlissner/doom-snippets: The Doom Emacs snippets library]] [[file:doom-snippets][visit]]
+
+** org-mode
+*** begin_src
+#+BEGIN_SRC snippet :tangle snippets/org-mode/begin_src
+# -*- mode: snippet -*-
+# name: #+begin_src
+# key: <s
+# --
+,#+begin_src $1
+$0
+,#+end_src
+#+END_SRC
+
+*** begin_src shell
+#+BEGIN_SRC snippet :tangle snippets/org-mode/begin_src_sh
+# -*- mode: snippet -*-
+# name: #+begin_src shell
+# key: <sh
+# --
+,#+begin_src shell
+$0
+,#+end_src
+#+END_SRC
+
+*** begin_src elisp
+#+BEGIN_SRC snippet :tangle snippets/org-mode/begin_src_elisp
+# -*- mode: snippet -*-
+# name: #+begin_src elisp
+# key: <el
+# --
+,#+begin_src elisp
+$0
+,#+end_src
+#+END_SRC
+
+*** begin_src python
+#+BEGIN_SRC snippet :tangle snippets/org-mode/begin_src_python
+# -*- mode: snippet -*-
+# name: #+begin_src python
+# key: <p
+# --
+,#+begin_src python
+$0
+,#+end_src
+#+END_SRC
+
+*** begin_src rust
+#+BEGIN_SRC snippet :tangle snippets/org-mode/begin_src_rust
+# -*- mode: snippet -*-
+# name: #+begin_src rust
+# key: <r
+# --
+,#+begin_src rust
+$0
+,#+end_src
+#+END_SRC
+
+** rust-mode
+*** cfg
+: snippets/rust-mode/cfg
+*** impl Default
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/impl_default
+# -*- mode: snippet -*-
+# name: impl Default
+# key: Default
+# --
+impl Default for ${1:Type} {
+    fn default() -> Self {
+        ${0:Self::new()}
+    }
+}
+#+END_SRC
+
+*** impl Drop
+#+name: 01cd4f8a
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/impl_drop
+# -*- mode: snippet -*-
+# name: impl Drop
+# key: Drop
+# --
+impl Drop for ${1:Type} {
+    fn drop(&mut self) {
+        ${0:todo!();}
+    }
+}
+#+END_SRC
+
+*** structopt
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/structopt
+# -*- mode: snippet -*-
+# name: #[derive(StructOpt)]
+# key: structopt
+# --
+#[derive(StructOpt, Debug, Clone)]
+struct ${1:Cli} {
+    #[structopt(long, short)]
+    ${2:n}: ${0:usize}
+}
+#+END_SRC
+
+*** if let
+: snippets/rust-mode/if_let
+*** deprecated
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/deprecated
+# -*- mode: snippet -*-
+# name: #deprecated(note=X);
+# key: #dep
+# --
+#[deprecated(note = "$1")]
+#+END_SRC
+
+*** for
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/for
+# -*- mode: snippet -*-
+# name: for var in iterable { ... }
+# key: for
+# --
+for ${1:var} in ${2:iterable} {
+    $0
+}
+#+END_SRC
+
+*** print
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/print
+# -*- mode: snippet -*-
+# name: print!("{}", value);
+# key: print
+# --
+print!("${1:{}}", $2);
+#+END_SRC
+
+*** println
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/println
+# -*- mode: snippet -*-
+# name: println!("{}", value);
+# key: println
+# --
+println!("${1:{}}", $2);
+#+END_SRC
+
+*** eprintln
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/eprintln
+# -*- mode: snippet -*-
+# name: eprintln!("{}", value);
+# key: eprintln
+# --
+eprintln!("${1:{}}", $2);
+#+END_SRC
+
+*** fn
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/fn
+# -*- mode: snippet -*-
+# name: fn name() { ... }
+# key: fn
+# --
+fn ${1:name}($2) {
+   ${0:todo!()}
+}
+#+END_SRC
+
+*** fnr
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/fnr
+# -*- mode: snippet -*-
+# name: fn name() -> Type { ... }
+# key: fnr
+# --
+fn ${1:name}($2) -> ${3:Result<${4:()}>} {
+     ${0:todo!()}
+}
+#+END_SRC
+
+*** fnw
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/fnw
+# -*- mode: snippet -*-
+# name: fn name<T>(x: T) where T: Clone { ... }
+# key: fnw
+# --
+fn ${1:name}<${2:T}>(${3:x: T}) where ${4:T: Clone} {
+     $0
+}
+#+END_SRC
+
+*** test
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/test
+# -*- mode: snippet -*-
+# name: #[test] fn test_name() { .. }
+# key: #test
+# --
+#[test]
+fn ${1:test_name}() {
+   $0
+}
+#+END_SRC
+
+*** result
+: snippets/rust-mode/result
+
+*** todo!
+: snippets/rust-mode/todo
+
+*** derive
+: snippets/rust-mode/derive
+
+*** main
+#+BEGIN_SRC snippet :tangle snippets/rust-mode/main
+# -*- mode: snippet -*-
+# name: fn main() { ... }
+# key: main
+# --
+fn main() {
+   $0
+}
+#+END_SRC
+
+** prog-mode
+*** fixme
+: snippets/prog-mode/fixme
+
+*** todo
+: snippets/prog-mode/todo
+
+** elisp
+: snippets/emacs-lisp-mode
 
 * COMMENT Local variables
 # Emacs:

@@ -200,6 +200,8 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; c54b17b5 ends here
 
 ;; [[file:../gwp-scratch.note::703c9a6f][703c9a6f]]
+;; (global-so-long-mode 1)
+
 (gwp::leader-def
  "t" '(:ignore t :which-key "toggle")
  "td" '(toggle-debug-on-error :which-key "debug on error")
