@@ -190,6 +190,8 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; 可以查看不同 mode 下的按键绑定
 (bind-key "m" 'describe-keymap help-map)
 (bind-key "M" 'describe-mode help-map)
+;; 按变量的值反应查找对应的变量
+(bind-key "V" 'apropos-value help-map)
 ;; e7792733 ends here
 
 ;; [[file:../gwp-scratch.note::c54b17b5][c54b17b5]]

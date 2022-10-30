@@ -11,6 +11,8 @@
 - [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
 * Memo [3/6]
+** TODO [2022-10-30 Sun] 改进文献引用 [[https://kristofferbalintona.me/posts/202206141852/][Citations in org-mode: Org-cite and Citar | Kristoffer Balintona]]
+
 ** TODO [2022-10-26 Wed] 定义 prefix-map 的方法
 John Wiegley 写的, 也许用这个替代 general?
 
@@ -958,7 +960,9 @@ C-u C-@: 这是轮换当前的 mark ring
   (unbind-key "<tab>" yas-minor-mode-map))
 #+end_src
 
-*** hippie-expand
+*** COMMENT hippie-expand
+- Note taken on [2022-10-30 Sun 11:40] \\
+  现用 corfu 来处理
 #+name: 7f307588
 #+begin_src emacs-lisp
 ;; Use hippie-expand instead of dabbrev-expand
@@ -1089,11 +1093,86 @@ C-u C-@: 这是轮换当前的 mark ring
 ;;   (setq consult-notes-sources `(("GTD"  ?g  "~/Notes/") ("all notes"  ?o  "~/.cache/notes")))
 ;;   )
 #+end_src
-*** TODO corfu
+*** corfu
 - [[https://github.com/minad/corfu][minad/corfu: corfu.el - Completion Overlay Region FUnction]]
 - [[https://emacs-china.org/t/corfu/19688/78][Corfu 补全的使用姿势 - Emacs-general - Emacs China]]
 
-TUI 的用户暂时不适合用 Corfu
+TUI 用户可用 corfu-terminal
+
+- 按 C-M-i 来弹出补全菜单
+- 按 M-/ 来弹出 dabbrev 补全菜单
+
+#+name: f0a3c1c9
+#+begin_src elisp
+(use-package corfu
+  :bind
+  (:map corfu-map
+        ;; 按 M-i 后可进行模糊补全
+        ("M-i" . corfu-insert-separator))
+  :custom
+  (corfu-auto t)                        ; 启用自动补全, 按 C-M-i 强制弹出补全菜单
+  (corfu-auto-delay 1)                  ; 延迟显示
+  (corfu-auto-prefix 2)                 ; 输入 1 个字符后显示补全
+  (corfu-cycle t)                       ; 环状补全列表
+  (corfu-doc-auto nil)                  ; 不自动显示文档, 可在补全界面按 M-h 查看, M-g 看 src
+  :init
+  (global-corfu-mode))
+
+;; 在非图形环境使用 corfu
+(use-package corfu-terminal
+  :unless (display-graphic-p)
+  :after corfu
+  :config
+  (corfu-terminal-mode)
+  :hook (corfu-mode . corfu-doc-mode)
+  )
+
+;; Use Dabbrev with Corfu!
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  ;; Other useful Dabbrev configurations.
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
+;; Add extensions
+(use-package cape
+  :after corfu
+  ;; 仅补全英文
+  :custom (dabbrev-abbrev-char-regexp "[A-Za-z-_]")
+  :bind (
+         :map meow-insert-state-keymap
+         ("C-x TAB d" . cape-dabbrev)
+         ("C-x TAB h" . cape-history)
+         ("C-x TAB f" . cape-file)
+         ("C-x TAB a" . cape-abbrev)
+         ("C-x TAB l" . cape-line)
+         ("C-x TAB w" . cape-ispell)    ; 用于补全不易拼写的单词
+         )
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  :config
+  )
+#+end_src
+
+用于补全英文单词, 词典可从这里下载(需要转成 Unix 换行格式):
+- [[https://github.com/dwyl/english-words][english-words/words_alpha.txt at master · dwyl/english-words]]
+
+#+begin_src elisp
+;; https://github.com/redguardtoo/emacs.d/blob/master/lisp/init-company.el
+(with-eval-after-load 'ispell
+  ;; `ispell-alternate-dictionary' is a plain text dictionary if it exists
+  (let* ((dict (concat user-emacs-directory "english-words.txt")))
+    (when (and (null ispell-alternate-dictionary)
+               (file-exists-p dict))
+      ;; @see https://github.com/redguardtoo/emacs.d/issues/977
+      ;; fallback to built in dictionary
+      (setq ispell-alternate-dictionary (file-truename dict)))))
+#+end_src
+
 
 *** embark
 一个新的神器, 相当于 text 版的右键菜单.
@@ -1174,39 +1253,6 @@ embark-act, 切换可能的操作对象.
   :bind (([remap describe-keymap] . which-key-show-keymap))
   :config
   )
-#+end_src
-
-*** COMMENT ivy
-#+name: dd8cc577
-#+begin_src elisp
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
 #+end_src
 
 *** provide
@@ -1698,6 +1744,7 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
   "." '(avy-goto-line :which-key "goto line")
   "c" '(avy-goto-char-timer :which-key "goto char")
+  "," '(avy-pop-mark :which-key "avy go back") ; 回到 avy 起跳点
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
   )
 #+end_src
@@ -4293,8 +4340,13 @@ org-sidebar 出现后可按在 item 上按 TAB 访问链接的文件位置(继�
   "nb" #'gwp::org-backlinks
   "no" #'gwp::org-note::open-pdf
   )
-
 #+end_src
+
+embark 集成
+#+begin_src elisp :tangle no
+(bind-key "R" 'gwp::org-note::dired-annotate-pdf-in-read embark-file-map)
+#+end_src
+
 
 *** provide
 #+name: 8d4b377b
@@ -4594,6 +4646,8 @@ emacs版的 "Open in Terminal": 在gnome-terminal中打开当前目录.
 ;; 可以查看不同 mode 下的按键绑定
 (bind-key "m" 'describe-keymap help-map)
 (bind-key "M" 'describe-mode help-map)
+;; 按变量的值反应查找对应的变量
+(bind-key "V" 'apropos-value help-map)
 #+end_src
 
 *** bindings: SPC-w window

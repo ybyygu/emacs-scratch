@@ -77,6 +77,7 @@
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
   "." '(avy-goto-line :which-key "goto line")
   "c" '(avy-goto-char-timer :which-key "goto char")
+  "," '(avy-pop-mark :which-key "avy go back") ; 回到 avy 起跳点
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
   )
 ;; 6cb02a16 ends here

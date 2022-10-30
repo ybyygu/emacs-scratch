@@ -30,30 +30,6 @@
   (unbind-key "<tab>" yas-minor-mode-map))
 ;; 7db2aa5a ends here
 
-;; [[file:../gwp-scratch.note::7f307588][7f307588]]
-;; Use hippie-expand instead of dabbrev-expand
-;; (global-set-key (kbd "M-/") #'dabbrev-expand)
-(global-set-key (kbd "M-/") #'hippie-expand)
-;; the same behavior as the original `dabbrev-expand'
-(setq hippie-expand-dabbrev-skip-space t)
-
-;; adjust the list of functions that hippie-expand will try
-(setq hippie-expand-try-functions-list
-      '(
-        try-expand-dabbrev-visible      ; first try the expansions from the currently visible parts
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-line
-        try-expand-dabbrev-from-kill
-        ;; try-expand-all-abbrevs
-        ;; try-expand-list
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol
-        ))
-;; 7f307588 ends here
-
 ;; [[file:../gwp-scratch.note::23685638][23685638]]
 (use-package hydra)
 ;; 23685638 ends here
@@ -151,6 +127,73 @@
 ;;   (setq consult-notes-sources `(("GTD"  ?g  "~/Notes/") ("all notes"  ?o  "~/.cache/notes")))
 ;;   )
 ;; 02437dc0 ends here
+
+;; [[file:../gwp-scratch.note::f0a3c1c9][f0a3c1c9]]
+(use-package corfu
+  :bind
+  (:map corfu-map
+        ;; 按 M-i 后可进行模糊补全
+        ("M-i" . corfu-insert-separator))
+  :custom
+  (corfu-auto t)                        ; 启用自动补全, 按 C-M-i 强制弹出补全菜单
+  (corfu-auto-delay 1)                  ; 延迟显示
+  (corfu-auto-prefix 2)                 ; 输入 1 个字符后显示补全
+  (corfu-cycle t)                       ; 环状补全列表
+  (corfu-doc-auto nil)                  ; 不自动显示文档, 可在补全界面按 M-h 查看, M-g 看 src
+  :init
+  (global-corfu-mode))
+
+;; 在非图形环境使用 corfu
+(use-package corfu-terminal
+  :unless (display-graphic-p)
+  :after corfu
+  :config
+  (corfu-terminal-mode)
+  :hook (corfu-mode . corfu-doc-mode)
+  )
+
+;; Use Dabbrev with Corfu!
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  ;; Other useful Dabbrev configurations.
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
+;; Add extensions
+(use-package cape
+  :after corfu
+  ;; 仅补全英文
+  :custom (dabbrev-abbrev-char-regexp "[A-Za-z-_]")
+  :bind (
+         :map meow-insert-state-keymap
+         ("C-x TAB d" . cape-dabbrev)
+         ("C-x TAB h" . cape-history)
+         ("C-x TAB f" . cape-file)
+         ("C-x TAB a" . cape-abbrev)
+         ("C-x TAB l" . cape-line)
+         ("C-x TAB w" . cape-ispell)    ; 用于补全不易拼写的单词
+         )
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  :config
+  )
+;; f0a3c1c9 ends here
+
+;; [[file:../gwp-scratch.note::*corfu][corfu:2]]
+;; https://github.com/redguardtoo/emacs.d/blob/master/lisp/init-company.el
+(with-eval-after-load 'ispell
+  ;; `ispell-alternate-dictionary' is a plain text dictionary if it exists
+  (let* ((dict (concat user-emacs-directory "english-words.txt")))
+    (when (and (null ispell-alternate-dictionary)
+               (file-exists-p dict))
+      ;; @see https://github.com/redguardtoo/emacs.d/issues/977
+      ;; fallback to built in dictionary
+      (setq ispell-alternate-dictionary (file-truename dict)))))
+;; corfu:2 ends here
 
 ;; [[file:../gwp-scratch.note::74ebe55a][74ebe55a]]
 ;; 补全窗口显示补助等信息
