@@ -214,6 +214,10 @@
   ;; 前置命令序列后按C-h 可选择后续要执行的命令. 相当于 which-key 中的提示的可选
   ;; 命令可搜索后再选择了
   (prefix-help-command #'embark-prefix-help-command)
+  ;; :after minibuffer
+  ;; :bind (
+  ;;        :map minibuffer-local-map
+  ;;        ("M-b" . #'embark-become))
   )
 
 (use-package embark-consult

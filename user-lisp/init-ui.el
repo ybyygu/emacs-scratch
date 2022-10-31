@@ -402,6 +402,20 @@ Call a second time to restore the original window configuration."
  )
 ;; f07dc327 ends here
 
+;; [[file:../gwp-scratch.note::aaa39215][aaa39215]]
+(add-to-list 'display-buffer-alist
+             '("\\*compilation\\*"
+               display-buffer-in-previous-window))
+
+(add-to-list 'display-buffer-alist
+             '("^*Async Shell Command*" . (display-buffer-no-window)))
+
+(use-package simple
+  :ensure nil
+  :custom
+  (async-shell-command-buffer 'new-buffer))
+;; aaa39215 ends here
+
 ;; [[file:../gwp-scratch.note::44d5ec48][44d5ec48]]
 ;; keymaps for leader key
 (use-package winner

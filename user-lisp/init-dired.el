@@ -73,6 +73,17 @@
   (setq delete-by-moving-to-trash t))
 ;; f3b2a13e ends here
 
+;; [[file:../gwp-scratch.note::ef983ce4][ef983ce4]]
+(use-package dired-x
+  :ensure nil
+  :config
+  (add-to-list 'dired-guess-shell-alist-user '("\\.gjf\\'" "agui"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.com\\'" "agui"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.xyz\\'" "jmol"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.cif\\'" "jmol"))
+  )
+;; ef983ce4 ends here
+
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
 (with-eval-after-load 'dired
   (setq dired-recursive-deletes 'top)
