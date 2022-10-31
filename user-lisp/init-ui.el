@@ -370,6 +370,7 @@ Call a second time to restore the original window configuration."
 (general-define-key
  :prefix-map 'gwp::window-map
  "z"       #'golden-ratio
+ "g"       #'golden-ratio
  "1"       #'gwp::toggle-maximize-window
  "o"       #'gwp::toggle-maximize-window     ; show "only"
  "t"       #'gwp::maximize-window-vertically ; show top

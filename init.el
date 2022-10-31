@@ -48,7 +48,7 @@
  '(custom-safe-themes
    '("f64189544da6f16bab285747d04a92bd57c7e7813d8c24c30f382f087d460a33" "1cae4424345f7fe5225724301ef1a793e610ae5a4e23c023076dc334a9eb940a" "2078837f21ac3b0cc84167306fa1058e3199bbd12b6d5b56e3777a4125ff6851" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
  '(package-selected-packages
-   '(corfu-doc corfu-terminal corfu magit-todos dired-hide-dotfiles dired-hacks-utils dired-single citre yasnippet which-key vertico use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download orderless meow marginalia magit-popup magit ivy-rich ivy-hydra helpful goto-last-change goto-chg golden-ratio general format-all find-file-in-project fd-dired embark-consult el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
+   '(keyfreq corfu-doc corfu-terminal corfu magit-todos dired-hide-dotfiles dired-hacks-utils dired-single citre yasnippet which-key vertico use-package symbol-overlay smartparens simpleclip rust-mode rime org-superstar org-sidebar org-noter org-download orderless meow marginalia magit-popup magit ivy-rich ivy-hydra helpful goto-last-change goto-chg golden-ratio general format-all find-file-in-project fd-dired embark-consult el-patch doom-themes doom-modeline crux counsel command-log-mode cargo burly ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
