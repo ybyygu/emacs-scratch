@@ -1,8 +1,20 @@
 :PROPERTIES:
-:ID:       a58b86ad-a96e-4b4f-b9de-acbaf9e5910f
+:ID:       f15d0083-aa65-47a9-b503-975455b57167
 :END:
-#+TITLE: 个人文本交互系统(based on doom-emacs)
+#+TITLE: 个人文本交互系统
 #+SETUPFILE: ~/Notes/common.org
+
+待考
+- [[https://github.com/davidshepherd7/terminal-here][davidshepherd7/terminal-here: An Emacs package to open an external terminal emulator in the current directory]]
+
+* Portal
+- note [[zotero://select/items/1_MG5FH5V9][@emacs]] [[id:e8cab7e9-2b5a-4566-ade2-f9dd8c42a2ae][emacs.note]]
+- [[zotero://select/library/collections/Z8UFNPZ4][@zotero::collection]]
+
+* 历史设置
+- [[file:~/Install/configs/spacemacs/config.note][spacemacs]]
+- [[file:~/Install/configs/spacemacs/ybyygu.org][emacs24-starter-kit]]
+- [[id:a58b86ad-a96e-4b4f-b9de-acbaf9e5910f][doom-emacs]]
 
 * 参考
 - [[https://github.com/daviwil/emacs-from-scratch/tree/master][daviwil/emacs-from-scratch: An example of a fully custom Emacs configuration developed live on YouTube!]]
@@ -10,7 +22,113 @@
 - [[https://github.com/SystemCrafters/crafted-emacs/tree/master/modules][crafted-emacs/modules at master · SystemCrafters/crafted-emacs]]
 - [[https://git.sr.ht/~protesilaos/dotfiles/tree/master/item/emacs/.emacs.d][~protesilaos/dotfiles: emacs/.emacs.d/ - sourcehut git]]
 
-* Memo [3/6]
+* Memo [4/20]
+** TODO [2022-10-16 Sun] elisp 文件管理函数 [[https://www.youtube.com/watch?v=nq-gqNGmayI][Managing Files and Directories in Practice - Learning Emacs Lisp #6 - YouTube]]
+** TODO [2022-10-18 Tue] secondary-selection [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Secondary-Selection.html][Secondary Selection (GNU Emacs Manual)]]
+神奇的鼠标操作功能
+
+- 矩形选择: C-M-mouse-1
+- 在括号一端双击可选中括号中内容.
+- 右键三击: 相当于 cut
+- 中键单击: 相当于 paste
+- Alt+ 鼠标: 处理 secondary selection
+
+** TODO [2022-10-18 Tue] 文件管理操作
+write-region
+write-file
+
+org-agenda-tree-to-indirect-buffer
+
+C-x 5 5: 下一个命令在新的 frame 中打开
+
+
+类似的
+C-x t t
+
+C-x 4 4
+
+** READ [2022-10-23 Sun] [[https://lishouzhong.com/article/wiki/Sarasa%20%E5%AD%97%E4%BD%93%E6%96%87%E4%BB%B6%E5%90%8D%E8%AF%B4%E6%98%8E.html][Sarasa 字体文件名说明]]
+** TODO [2022-10-12 Wed] 学习 [[https://github.com/emacs-eaf/emacs-application-framework/wiki/EAF-Framework][EAF Framework · emacs-eaf/emacs-application-framework Wiki]] :ASAP:
+** TODO [2021-12-16 Thu] 研究下 [[https://www.reddit.com/r/emacs/comments/rgwlfx/dtacheel_a_package_for_detached_shell_commands/][dtache.el - A package for detached shell commands : emacs]]
+** TODO [2021-12-16 Thu] 研究下 [[https://github.com/ethan-leba/tree-edit][ethan-leba/tree-edit: Structural editing in Emacs for any language!]]
+** TODO [2021-12-30 Thu] 尝试下这个 dired 类工具 [[https://github.com/alexluigit/dirvish][alexluigit/dirvish: Dired can be a nice file manager.]]
+据说很好
+** TODO [2020-03-13 Fri] vterm-toggle [[https://github.com/jixiuf/vterm-toggle][jixiuf/vterm-toggle: toggles between the vterm buffer and whatever buffer you are editing.]]
+** TODO [2017-12-12 Tue] 修改org-download设置, 调整odt导出参数
+自定义org-download-annotate-function
+- 自动添加图片的 ~name~ ~caption~, 方便odt导出时图片自动编号及交叉引用.
+- 自动添加 ~#+attr_org~ 属性, 设置org预览图片的大小
+- 自动添加 ~#+attr_odt~ 属性, 设置odt导出时的图片大小
+
+References
+- [[http://kitchingroup.cheme.cmu.edu/blog/2015/07/10/Drag-images-and-files-onto-org-mode-and-insert-a-link-to-them/][Drag images and files onto org-mode and insert a link to them]]
+
+** TODO [2017-11-13 Mon] 完善org-to-read 实现类似zotfile的功能
+[2017-11-17 Fri] 类似没太大必要. 有更流畅的方式?
+
+- 自动将当前headline下的附件放至某个READ目录
+- 手机上阅读并注释, 并同步回修改.
+- 切回DONE状态时从READ目录里取回修改后的版本, 并导出pdf注释.
+
+References
+- [[https://github.com/machc/pdf-tools-org][machc/pdf-tools-org: pdf-tools and org-mode integration]]
+- [[http://tech.memoryimprintstudio.com/pdf-annotation-related-tools/][PDF Annotation Related Tools – Emacs, Arduino, Raspberry Pi, Linux and Programming etc]]
+- [[http://pragmaticemacs.com/emacs/view-and-annotate-pdfs-in-emacs-with-pdf-tools/][View and annotate PDFs in Emacs with PDF-tools | Pragmatic Emacs]]
+- [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note Taking with PDF Tools | Thoughts on Code & History]]
+- [[https://github.com/politza/pdf-tools/issues/134][extract annotations? · Issue #134 · politza/pdf-tools]]
+- [[https://www.reddit.com/r/emacs/comments/4gudyw/help_me_with_my_orgmode_workflow_for_notetaking/][Help me with my org-mode workflow for note-taking? : emacs]]
+
+** [2017-10-06 Fri] 解决org-mode加载大文件太慢的问题
+- [2017-10-07 Sat] 发现是hl-todo这个包导致的问题. 禁用该包即可.
+- [2017-10-06 Fri] 使用spacemacs-base distrubtion即可.
+
+** TODO [2021-08-20 Fri] 实现zotero管理界面
+- [[https://github.com/chenyanming/calibredb.el/blob/master/calibredb-ivy.el][calibredb.el/calibredb-ivy.el at master · chenyanming/calibredb.el · GitHub]]
+- [[https://oremacs.com/swiper/#actions][Ivy User Manual]]
+- [[id:f9dbae5c-d135-47fd-be30-e788fc1e3eb7][ivy 新手教程 - Emacs-general - Emacs China]]
+- [[id:dba75f6c-108f-4e84-a0ae-589065f572f6][JSON-RPC :: Better BibTeX for Zotero]]
+- [[https://github.com/tmalsburg/helm-bibtex/blob/master/ivy-bibtex.el][helm-bibtex/ivy-bibtex.el at master · tmalsburg/helm-bibtex]]
+
+不太满意, 有待改进:
+- [ ] 搜索时, keyword为空时响应非常慢.
+- [ ] 多种条件任意搜索
+- [ ] 无法先过滤, 然后再搜索(像zotero中, 先按tags或collection过虑过再搜索).
+  ivy-bibtex可以选择多个item, 再执行统一的操作. 可以研究下. [[https://github.com/tmalsburg/helm-bibtex#apply-actions-to-multiple-entries][Apply actions to multiple entries]]
+- [X] 中英文混排不对齐
+
+*** Memo
+[2021-09-12 Sun] 改进文本对齐
+#+name: 0dd89871
+#+begin_src elisp
+(require 'ivy-bibtex)
+(setq candidate '("2008 袁亚湘 非线性优化计算方法 book 袁亚湘2008  "
+ ("year" . "2008")
+ ("author" . "袁亚湘")
+ ("title" . "{非线性优化计算方法}")
+ ("=type=" . "book")
+ ("=key=" . "袁亚湘2008")
+))
+(bibtex-completion-format-entry candidate 20)
+
+(truncate-string-to-width "magit-diff: elisp-demos" 40 0 ?\s)
+(truncate-string-to-width "magit-diff: elisp-好好" 40 0 ?\s)
+#+end_src
+
+[2021-08-31 Tue] 实现自动编译模块? [[https://github.com/casouri/xeft/blob/master/xeft.el][URL]]
+[2021-08-25 Wed] 这个链接打不开? [[zotero://select/items/1_I9BXB5GH][@WenBin2007]] 已修复
+[2021-08-23 Mon] 自己写了一个, 简洁够用.
+流程:
+: gwp/zotero-searcn
+: Ctrl-o, o
+
+
+** TODO [2021-12-11 Sat] burly 保存窗口功能 bug: 不能处理中文 heading indirect buffer
+: Heading not found
+org-find-olp
+
+burly-follow-url-org-mode
+
+
 ** TODO [2022-10-30 Sun] 改进文献引用 [[https://kristofferbalintona.me/posts/202206141852/][Citations in org-mode: Org-cite and Citar | Kristoffer Balintona]]
 
 ** TODO [2022-10-26 Wed] 定义 prefix-map 的方法
@@ -36,6 +154,122 @@ John Wiegley 写的, 也许用这个替代 general?
 也可以这样
 - [[https://github.com/SystemCrafters/crafted-emacs/blob/master/modules/crafted-windows.el][crafted-emacs/crafted-windows.el at master · SystemCrafters/crafted-emacs]]
 
+** TODO [2021-10-04 Mon] 也许这个可用于编辑rustdoc? [[https://github.com/twlz0ne/separedit.el#edit-heredoc][twlz0ne/separedit.el: Edit comment or string/docstring or code block inside them in separate buffer with your favorite mode]]
+- [[https://emacs-china.org/t/separedit-el-docstring/11196][separedit.el: 在单独的缓冲区编辑注释、docstring 或其中的代码块]]
+- [[https://github.com/phillord/lentic][phillord/lentic: Create views of the same content in two Emacs buffers]]
+** DONE [2021-11-24 Wed] 添加 cp2k-mode
+- State "DONE"       from "TODO"       [2021-11-24 Wed 09:54]
+- [[https://www.cp2k.org/tools:emacs][tools:emacs CP2K Open Source Molecular Dynamics]]
+
+** DONE [2021-12-11 Sat] 实现新功能: org 在新 frame 中打开链接文档 :Starred:Summary:
+- State "DONE"       from "TODO"       [2021-12-11 Sat 08:07]
+
+使用 C-u C-c C-o 在新 frame 中打开.
+
+
+** DONE [2021-10-17 Sun] 尝试 eaf 中的 pdf-viewer
+- Note taken on [2021-10-20 Wed 18:59] \\
+  挺好的, 主要是 eaf-pdf-viewer 好用. 不过暂时可以不用.
+- State "DONE"       from "TODO"       [2021-10-20 Wed 18:59]
+基于 mupdf, 比 pdf-tools 快多了. 支持文本高亮, 支持与 org 互动, 这样与 org-noter
+配合就没什么问题了.
+
+[2021-10-19 Tue] 感觉安装挺容易的, 依赖带来的麻烦不大. 挺值得一用. 不过除了 pdf 外, 还没什么杀手级的应用.
+
+: okular foo.pdf -p 5
+: evince foo.pdf -p 5
+: llpp foo.pdf -page 5
+
+** DONE [2021-10-16 Sat] 如何重新打开关闭的buffer?
+- State "DONE"       from "TODO"       [2021-10-17 Sun 07:04]
+- [[https://github.com/mrkkrp/kill-or-bury-alive][mrkkrp/kill-or-bury-alive: Precise control over buffer killing in Emacs]]
+- [[https://stackoverflow.com/questions/10394213/emacs-reopen-previous-killed-buffer][Emacs reopen previous killed buffer？ - Stack Overflow]]
+
+** DONE [2021-10-13 Wed] 找时间逃离doom-emacs, 自己搭一个?
+- Note taken on [2022-10-31 Mon 14:48] \\
+  已转成功
+- State "DONE"       from "TODO"       [2021-10-24 Sun 19:54]
+- Note taken on [2021-10-24 Sun 19:54] \\
+  现用 v2raya, 可启用透明代理, emacs 什么也不用设置. 现在无障碍了.
+- Note taken on [2021-10-15 Fri 19:53] \\
+  可启用代理, 在emacs中reload (doom/reload).
+
+doom-emacs问题
+- [X] 依赖于straight, github, 装包太痛苦
+- [X] 自定义设置太多, 要尽如心意, 得做减法.
+
+参考:
+- [[https://github.com/seagle0128/.emacs.d][seagle0128/.emacs.d: Centaur Emacs - A Fancy and Fast Emacs Configuration]]
+- [[https://www.reddit.com/r/emacs/comments/jzjtv0/doom_emacs_vs_vanilla_emacs/][Doom emacs vs vanilla emacs : emacs]]
+
+[2021-10-14 Thu] 试用了下Centaur, 有些失望.
+
+** DONE [2021-10-09 Sat] magit-status启动后隐藏 untracked files列表, 每次跳开要浪费不少时间
+- State "DONE"       from "TODO"       [2021-10-09 Sat 19:48]
+[[https://emacs.stackexchange.com/questions/27271/how-do-i-toggle-magit-enumerating-untracked-files][How do I toggle Magit enumerating untracked files? - Emacs Stack Exchange]]
+
+magit-section-initial-visibility-alist
+
+** DONE [2021-10-09 Sat] 使用rime做为默认的输入法
+- State "DONE"       from "TODO"       [2021-10-09 Sat 19:31]
+
+- [[https://sunyour.org/post/emacs-%E5%86%85%E7%BD%AE%E8%BE%93%E5%85%A5%E6%B3%95%E6%AD%A3%E5%BC%8F%E6%94%B9%E7%94%A8-emacs-rime/][我的 emacs 内置输入法正式改用 emacs-rime - 凡·记 - 墩墩家的幸福生活]]
+- [[https://manateelazycat.github.io/emacs/2020/03/22/emacs-rime.html][折腾emacs-rime]]
+- [[https://blindwith.science/2020/12/460.html/][从 pyim 换到 emacs-rime 了 - Blind with Science]]
+- [[https://sunyour.org/post/%E7%BB%99-emacs-rime-%E5%A2%9E%E5%8A%A0%E7%B1%BB%E4%BC%BC-pyim-%E7%9A%84%E8%BD%AC%E6%8D%A2%E5%BD%93%E5%89%8D%E8%8B%B1%E6%96%87%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%BA%E4%B8%AD%E6%96%87%E7%9A%84%E5%8A%9F%E8%83%BD/][给 emacs-rime 增加类似 pyim 的转换当前英文字符串为中文的功能 - 凡·记 - 墩墩家的幸福生活]]
+- [[https://wiki.archlinux.org/title/Rime][Rime - ArchWiki]]
+- [[https://github.com/LEOYoon-Tsaw/Rime_collections/blob/master/Rime_description.md][Rime_collections/Rime_description.md at master · LEOYoon-Tsaw/Rime_collections]]
+
+优点:
+- 相比于fcitx table不再有掉字的问题.
+- 可以配合emacs-rime这个包来精细调整, 实现更佳的输入体验.
+
+思路
+- emacs启动时, 禁用掉fcitx相关的变量, 这样可实现ctrl-space自动调用emacs-rime. 与
+  桌面其它习惯保持一致.
+- 副作用: 在emacs中调用的程序可能无法正常使用fcitx来输入中文.
+
+rime的安装
+: sudo pacman -S fcitx-rime5 librime
+: pac -S manjaro-asian-input-support-fcitx5
+
+rime数据在 ~/.local/share/fcitx5/rime下.
+: ~/.local/share/fcitx5/rime/default.custom.yaml
+
+码表词组可自由修改
+: ~/.local/share/fcitx5/rime/wubi98.dict.yaml
+五笔设置
+: ~/.local/share/fcitx5/rime/wubi98.schema.yaml
+
+五笔98码表设置文件:
+- [[https://github.com/yanhuacuo/98wubi-tables][yanhuacuo/98wubi-tables: 98五笔基础码表]]
+- [[https://github.com/thep0y/rime-98][thep0y/rime-98]]
+
+本地代码, 方便自用:
+: /home/ybyygu/Install/configs/rime/rime-98
+
+使用 rime-sync 来同步配置数据
+
+在fcitx-rime中切换中英文挺麻烦的, 可在rime中禁用英文(ascii_composer得保留, 不然
+无法在emacs中切换临时英文):
+- [[https://github.com/rime/squirrel/issues/221][如何删除 鼠须管 的英文模式？ #221]]
+
+** DONE [2021-10-08 Fri] 解决window layout保存问题
+- Note taken on [2022-02-10 Thu 20:21] \\
+  也可以用 ivy
+  ;; ("C-c v p" . ivy-push-view)
+  ;; ("C-c v o" . ivy-pop-view)
+  ;; ("C-c v ." . ivy-switch-view)
+
+- State "DONE"       from "TODO"       [2021-12-20 Mon 07:32] \\
+  burly 很好用
+- [[https://www.reddit.com/r/emacs/comments/q5l4mv/do_you_use_ivypushpopview/][(2) Do you use ivy-push/pop-view? : emacs]]
+- [[https://stackoverflow.com/questions/2572950/preserve-window-layout-in-emacs][Preserve window layout in Emacs - Stack Overflow]]
+- [[https://github.com/alphapapa/burly.el][alphapapa/burly.el: Save and restore frames and windows with their buffers in Emacs]]
+
+
+
+
 ** DONE [2022-10-24 Mon] 用 vertico 等替换 ivy/counsel 等包
 - Note taken on [2022-10-27 Thu 20:23] \\
   还挺适应的
@@ -60,6 +294,12 @@ John Wiegley 写的, 也许用这个替代 general?
 + [[https://github.com/mclear-tools/tabspaces][mclear-tools/tabspaces]]
 + [[https://github.com/alphapapa/burly.el#usage][alphapapa/burly.el: Save and restore frames and windows with their buffers in Emacs]]
 
+** DONE [2018-01-06 Sat] 解决odt导出latex公式分辨率太低的问题
+CLOSED: [2018-01-10 Wed 16:18]
+- State "DONE"       from "TODO"       [2018-01-10 Wed 16:18] \\
+  odt使用dvipng导出公式时生成的图片分辨率太低, 这里放大3倍, 然后通过设置odt dpi为
+  300(默认为96), 将image缩小为原始大小.
+
 ** DONE [2022-10-14 Fri] 还是得从头搞起. doom 的容易出问题
 
 - Note taken on [2022-10-27 Thu 20:25] \\
@@ -70,6 +310,46 @@ John Wiegley 写的, 也许用这个替代 general?
 
 - State "DONE"       from "TODO"       [2022-10-17 Mon 17:57]
 
+** DONE [2020-02-27 Thu] doom尝鲜
+- State "DONE"       from "TODO"       [2020-04-07 Tue 20:02]
+doom的优点:
+1. 较spacemacs轻量, 启动快, 架构简单, 后续易维护
+2. 和spacemacs使用类似的key-bindings
+3. 社区质量高, 作者维护热情高
+
+修改配置时注意:
+1. 不要使用emacs中内置的custom机制
+2. 不用使用use-package中的包安装机制(:ensure)
+3. 不要使用org-babel中的rg-babel-do-load-languages机制
+
+- config中的flags: [[https://github.com/hlissner/doom-emacs/blob/develop/docs/getting_started.org#flags][doom-emacs/getting_started.org at develop · hlissner/doom-emacs]]
+- doom api: [[https://github.com/hlissner/doom-emacs/blob/develop/docs/api.org#map][doom-emacs/api.org at develop · hlissner/doom-emacs]]
+
+https://github.com/hlissner/doom-emacs/blob/develop/modules/lang/rest/README.org
+
+https://github.com/hlissner/doom-emacs/blob/develop/modules/ui/zen/README.org
+
+https://github.com/hlissner/doom-emacs/blob/develop/modules/ui/workspaces/README.org
+
+https://github.com/hlissner/doom-emacs/issues/2483
+
+doom clean && doom sync && doom build
+
+https://github.com/emacs-tw/awesome-emacs
+
+git clone https://code.orgmode.org/bzg/org-mode.git
+
+doom要clone很多github上的repo, 很容易被RESET, 导致安装失败.
+
+git使用v2ray proxy
+https://gist.github.com/evantoli/f8c23a37eb3558ab8765
+
+https://segmentfault.com/q/1010000000118837
+
+
+** DONE [2016-10-14 Fri] emacs24-starter-kit 更新维护不是很活跃. 现在已是 emacs25 时代了. 考虑换到 spacemacs
+
+- State "DONE"       from              [2022-10-31 Mon 14:45]
 * docs
 ** meow
 - [[https://github.com/meow-edit/meow/blob/master/TUTORIAL.org][meow/TUTORIAL.org at master · meow-edit/meow]]
@@ -1566,7 +1846,7 @@ C-u C-@: 这是轮换当前的 mark ring
 
 *** COMMENT hippie-expand
 - Note taken on [2022-10-30 Sun 11:40] \\
-  现用 corfu 来处理
+  现用 corfu 来处理, 因为与 corfu 配合更好
 #+name: 7f307588
 #+begin_src emacs-lisp
 ;; Use hippie-expand instead of dabbrev-expand
@@ -1871,6 +2151,7 @@ embark-act, 切换可能的操作对象.
 #+begin_src elisp
 (provide 'init-completion)
 #+end_src
+
 ** init-edit.el
 :PROPERTIES:
 :header-args: :tangle user-lisp/init-edit.el
@@ -2304,11 +2585,17 @@ meow 默认 C-d 只删除一个字符?
   :after init-bindings
   (setq avy-all-windows t)
   :config
+  )
 
-  ;; 2022-10-28: 不太管用
-  ;; :bind
-  ;; ([remap goto-line] . avy-goto-line)
-  ;; ([remap goto-char] . avy-goto-char-timer)
+(require 'transient)
+(transient-define-prefix gwp::avy-transient ()
+  "goto utilities"
+  ["avy"
+   ("l" "goto line" avy-goto-line)
+   ("b" "jump back" avy-pop-mark) ; 回到 avy 起跳点
+   ("c" "find char" avy-goto-char-timer)
+   ("r" "avy resume" avy-resume)
+   ]
   )
 
 (bind-key "l" 'avy-copy-line gwp::edit-map)
@@ -2355,18 +2642,9 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." '(gwp::goto-transient :which-key "avy jump")
+  "." '(goto-line :which-key "goto line")
+  "a" '(gwp::avy-transient :which-key "avy jump")
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
-  )
-
-(transient-define-prefix gwp::goto-transient ()
-  "goto utilities"
-  ["avy"
-   ("." "goto line" avy-goto-line)
-   ("," "jump back" avy-pop-mark) ; 回到 avy 起跳点
-   ("c" "find char" avy-goto-char-timer)
-   ("r" "avy resume" avy-resume)
-   ]
   )
 #+end_src
 

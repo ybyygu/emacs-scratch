@@ -33,11 +33,17 @@
   :after init-bindings
   (setq avy-all-windows t)
   :config
+  )
 
-  ;; 2022-10-28: 不太管用
-  ;; :bind
-  ;; ([remap goto-line] . avy-goto-line)
-  ;; ([remap goto-char] . avy-goto-char-timer)
+(require 'transient)
+(transient-define-prefix gwp::avy-transient ()
+  "goto utilities"
+  ["avy"
+   ("l" "goto line" avy-goto-line)
+   ("b" "jump back" avy-pop-mark) ; 回到 avy 起跳点
+   ("c" "find char" avy-goto-char-timer)
+   ("r" "avy resume" avy-resume)
+   ]
   )
 
 (bind-key "l" 'avy-copy-line gwp::edit-map)
@@ -75,18 +81,9 @@
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." '(gwp::goto-transient :which-key "avy jump")
+  "." '(goto-line :which-key "goto line")
+  "a" '(gwp::avy-transient :which-key "avy jump")
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
-  )
-
-(transient-define-prefix gwp::goto-transient ()
-  "goto utilities"
-  ["avy"
-   ("." "goto line" avy-goto-line)
-   ("," "jump back" avy-pop-mark) ; 回到 avy 起跳点
-   ("c" "find char" avy-goto-char-timer)
-   ("r" "avy resume" avy-resume)
-   ]
   )
 ;; 6cb02a16 ends here
 
