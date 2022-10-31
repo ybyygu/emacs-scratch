@@ -139,6 +139,27 @@
 ;; (add-hook! midnight #'recentf-save-list)
 ;; d9848746 ends here
 
+;; [[file:../gwp-scratch.note::66843b91][66843b91]]
+(use-package bookmark
+  :ensure nil
+  :custom
+  (bookmark-default-file
+   (expand-file-name "bookmarks" user-emacs-directory))
+  ;; 修改 bookmark 后立刻保存, 防止冲突. 默认仅当退出 emacs 时保存
+  (bookmark-save-flag 1)
+  ;; 不提示, 直接读取硬盘中的内容. 避免不同电脑间冲突
+  (bookmark-watch-bookmark-file 'silent)
+  :config
+  ;; 2022-10-31: 根据手册, 仅需设置 bookmark-set-flag, 以下代码仅供参考
+  ;; (defun gwp::bookmark-save-advice (&rest r)
+  ;;   (let ((save-silently t))
+  ;;     (bookmark-save)))
+  ;; (advice-add 'bookmark-set :after #'gwp::bookmark-save-advice)
+  ;; (advice-add 'bookmark-rename :after #'gwp::bookmark-save-advice)
+  ;; (advice-add 'bookmark-delete :after #'gwp::bookmark-save-advice)
+  )
+;; 66843b91 ends here
+
 ;; [[file:../gwp-scratch.note::e4fc036b][e4fc036b]]
 ;; 要保证 C-u C-@ 连续调用有效
 (setq set-mark-command-repeat-pop nil)

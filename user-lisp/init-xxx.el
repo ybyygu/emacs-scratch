@@ -75,10 +75,18 @@
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." '(avy-goto-line :which-key "goto line")
-  "c" '(avy-goto-char-timer :which-key "goto char")
-  "," '(avy-pop-mark :which-key "avy go back") ; 回到 avy 起跳点
+  "." '(gwp::goto-transient :which-key "avy jump")
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
+  )
+
+(transient-define-prefix gwp::goto-transient ()
+  "goto utilities"
+  ["avy"
+   ("." "goto line" avy-goto-line)
+   ("," "jump back" avy-pop-mark) ; 回到 avy 起跳点
+   ("c" "find char" avy-goto-char-timer)
+   ("r" "avy resume" avy-resume)
+   ]
   )
 ;; 6cb02a16 ends here
 

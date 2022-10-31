@@ -1102,6 +1102,34 @@ C-u C-/ 如果选中区域, 则仅撤销当前内容.
 ;; (require 'midnight)
 ;; (add-hook! midnight #'recentf-save-list)
 #+end_src
+*** bookmark
+常用命令
+bookmark-default-file
+bookmark-jump
+bookmark-set
+
+#+name: 66843b91
+#+begin_src elisp
+(use-package bookmark
+  :ensure nil
+  :custom
+  (bookmark-default-file
+   (expand-file-name "bookmarks" user-emacs-directory))
+  ;; 修改 bookmark 后立刻保存, 防止冲突. 默认仅当退出 emacs 时保存
+  (bookmark-save-flag 1)
+  ;; 不提示, 直接读取硬盘中的内容. 避免不同电脑间冲突
+  (bookmark-watch-bookmark-file 'silent)
+  :config
+  ;; 2022-10-31: 根据手册, 仅需设置 bookmark-set-flag, 以下代码仅供参考
+  ;; (defun gwp::bookmark-save-advice (&rest r)
+  ;;   (let ((save-silently t))
+  ;;     (bookmark-save)))
+  ;; (advice-add 'bookmark-set :after #'gwp::bookmark-save-advice)
+  ;; (advice-add 'bookmark-rename :after #'gwp::bookmark-save-advice)
+  ;; (advice-add 'bookmark-delete :after #'gwp::bookmark-save-advice)
+  )
+#+end_src
+
 
 *** mark ring
 mark-ring用于保存上次标记或选择的位置, 用于跳转很有用.
@@ -1752,6 +1780,14 @@ TUI 用户可用 corfu-terminal
 
 *** embark
 一个新的神器, 相当于 text 版的右键菜单.
+
+供参考
+#+begin_src elisp :tangle no
+(define-key embark-file-map (kbd "E") #'consult-directory-externally)
+(define-key embark-file-map (kbd "x") #'consult-file-externally)
+(define-key minibuffer-local-map (kbd "C-c C-e") 'embark-export-write)
+#+end_src
+
 **** docs
 重要文档
 - [[https://github.com/oantolin/embark][oantolin/embark: Emacs Mini-Buffer Actions Rooted in Keymaps]]
@@ -2061,7 +2097,8 @@ embark-act, 切换可能的操作对象.
    '("G" . meow-grab)              ; 相当于 vi 中的 visual mode
    '("C-v" . meow-grab)            ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
-   '("q" . meow-quit)               ; 退出window 或 buffer
+   ;; '("q" . meow-quit)               ; 退出window 或 buffer
+   '("q" . quit-window)             ; 退出window 或 buffer
    '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
    '(";" . meow-comment)            ; 相当于 M-;
    '("]" . sp-unwrap-sexp)
@@ -2318,10 +2355,18 @@ just-one-space 默认绑定为 ~Ｍ-SPC~, 不过 cycle-spacing 更有用些.
   "e" (general-simulate-key "M->" :which-key "goto last line")
   "h" (general-simulate-key "C-a" :which-key "goto the beggining of line")
   "l" (general-simulate-key "C-e" :which-key "goto the end of line")
-  "." '(avy-goto-line :which-key "goto line")
-  "c" '(avy-goto-char-timer :which-key "goto char")
-  "," '(avy-pop-mark :which-key "avy go back") ; 回到 avy 起跳点
+  "." '(gwp::goto-transient :which-key "avy jump")
   "f" '(find-file-at-point :which-key "Locate file") ; emacs 自带的就很好 (ffap)
+  )
+
+(transient-define-prefix gwp::goto-transient ()
+  "goto utilities"
+  ["avy"
+   ("." "goto line" avy-goto-line)
+   ("," "jump back" avy-pop-mark) ; 回到 avy 起跳点
+   ("c" "find char" avy-goto-char-timer)
+   ("r" "avy resume" avy-resume)
+   ]
   )
 #+end_src
 

@@ -198,7 +198,8 @@
    '("G" . meow-grab)              ; 相当于 vi 中的 visual mode
    '("C-v" . meow-grab)            ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
-   '("q" . meow-quit)               ; 退出window 或 buffer
+   ;; '("q" . meow-quit)               ; 退出window 或 buffer
+   '("q" . quit-window)             ; 退出window 或 buffer
    '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
    '(";" . meow-comment)            ; 相当于 M-;
    '("]" . sp-unwrap-sexp)
