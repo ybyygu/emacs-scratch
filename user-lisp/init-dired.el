@@ -33,7 +33,9 @@
   (dired-omit-files (rx (or
                          (seq bol (? ".") "#")
                          (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
-                         ))))
+                         )))
+  :init
+  (add-hook 'dired-mode-hook #'dired-omit-mode))
 
 (use-package dired-collapse
   :commands (dired-collapse-mode)

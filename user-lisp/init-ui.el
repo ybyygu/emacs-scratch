@@ -43,10 +43,7 @@
  )
 
 (custom-set-faces
- ;; 当前行
- '(hl-line ((t (:background "#37474f"))))
  '(region ((t (:background "#555555"))))
- '(solaire-hl-line-face ((t (:background "#37474f"))))
  ;; meow-grab 时, 配色更清楚些
  '(secondary-selection ((t (:foreground "green"))))
  )
@@ -173,6 +170,15 @@
    ([tab] . rime-inline-ascii)
    ))
 ;; 5a1d21e9 ends here
+
+;; [[file:../gwp-scratch.note::6ca20167][6ca20167]]
+(use-package hl-line
+  :ensure nil
+  :config
+  (global-hl-line-mode 1)
+  (set-face-foreground 'hl-line "#f8f8f2")
+  (set-face-background 'hl-line "#37474f"))
+;; 6ca20167 ends here
 
 ;; [[file:../gwp-scratch.note::3d5eeec1][3d5eeec1]]
 ;; symbol-overlay
