@@ -5,9 +5,6 @@
 ;; [[file:../gwp-scratch.note::2f79944b][2f79944b]]
 (setq inhibit-startup-message t)
 
-;; 禁用不必要的界面元素
-;; (tooltip-mode -1)           ; Disable tooltips
-
 ;; 服务器上使用编译 --without-x 选项
 (when (boundp 'scroll-bar-mode)
   ;; Give some breathing room
@@ -16,7 +13,7 @@
   (scroll-bar-mode -1))
 
 (tool-bar-mode -1)          ; Disable the toolbar
-(menu-bar-mode -1)            ; Disable the menu bar
+(menu-bar-mode -1)          ; Disable the menu bar
 
 ;; 默认会bee bee
 (setq visible-bell t)
@@ -176,8 +173,9 @@
   :ensure nil
   :config
   (global-hl-line-mode 1)
-  (set-face-foreground 'hl-line "#f8f8f2")
-  (set-face-background 'hl-line "#37474f"))
+  ;; (set-face-foreground 'hl-line "#f8f8f2")
+  (set-face-background 'hl-line "#37474f")
+  )
 ;; 6ca20167 ends here
 
 ;; [[file:../gwp-scratch.note::3d5eeec1][3d5eeec1]]
