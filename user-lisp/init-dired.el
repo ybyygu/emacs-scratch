@@ -87,6 +87,19 @@
   )
 ;; ef983ce4 ends here
 
+;; [[file:../gwp-scratch.note::241e0f16][241e0f16]]
+;; (unbind-key "<mouse-2>" dired-mode-map)
+(bind-keys :map dired-mode-map
+           ;; 2022-11-01: 绑定在中键上会被 dired 覆盖
+           ;; ([mouse-2] . gwp::dired-mouse-open-file-externally)
+           ([mouse-3] . gwp::dired-mouse-open-file-externally))
+
+(defun gwp::dired-mouse-open-file-externally (event)
+  "使用外部命令打开鼠标点击的文件或文件夹"
+  (interactive "e")
+  (dired-mouse-find-file event #'spacemacs/open-in-external-app #'spacemacs/open-in-external-app))
+;; 241e0f16 ends here
+
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
 (with-eval-after-load 'dired
   (setq dired-recursive-deletes 'top)

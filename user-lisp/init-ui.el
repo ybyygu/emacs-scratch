@@ -408,7 +408,8 @@ Call a second time to restore the original window configuration."
                display-buffer-in-previous-window))
 
 (add-to-list 'display-buffer-alist
-             '("^*Async Shell Command*" . (display-buffer-no-window)))
+             '("^*Async Shell Command*" . (display-buffer-no-window))
+             '("^*Shell Command Output*" . (display-buffer-no-window)))
 
 (use-package simple
   :ensure nil
