@@ -91,7 +91,7 @@
 ;; (unbind-key "<mouse-2>" dired-mode-map)
 (bind-keys :map dired-mode-map
            ;; 2022-11-01: 绑定在中键上会被 dired 覆盖
-           ;; ([mouse-2] . gwp::dired-mouse-open-file-externally)
+           ;; ([double-mouse-1] . gwp::dired-mouse-open-file-externally)
            ([mouse-3] . gwp::dired-mouse-open-file-externally))
 
 (defun gwp::dired-mouse-open-file-externally (event)
@@ -99,6 +99,33 @@
   (interactive "e")
   (dired-mouse-find-file event #'spacemacs/open-in-external-app #'spacemacs/open-in-external-app))
 ;; 241e0f16 ends here
+
+;; [[file:../gwp-scratch.note::8903fab8][8903fab8]]
+;; credit: https://protesilaos.com/emacs/denote#h:d35d8d41-f51b-4139-af8f-9c8cc508e35b
+(defvar prot-dired--limit-hist '()
+  "Minibuffer history for `prot-dired-limit-regexp'.")
+
+;;;###autoload
+(defun prot-dired-limit-regexp (regexp omit)
+  "Limit Dired to keep files matching REGEXP.
+
+With optional OMIT argument as a prefix (\\[universal-argument]),
+exclude files matching REGEXP.
+
+Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
+  (interactive
+   (list
+    (read-regexp
+     (concat "Files "
+             (when current-prefix-arg
+               (propertize "NOT " 'face 'warning))
+             "matching PATTERN: ")
+     nil 'prot-dired--limit-hist)
+    current-prefix-arg))
+  (dired-mark-files-regexp regexp)
+  (unless omit (dired-toggle-marks))
+  (dired-do-kill-lines))
+;; 8903fab8 ends here
 
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
 (with-eval-after-load 'dired
@@ -112,6 +139,9 @@
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)
+  ;; 像 nautilus 中一样处理
+  (define-key dired-mode-map (kbd "C-s") 'prot-dired-limit-regexp)
+  (define-key dired-mode-map (kbd "C-r") 'dired-do-redisplay)
   (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
