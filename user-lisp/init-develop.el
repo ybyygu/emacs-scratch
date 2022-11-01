@@ -65,13 +65,14 @@
 
 (use-package magit-popup)
 
-;; 显示 src 中的 TODO FIXME 等项
-(use-package magit-todos
-  :diminish
-  :after magit
-  :config
-  (magit-todos-mode)
-  )
+;; 2022-11-01: 会影响 magit 响应速度, 现禁用
+;; ;; 显示 src 中的 TODO FIXME 等项
+;; (use-package magit-todos
+;;   :diminish
+;;   :after magit
+;;   :config
+;;   (magit-todos-mode)
+;;   )
 ;; 8970c514 ends here
 
 ;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]

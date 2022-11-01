@@ -6,6 +6,12 @@
 (setq mouse-yank-at-point t)
 ;; f794969f ends here
 
+;; [[file:../gwp-scratch.note::9e84761e][9e84761e]]
+;; 默认不折行显示, 这样更整齐些
+(set-default 'truncate-lines t)
+(setq truncate-partial-width-windows t)
+;; 9e84761e ends here
+
 ;; [[file:../gwp-scratch.note::d8ca820b][d8ca820b]]
 ;; credit: crafted-defaults.el
 ;;

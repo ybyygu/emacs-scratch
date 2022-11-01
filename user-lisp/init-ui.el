@@ -411,6 +411,9 @@ Call a second time to restore the original window configuration."
              '("^*Async Shell Command*" . (display-buffer-no-window))
              '("^*Shell Command Output*" . (display-buffer-no-window)))
 
+;; (add-to-list 'display-buffer-alist '("*Apropos*" display-buffer-same-window))
+;; (add-to-list 'display-buffer-alist '("*Warning*" display-buffer-at-bottom))
+
 (use-package simple
   :ensure nil
   :custom

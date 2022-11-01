@@ -969,6 +969,28 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (require 'org-protocol)
 ;; protocol:1 ends here
 
+;; [[file:../gwp-scratch.note::3516de82][3516de82]]
+;; credit: https://github.com/noncog/.dotfiles/blob/master/.config/cogmacs/init.el
+(defun noncog/no-delete-windows (oldfun &rest args)
+  "A function for use with advice to prevent other functions from using delete-other-window."
+  (cl-letf (((symbol-function 'delete-other-windows) 'ignore)) (apply oldfun args)))
+
+(advice-add 'org-add-log-note :around #'noncog/no-delete-windows)
+(advice-add 'org-fast-tag-selection :around #'noncog/no-delete-windows)
+(advice-add 'org-fast-todo-selection :around #'noncog/no-delete-windows)
+(advice-add 'org-export--dispatch-ui :around #'noncog/no-delete-windows)
+(with-eval-after-load "org-capture"
+  ;; prevent from hiding other windows
+  (advice-add 'org-capture-place-template :around 'noncog-no-delete-windows))
+
+;; 在下面新开窗口显示
+(add-to-list 'display-buffer-alist
+             '("*Org Note*"
+               (display-buffer-below-selected)
+               ;; (window-height . 10)
+               ))
+;; 3516de82 ends here
+
 ;; [[file:../gwp-scratch.note::27b71342][27b71342]]
 (gwp::dwim-leader-def
   :keymaps 'org-mode-map

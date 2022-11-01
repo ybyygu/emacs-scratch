@@ -18,6 +18,13 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; 4cf8c86c ends here
 
 ;; [[file:../gwp-scratch.note::33105bcf][33105bcf]]
+(defun gwp::find-last-killed-file ()
+  (interactive)
+  (let ((active-files (cl-loop for buf  in (buffer-list)
+                            when (buffer-file-name buf) collect it)))
+    (cl-loop for file in recentf-list
+          unless (member file active-files) return (find-file file))))
+
 (gwp::leader-def
  "b" '(:ignore t :which-key "buffer")
  "bb" '(switch-to-buffer :which-key "switch buffer")
@@ -25,6 +32,7 @@ Repeated invocations toggle between the two most recently open buffers."
  "bk" '(kill-current-buffer :which-key "kill buffer")
  "br" '(revert-buffer :which-key "revert buffer")
  "bn" '(next-buffer :which-key "next buffer")
+ "bu" '(gwp::find-last-killed-file :which-key "reopen killed file")
  "bp" '(previous-buffer :which-key "previous buffer")
  "bm" '(bookmark-set :which-key "set bookmark")
  "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
