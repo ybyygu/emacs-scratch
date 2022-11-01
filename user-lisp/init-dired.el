@@ -31,8 +31,11 @@
   :custom
   (dired-omit-verbose t)
   (dired-omit-files (rx (or
-                         (seq bol (? ".") "#")
-                         (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
+                         (seq bol (? ".") "#") ; emacs autosave files
+                         (seq "~" eol)                 ; emacs default backup files
+                         ;; "." 或 ".." 挺有用, 鼠标点击"." 相当于redisplay, ".." 相当于返回上级目录
+                         ;; (seq bol "." (* anychar) eol) ; example: ".", "..", ".foo"
+                         (seq bol "." (not (any "."))) ;; only dot-files, but keep "." or ".."
                          )))
   :init
   (add-hook 'dired-mode-hook #'dired-omit-mode))
