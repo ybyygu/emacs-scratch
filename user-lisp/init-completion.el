@@ -4,6 +4,7 @@
 
 ;; [[file:../gwp-scratch.note::7db2aa5a][7db2aa5a]]
 (use-package yasnippet
+  :unless init-no-x-flag
   :commands
   (yas-expand yas-minor-mode)
   :init
@@ -29,6 +30,23 @@
   (unbind-key "TAB" yas-minor-mode-map)
   (unbind-key "<tab>" yas-minor-mode-map))
 ;; 7db2aa5a ends here
+
+;; [[file:../gwp-scratch.note::27b85259][27b85259]]
+;; 默认只取当前 buffer 中的项
+(defun gwp::dabbrev-completion ()
+  "dabbrev-completion, but with the prefix arg forced to search all buffers"
+  (interactive)
+  (let ((current-prefix-arg 16)) ; C-u C-u = search all buffers
+    (call-interactively #'dabbrev-completion)))
+
+(use-package dabbrev
+  :bind (("C-M-/" . dabbrev-completion)
+         ("M-/" . gwp::dabbrev-completion))
+  :custom
+  ;; smart case
+  (dabbrev-upcase-means-case-search t)
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+;; 27b85259 ends here
 
 ;; [[file:../gwp-scratch.note::23685638][23685638]]
 (use-package hydra)
@@ -151,15 +169,6 @@
   (corfu-terminal-mode)
   :hook (corfu-mode . corfu-doc-mode)
   )
-
-;; Use Dabbrev with Corfu!
-(use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
-  ;; Other useful Dabbrev configurations.
-  :custom
-  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
 
 ;; Add extensions
 (use-package cape

@@ -6,7 +6,7 @@
 (setq inhibit-startup-message t)
 
 ;; 服务器上使用编译 --without-x 选项
-(when (boundp 'scroll-bar-mode)
+(unless init-no-x-flag
   ;; Give some breathing room
   (set-fringe-mode 10)
   ;; Disable visible scrollbar
@@ -22,6 +22,8 @@
   :ensure t
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
+
+(setq-default line-spacing 0.1)
 ;; 2f79944b ends here
 
 ;; [[file:../gwp-scratch.note::62b5d5bd][62b5d5bd]]
