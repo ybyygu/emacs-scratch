@@ -337,14 +337,15 @@ If on a:
  "z" '(gwp/zotero-search-transient :which-key "zotero"))
 ;; 458d7b11 ends here
 
-;; [[file:../gwp-scratch.note::*custom][custom:1]]
+;; [[file:../gwp-scratch.note::95825713][95825713]]
 (defun gwp::new-memo-time-stamp (arg)
   "Insert a new org-mode memo entry under heading at point."
   (interactive "P")
   (unless (org-at-heading-p)
     (org-up-element))
-  (call-interactively 'crux-smart-open-line)
-  (call-interactively 'org-insert-todo-subheading)
+  ;; (call-interactively 'crux-smart-open-line)
+  (call-interactively 'org-next-visible-heading)
+  (call-interactively 'org-insert-todo-heading)
   (call-interactively 'org-time-stamp-inactive)
   (when (meow-normal-mode-p) (call-interactively 'meow-insert))
   (insert " "))
@@ -359,7 +360,7 @@ If on a:
   (call-interactively 'org-time-stamp-inactive)
   (insert " ")
   (when (meow-normal-mode-p) (call-interactively 'meow-insert)))
-;; custom:1 ends here
+;; 95825713 ends here
 
 ;; [[file:../gwp-scratch.note::492d6ae4][492d6ae4]]
 (gwp::local-leader-def

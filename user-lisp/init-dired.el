@@ -135,7 +135,7 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (define-key dired-mode-map (kbd "k") 'dired-previous-line)
   (define-key dired-mode-map (kbd "h") 'dired-up-directory)
   (define-key dired-mode-map (kbd "l") 'dired-view-file)
-  (define-key dired-mode-map (kbd "K") 'dired-kill-file) ; 移除 dired buffer 中某行, 不影响文件, 相当于过滤
+  (define-key dired-mode-map (kbd "K") 'dired-do-kill-lines) ; 移除 dired buffer 中标记的行, 不影响真实文件, 相当于过滤
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
   (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)

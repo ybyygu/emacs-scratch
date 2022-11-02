@@ -8,6 +8,12 @@
   (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
 ;; 20ff3f1b ends here
 
+;; [[file:../gwp-scratch.note::0a9921e5][0a9921e5]]
+(setq bookmark-file-coding-system 'utf-8)
+(setq magit-git-output-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+;; 0a9921e5 ends here
+
 ;; [[file:../gwp-scratch.note::3eff5fa2][3eff5fa2]]
 (defun gwp::duplicate-region (beg end)
   (interactive "r")
