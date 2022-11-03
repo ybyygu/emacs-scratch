@@ -216,10 +216,15 @@
 ;; [[file:../gwp-scratch.note::2b13453c][2b13453c]]
 (use-package helpful
   :demand t
+  ;; :after meow
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
+  :init
+  ;; 解决 meow-describe-key 的问题
+  ;; 2022-11-03: 二者调用接口不兼容, 放弃
+  ;; (advice-add 'describe-key :override #'helpful-key)
   :bind
   ([remap describe-function] . counsel-describe-function)
   ([remap describe-command] . helpful-command)

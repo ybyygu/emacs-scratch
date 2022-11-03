@@ -33,14 +33,26 @@
   :config
   :after init-bindings
   (setq avy-all-windows t))
+;; c84fab18 ends here
 
+;; [[file:../gwp-scratch.note::02dde369][02dde369]]
+;;;###autoload
+(defun gwp::avy-copy-region-to ()
+  "将当前行或当前区域复制到远处某行"
+  (interactive)
+  (call-interactively #'kill-ring-save)
+  (call-interactively #'avy-goto-line)
+  (call-interactively #'yank))
+;; 02dde369 ends here
+
+;; [[file:../gwp-scratch.note::93427a65][93427a65]]
 (require 'transient)
 (transient-define-prefix gwp::avy-transient ()
   "goto utilities"
   ["avy"
-   ("l" "goto line" avy-goto-line)
-   ("b" "jump back" avy-pop-mark) ; 回到 avy 起跳点
-   ("c" "find char" avy-goto-char-timer)
+   ("l" "goto line" avy-goto-line)      ; C-u 调用时, 限定当前窗口. 以其它数字参数调用时, 直达该行
+   ("b" "jump back" avy-pop-mark)       ; 回到 avy 起跳点
+   ("c" "find char" avy-goto-char-timer) ; C-u 调用时, 作用同avy-goto-line.
    ("r" "avy resume" avy-resume)
    ]
   )
@@ -56,8 +68,9 @@
 
 (bind-keys :map gwp::edit-map
            ("l" . avy-copy-line)
+           ("c" . gwp::avy-copy-region-to)
            ("L" . avy-copy-region))
-;; c84fab18 ends here
+;; 93427a65 ends here
 
 ;; [[file:../gwp-scratch.note::ab440ea2][ab440ea2]]
 ;;;###autoload

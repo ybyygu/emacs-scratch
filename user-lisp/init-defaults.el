@@ -2,6 +2,10 @@
 ;; -*- lexical-binding: t; -*-
 ;; docs:1 ends here
 
+;; [[file:../gwp-scratch.note::98635e62][98635e62]]
+(fset 'yes-or-no-p 'y-or-n-p)
+;; 98635e62 ends here
+
 ;; [[file:../gwp-scratch.note::f794969f][f794969f]]
 (setq mouse-yank-at-point t)
 ;; f794969f ends here

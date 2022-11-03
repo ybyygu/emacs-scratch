@@ -429,6 +429,11 @@ If on a:
 (setq org-src-window-setup 'current-window)
 ;; 99465500 ends here
 
+;; [[file:../gwp-scratch.note::c2ffdd20][c2ffdd20]]
+;; Add convenience lang alias for markdown blocks
+(add-to-list 'org-src-lang-modes '("toml" . conf-toml))
+;; c2ffdd20 ends here
+
 ;; [[file:../gwp-scratch.note::d309f5b7][d309f5b7]]
 (setq org-src-preserve-indentation nil)
 (setq org-edit-src-content-indentation 0) ;Default = 2
@@ -782,16 +787,17 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; 515195f9 ends here
 
 ;; [[file:../gwp-scratch.note::da4e0834][da4e0834]]
-(defun gwp::update-notes-cache ()
-  (interactive)
-  (message (shell-command-to-string "rebuild-note-cache.sh")))
+(unless init-no-x-flag
+  (defun gwp::update-notes-cache ()
+    (interactive)
+    (message (shell-command-to-string "rebuild-note-cache.sh")))
 
-(require 'midnight)
-(midnight-mode t)
-;; 默认延时为 3600 秒
-(midnight-delay-set 'midnight-delay 7200)
+  (require 'midnight)
+  (midnight-mode t)
+  ;; 默认延时为 3600 秒
+  (midnight-delay-set 'midnight-delay 7200)
 
-(add-hook 'midnight #'gwp::update-notes-cache)
+  (add-hook 'midnight #'gwp::update-notes-cache))
 ;; da4e0834 ends here
 
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
