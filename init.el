@@ -56,6 +56,7 @@
   (require 'init-note)
   (require 'init-eaf))
 (require 'init-completion)
+(require 'init-chemistry)
 (require 'init-bindings)
 
 ;; 也可这么设置

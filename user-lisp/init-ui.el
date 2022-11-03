@@ -121,7 +121,9 @@
       (message "IME off"))))
 
 (use-package rime
+  :unless init-no-x-flag
   :custom
+  ;; terminal 下无需使用
   (default-input-method "rime")
   :config
   (setq rime-user-data-dir "~/.local/share/fcitx5/rime")
