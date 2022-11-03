@@ -87,6 +87,7 @@
 
 ;; [[file:../gwp-scratch.note::9e3bdda9][9e3bdda9]]
 (use-package emacs
+  :ensure nil
   :custom
   ;; 访问软链接文件时使用真实的文件路径, 避免文件项目
   (find-file-visit-truename t)
@@ -107,6 +108,7 @@
 
 ;; [[file:../gwp-scratch.note::d9848746][d9848746]]
 (use-package recentf
+  :ensure nil
   :custom
   ;; then run M-x recentf-cleanup to make it work.
   (recentf-exclude '("/tmp/"
@@ -425,6 +427,7 @@
 
 ;; [[file:../gwp-scratch.note::2bf53d30][2bf53d30]]
 (use-package autorevert
+  :ensure nil
   ;; revert buffers when their files/state have changed
   :hook (focus-in . doom-auto-revert-buffers-h)
   :hook (after-save . doom-auto-revert-buffers-h)

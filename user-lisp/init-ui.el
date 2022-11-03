@@ -41,11 +41,13 @@
  '(org-headline-done ((t (:foreground "gray" :weight normal))))
  )
 
-(custom-set-faces
- '(region ((t (:background "#555555"))))
- ;; meow-grab 时, 配色更清楚些
- '(secondary-selection ((t (:foreground "green"))))
- )
+;; terminal 下不处理更好
+(unless init-no-x-flag
+  (custom-set-faces
+   '(region ((t (:background "#555555"))))
+   ;; meow-grab 时, 配色更清楚些
+   '(secondary-selection ((t (:foreground "green"))))
+   ))
 ;; 62b5d5bd ends here
 
 ;; [[file:../gwp-scratch.note::91a3ef0e][91a3ef0e]]
@@ -174,10 +176,10 @@
 (use-package hl-line
   :ensure nil
   :config
-  (global-hl-line-mode 1)
-  ;; (set-face-foreground 'hl-line "#f8f8f2")
-  (set-face-background 'hl-line "#37474f")
-  )
+  ;; terminal 下显示很不同
+  (unless init-no-x-flag
+    (global-hl-line-mode 1)
+    (set-face-background 'hl-line "#37474f")))
 ;; 6ca20167 ends here
 
 ;; [[file:../gwp-scratch.note::3d5eeec1][3d5eeec1]]
@@ -430,6 +432,7 @@ Call a second time to restore the original window configuration."
 ;; [[file:../gwp-scratch.note::44d5ec48][44d5ec48]]
 ;; keymaps for leader key
 (use-package winner
+  :ensure nil
   :custom
   ;; 去掉 C-c left, C-c right
   (winner-dont-bind-my-keys t))

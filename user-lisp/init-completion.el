@@ -40,6 +40,7 @@
     (call-interactively #'dabbrev-completion)))
 
 (use-package dabbrev
+  :ensure nil
   :bind (("C-M-/" . dabbrev-completion)
          ("M-/" . gwp::dabbrev-completion))
   :custom
@@ -87,6 +88,7 @@
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
+  :ensure nil
   :init
   (savehist-mode))
 
@@ -161,13 +163,12 @@
   :init
   (global-corfu-mode))
 
-;; 在非图形环境使用 corfu
+;; 在非图形环境使用 corfu-terminal
 (use-package corfu-terminal
   :unless (display-graphic-p)
   :after corfu
   :config
   (corfu-terminal-mode)
-  :hook (corfu-mode . corfu-doc-mode)
   )
 
 ;; Add extensions
