@@ -51,23 +51,38 @@
 ;; 62b5d5bd ends here
 
 ;; [[file:../gwp-scratch.note::91a3ef0e][91a3ef0e]]
-(when (display-graphic-p)
-  (setq user-font
-        (cond
-         ((find-font (font-spec :name  "Sarasa Fixed SC")) "Sarasa Fixed SC")
-         ((find-font (font-spec :name  "Iosevka")) "Iosevka")
-         ((find-font (font-spec :name  "Inconsolata Nerd Font")) "Inconsolata Nerd Font")
-         ((find-font (font-spec :name  "Ubuntu Mono")) "Ubuntu Mono")))
+;; credit: https://oracleyue.github.io/post/emacs-setup-md/#load-different-themes-for-emacs-serversdaemons
+;; Init or reload functions
+(defun gwp::init-ui (&optional frame)
+  (when (display-graphic-p)
+    (setq user-font
+          (cond
+           ((find-font (font-spec :name  "Sarasa Fixed SC")) "Sarasa Fixed SC")
+           ((find-font (font-spec :name  "Iosevka")) "Iosevka")
+           ((find-font (font-spec :name  "Inconsolata Nerd Font")) "Inconsolata Nerd Font")
+           ((find-font (font-spec :name  "Ubuntu Mono")) "Ubuntu Mono")))
 
-  (setq default-font-height 110)
-  ;; (setq resolution-factor 2)
-  ;; (setq ideal-font-size (eval (* 15 resolution-factor)))
-  ;; (setq big-font-size (eval (* 18 resolution-factor)))
-  (set-face-attribute 'default nil :font user-font :height default-font-height)
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font user-font :height default-font-height)
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font user-font :height default-font-height :weight 'regular))
+    (setq default-font-height 110)
+    ;; (setq resolution-factor 2)
+    ;; (setq ideal-font-size (eval (* 15 resolution-factor)))
+    ;; (setq big-font-size (eval (* 18 resolution-factor)))
+    (set-face-attribute 'default nil :font user-font :height default-font-height)
+    ;; Set the fixed pitch face
+    (set-face-attribute 'fixed-pitch nil :font user-font :height default-font-height)
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :font user-font :height default-font-height :weight 'regular))
+  )
+
+(defun gwp::reload-ui-in-daemon (frame)
+  "Reload the theme (and font) in an daemon frame."
+  (when (or (daemonp) (not (display-graphic-p)))
+    (with-selected-frame frame
+      (run-with-timer 0.1 nil #'gwp::init-ui))))
+
+;; Load the theme and fonts
+(if (daemonp)
+    (add-hook 'after-make-frame-functions #'gwp::reload-ui-in-daemon)
+  (gwp::init-ui))
 ;; 91a3ef0e ends here
 
 ;; [[file:../gwp-scratch.note::5a1d21e9][5a1d21e9]]

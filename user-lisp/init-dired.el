@@ -127,23 +127,6 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (dired-do-kill-lines))
 ;; 8903fab8 ends here
 
-;; [[file:../gwp-scratch.note::9503df7c][9503df7c]]
-;; credit: https://github.com/yantar92/emacs-config#kill-all-the-previous-dired-buffers-when-quitting
-(use-package dired
-  :ensure nil
-  :bind (:map dired-mode-map
-	      ("q" . dired-quit-window))
-  :init
-  (defun dired-quit-window (&optional kill window)
-    "Run `quit-window' until first non-dired buffer in the current window."
-    (interactive)
-    (let ((window (or window (selected-window))))
-      (with-selected-window window
-	(while (and (window-live-p window)
-		    (eq major-mode 'dired-mode))
-	  (quit-window kill window))))))
-;; 9503df7c ends here
-
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
 (with-eval-after-load 'dired
   (setq dired-recursive-deletes 'top)
