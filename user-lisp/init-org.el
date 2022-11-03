@@ -27,7 +27,7 @@
   (setq org-catch-invisible-edits 'show-and-error))
 ;; e2f6b646 ends here
 
-;; [[file:../gwp-scratch.note::*view][view:1]]
+;; [[file:../gwp-scratch.note::0c698627][0c698627]]
 ;; https://orgmode.org/manual/Clean-view.html
 (setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
 (with-eval-after-load 'org-indent
@@ -47,7 +47,11 @@
 
 ;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
 (setq org-fontify-emphasized-text nil)
-;; view:1 ends here
+
+;; 表格中文混排更整齐些
+;; (custom-set-faces
+;;  '(org-table ((t (:family "Ubuntu Mono")))))
+;; 0c698627 ends here
 
 ;; [[file:../gwp-scratch.note::10584ca0][10584ca0]]
 ;; 显示光标所在处的内容
@@ -956,6 +960,10 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (bind-key "k" #'org-agenda-previous-line org-agenda-mode-map)
 (bind-key "h" #'backward-char org-agenda-mode-map)
 (bind-key "l" #'forward-char org-agenda-mode-map)
+
+(gwp::local-leader-def
+ :keymaps 'org-agenda-mode-map
+ "TAB"  #'org-next-link)
 ;; fc776ca8 ends here
 
 ;; [[file:../gwp-scratch.note::6f58facc][6f58facc]]

@@ -202,6 +202,8 @@ If two universal prefix arguments are used, then prompt for command to use."
 (bind-key "M" 'describe-mode help-map)
 ;; 按变量的值反应查找对应的变量
 (bind-key "V" 'apropos-value help-map)
+;; default: describe-key-briefly
+(bind-key "c" 'describe-char help-map)
 ;; e7792733 ends here
 
 ;; [[file:../gwp-scratch.note::c54b17b5][c54b17b5]]

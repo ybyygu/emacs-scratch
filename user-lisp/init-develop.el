@@ -41,6 +41,20 @@
   (setq magit-revision-show-gravatars nil)
   ;; 进入 magit-status 后, 将光标定在 unstaged 一栏
   (setq magit-status-initial-section '(2))
+  (gwp::local-leader-def
+    :keymaps 'dired-mode-map
+    "l"      #'(magit-dired-log :which-key "git log")
+    )
+  (gwp::local-leader-def
+    :keymaps 'magit-status-mode-map
+    "D" #'magit-file-delete
+    "j" #'magit-dired-jump
+    "o" #'magit-diff-visit-file-other-window
+    "O" #'magit-diff-visit-file-other-frame
+    "r" #'magit-file-rename
+    "t" #'magit-todos-list
+    "f" #'magit-find-file
+    )
 
   :bind
   (:map gwp::magit-map
@@ -54,6 +68,7 @@
         ("u" . magit-pull)
         ("e" . magit-ediff-resolve)
         ("r" . magit-rebase-interactive)
+        ("." . magit-file-dispatch)
         :map magit-status-mode-map
         ;; ("j" . magit-next-line)
         ;; ("k" . magit-previous-line)
@@ -62,17 +77,16 @@
         ;; ("k" . magit-previous-line)
         ))
 
-
 (use-package magit-popup)
 
-;; 2022-11-01: 会影响 magit 响应速度, 现禁用
-;; ;; 显示 src 中的 TODO FIXME 等项
-;; (use-package magit-todos
-;;   :diminish
-;;   :after magit
-;;   :config
-;;   (magit-todos-mode)
-;;   )
+;; 显示 src 中的 TODO FIXME 等项
+(use-package magit-todos
+  :diminish
+  :after magit
+  :config
+  ;; 2022-11-01: 会影响 magit 响应速度, 现禁用
+  ;; (magit-todos-mode)
+  )
 ;; 8970c514 ends here
 
 ;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]
@@ -118,6 +132,10 @@
                       "c" 'citre-create-tags-file
                       "p" 'citre-peek))
 ;; f8651bde ends here
+
+;; [[file:../gwp-scratch.note::*cp2k][cp2k:1]]
+
+;; cp2k:1 ends here
 
 ;; [[file:../gwp-scratch.note::985a2495][985a2495]]
 (gwp::local-leader-def

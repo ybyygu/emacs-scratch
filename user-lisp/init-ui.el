@@ -57,22 +57,32 @@
   (when (display-graphic-p)
     (setq user-font
           (cond
-           ((find-font (font-spec :name  "Sarasa Fixed SC")) "Sarasa Fixed SC")
+           ((find-font (font-spec :name  "Sarasa Term SC")) "Sarasa Term SC")
+           ;; ((find-font (font-spec :name  "Maple Mono SC NF")) "Maple Mono SC NF")
            ((find-font (font-spec :name  "Iosevka")) "Iosevka")
            ((find-font (font-spec :name  "Inconsolata Nerd Font")) "Inconsolata Nerd Font")
            ((find-font (font-spec :name  "Ubuntu Mono")) "Ubuntu Mono")))
 
     (setq default-font-height 110)
-    ;; (setq resolution-factor 2)
-    ;; (setq ideal-font-size (eval (* 15 resolution-factor)))
-    ;; (setq big-font-size (eval (* 18 resolution-factor)))
     (set-face-attribute 'default nil :font user-font :height default-font-height)
     ;; Set the fixed pitch face
     (set-face-attribute 'fixed-pitch nil :font user-font :height default-font-height)
     ;; Set the variable pitch face
-    (set-face-attribute 'variable-pitch nil :font user-font :height default-font-height :weight 'regular))
-  )
+    (set-face-attribute 'variable-pitch nil :font user-font :height default-font-height :weight 'regular)
 
+    ;; (set-fontset-font t 'cjk-misc user-font nil 'prepend)
+    ;; (set-fontset-font t 'han user-font nil 'prepend)
+    ;; (set-fontset-font t 'emoji user-font nil 'prepend)
+    ;; (set-fontset-font t 'symbol user-font nil 'prepend)
+    ;; (set-fontset-font t 'latin user-font nil 'prepend)
+    (dolist (charset '(han cjk-misc kana symbol bopomofo))
+      (set-fontset-font (frame-parameter nil 'font)
+                        charset
+                        (font-spec :family user-font)))
+    (set-fontset-font t 'emoji (font-spec :family "Noto Color Emoji") nil 'prepend)
+    ))
+
+;; server 模式下字体需要特殊处理
 (defun gwp::reload-ui-in-daemon (frame)
   "Reload the theme (and font) in an daemon frame."
   (when (or (daemonp) (not (display-graphic-p)))
@@ -80,9 +90,10 @@
       (run-with-timer 0.1 nil #'gwp::init-ui))))
 
 ;; Load the theme and fonts
-(if (daemonp)
-    (add-hook 'after-make-frame-functions #'gwp::reload-ui-in-daemon)
-  (gwp::init-ui))
+(unless init-no-x-flag
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions #'gwp::reload-ui-in-daemon)
+    (gwp::init-ui)))
 ;; 91a3ef0e ends here
 
 ;; [[file:../gwp-scratch.note::5a1d21e9][5a1d21e9]]
@@ -248,7 +259,11 @@
   ([remap describe-function] . counsel-describe-function)
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))
+  ([remap describe-key] . helpful-key)
+  :config
+  ;; 解决 meow-describe-key 导致的问题
+  (bind-key "C-h k" #'helpful-key)
+  )
 ;; 2b13453c ends here
 
 ;; [[file:../gwp-scratch.note::4cd1143d][4cd1143d]]
@@ -445,6 +460,23 @@ Call a second time to restore the original window configuration."
   :custom
   (async-shell-command-buffer 'new-buffer))
 ;; aaa39215 ends here
+
+;; [[file:../gwp-scratch.note::3c2469e7][3c2469e7]]
+;; credit: https://www.emacswiki.org/emacs/ToggleWindowSplit
+(defun gwp::toggle-frame-split ()
+  "If the frame is split vertically, split it horizontally or vice versa.
+Assumes that the frame is only split into two."
+  (interactive)
+  (unless (= (length (window-list)) 2) (error "Can only toggle a frame split in two"))
+  (let ((split-vertically-p (window-combined-p)))
+    (delete-window) ; closes current window
+    (if split-vertically-p
+        (split-window-horizontally)
+      (split-window-vertically)) ; gives us a split with the other window twice
+    (switch-to-buffer nil))) ; restore the original window in this part of the frame
+
+(global-set-key (kbd "C-x |") 'gwp::toggle-frame-split)
+;; 3c2469e7 ends here
 
 ;; [[file:../gwp-scratch.note::44d5ec48][44d5ec48]]
 ;; keymaps for leader key

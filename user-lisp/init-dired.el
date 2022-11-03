@@ -138,7 +138,6 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (define-key dired-mode-map (kbd "K") 'dired-do-kill-lines) ; 移除 dired buffer 中标记的行, 不影响真实文件, 相当于过滤
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
-  (define-key dired-mode-map (kbd "C-c C-q") 'wdired-change-to-wdired-mode)
   ;; 像 nautilus 中一样处理
   (define-key dired-mode-map (kbd "C-s") 'prot-dired-limit-regexp)
   (define-key dired-mode-map (kbd "C-r") 'dired-do-redisplay)
@@ -146,13 +145,20 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
 (gwp::local-leader-def
-      :keymaps 'dired-mode-map
-      "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
-      "h" '(dired-omit-mode :which-key "toggle hidden files")
-      "t" '(dired-hide-details-mode :which-key "hide details")
-      "!" '(dired-do-async-shell-command :which-key "Async shell command")
-      "f" '(gwp::dired-fd :which-key "fd files"))
+  :keymaps 'dired-mode-map
+  "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
+  "h" '(dired-omit-mode :which-key "toggle hidden files")
+  ;; "r" '(dired-toggle-read-only :which-key "edit file names (wdired)")
+  "t" '(dired-hide-details-mode :which-key "hide details")
+  "!" '(dired-do-async-shell-command :which-key "Async shell command")
+  "f" '(gwp::dired-fd :which-key "fd files"))
 ;; 5a48a92b ends here
+
+;; [[file:../gwp-scratch.note::c3710097][c3710097]]
+(with-eval-after-load 'wdired
+  (define-key dired-mode-map (kbd "C-c C-,") 'wdired-change-to-wdired-mode)
+  (define-key wdired-mode-map (kbd "C-c C-,") 'wdired-exit))
+;; c3710097 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-dired)
