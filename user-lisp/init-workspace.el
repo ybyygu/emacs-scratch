@@ -139,9 +139,11 @@ Argument E is a mouse event used by `mouse-set-point'."
   ;; Saving the repository to file when on exit.
   ;; kill-buffer-hook is not called when emacs is killed, so we
   ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook '(lambda nil
-                                (bm-buffer-save-all)
-                                (bm-repository-save)))
+  (add-hook 'kill-emacs-hook #'(lambda nil
+                                 (bm-buffer-save-all)
+                                 (bm-repository-save)))
+  ;; 自动展开 org heading
+  (add-hook 'bm-after-goto-hook 'org-bookmark-jump-unhide)
 
   :custom
   ;; where to store persistant files

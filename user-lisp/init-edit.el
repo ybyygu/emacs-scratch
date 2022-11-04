@@ -14,17 +14,30 @@
 ;; 比 goto-last-change 好用一些?
 (use-package goto-chg)
 
+;;;###autoload
+(defun gwp::goto-last-change ()
+  (interactive)
+  (call-interactively #'goto-last-change)
+  (org-mark-jump-unhide))
+
+;;;###autoload
+(defun gwp::goto-last-change-reverse ()
+  (interactive)
+  (call-interactively #'goto-last-change-reverse)
+  (org-mark-jump-unhide))
+
 (defhydra gwp::hydra-last-change ()
-  ("j" goto-last-change "last change")  ; 用 p 按键容易误操作, 用N 安全些
-  ("k" goto-last-change-reverse "previous change")
+  ("j" gwp::goto-last-change "last change")  ; 用 p 按键容易误操作, 用N 安全些
+  ("k" gwp::goto-last-change-reverse "previous change")
   ("c" recenter "recenter")
-  ("r" gwp::org-show-context-at-point "org show context")
+  ;; ("r" gwp::org-show-context-at-point "org show context")
   ("q" nil "quit"))
+
 
 (gwp::goto-leader-def
   ;; :keymaps '(prog-mode-map org-mode-map)
   :keymaps '(meow-normal-state-keymap)
-  ";" '(goto-last-change :which-key "go to last change")
+  ";" '(gwp::goto-last-change :which-key "go to last change")
   )
 ;; 28526451 ends here
 
