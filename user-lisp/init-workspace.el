@@ -82,9 +82,30 @@ Otherwise delete one character."
              ("t" . gwp::open-terminal-here)))
 ;; 36ca6867 ends here
 
-;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
-(unbind-key "C-x C-p")
-;; f95a72e3 ends here
+;; [[file:../gwp-scratch.note::62d090d7][62d090d7]]
+(use-package zoxide
+  :custom
+  ;; related issues:
+  ;; 1. https://gitlab.com/Vonfry/zoxide.el/-/issues/3
+  ;; 2. https://github.com/ajeetdsouza/zoxide/issues/421
+  (zoxide-get-path-function
+   (lambda (&rest _) (expand-file-name default-directory)))
+  :hook
+  ((find-file
+    consult-find-file
+    dired-after-readin) . zoxide-add))
+
+;; 需要保留 zoxide 目录的次序
+;;;###autoload
+(defun gwp::zoxide-travel ()
+  (interactive)
+  (let ((vertico-sort-function nil))
+    ;; do not sort candidates
+    (call-interactively #'zoxide-travel)))
+
+(bind-keys :map gwp::develop-map
+           ("r" . gwp::zoxide-travel))
+;; 62d090d7 ends here
 
 ;; [[file:../gwp-scratch.note::942579e1][942579e1]]
 (defun gwp-mouse-toggle-bm (e)
@@ -159,6 +180,10 @@ Argument E is a mouse event used by `mouse-set-point'."
 (bind-keys :map gwp::develop-map
            ("b" . gwp::bookmark-transient))
 ;; ebe60f2d ends here
+
+;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
+(unbind-key "C-x C-p")
+;; f95a72e3 ends here
 
 ;; [[file:../gwp-scratch.note::f0f6f6eb][f0f6f6eb]]
 (provide 'init-workspace)

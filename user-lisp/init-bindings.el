@@ -93,6 +93,9 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; 45f27ad1 ends here
 
 ;; [[file:../gwp-scratch.note::860eb4b2][860eb4b2]]
+;; 可仿 vi :q
+(defalias 'q 'save-buffers-kill-terminal)
+
 (gwp::leader-def
  "q" '(:ignore t :which-key "quit/session")
  "qq" '(save-buffers-kill-terminal :which-key "Quit Emacs")
@@ -133,44 +136,9 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; b357bbd9 ends here
 
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
-(require 'recentf)
-(defun gwp::zoxide-recent-directories ()
-  (let* ((output (shell-command-to-string "zoxide query --list"))
-         (dirs (split-string output "[\r\n]+" t)))
-    dirs))
-
-(defun gwp::dired-recent-directories ()
-  (let* ((recent-dirs
-          (mapcar (lambda (file)
-                    (if (file-directory-p file) file (file-name-directory file)))
-                  recentf-list)))
-    recent-dirs))
-
-(defun gwp::zoxide-add-directory (dir)
-  "将 dir 加入 zoxide 数据库中"
-  (message "add %s" dir)
-  (when dir (call-process "zoxide" nil nil nil "add" dir)))
-
-;; open recent directory
-;; borrows from http://stackoverflow.com/questions/23328037/in-emacs-how-to-maintain-a-list-of-recent-directories
-;;;###autoload
-(defun gwp::recent-dirs ()
-  "Present a list of recently used directories and open the selected one in dired"
-  (interactive)
-  (let* ((recent-dirs (delete-dups
-		       (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories))))
-	 ;; do not sort candidates
-	 (vertico-sort-function nil)
-	 (default-directory (completing-read "Directory: " recent-dirs nil t)))
-    (gwp::zoxide-add-directory default-directory)
-    (dired-jump)))
-
-(bind-keys :map gwp::develop-map
-           ("r" . gwp::recent-dirs)
-           ("l" . comment-dwim))
-
 (gwp::leader-def
   "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
+
 ;; (gwp::leader-def
 ;;   ;; "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
 ;;   "d" '(:ignore t :which-key "develop")
