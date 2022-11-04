@@ -120,22 +120,78 @@
 ;; f2289888 ends here
 
 ;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]
+(require 'transient)
+
 (use-package citre
+  :commands (citre-jump citre-jump-back citre-peak citre-create-tags-file)
   :init
   ;; This is needed in `:init' block for lazy load to work.
   (require 'citre-config)
-  ;; 用 transient 不如下面的好. 下面的可以用"."命令来重做上次的操作.
   :config
-  (general-define-key :prefix-map 'gwp::citre-map
-                      "j" 'citre-jump
-                      "b" 'citre-jump-back
-                      "c" 'citre-create-tags-file
-                      "p" 'citre-peek))
+  (transient-define-prefix gwp::citre-transient ()
+    "citre tags"
+    ["Jump:"
+     ("j" "jump" citre-jump)
+     ("b" "jump back" citre-jump-back)
+     ("p" "peek" citre-peak)
+     ]
+    ["Edit"
+     ("c" "create tags file" citre-create-tags-file)
+     ]
+    )
+
+  (bind-keys :map gwp::develop-map
+             ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
 
-;; [[file:../gwp-scratch.note::*cp2k][cp2k:1]]
+;; [[file:../gwp-scratch.note::0deb729c][0deb729c]]
+;; symbol-overlay
+;;;  a highlight-symbol replacement.
+(use-package symbol-overlay
+  :config
+  ;; 用 transient 不如下面的好. 下面的可以用"."命令来重做上次的操作.
+  ;; (general-define-key :prefix-map 'gwp::symbol-overlay-map
+  ;;                     "h" 'symbol-overlay-put
+  ;;                     "r" 'symbol-overlay-rename
+  ;;                     "t" 'symbol-overlay-toggle-in-scope
+  ;;                     "n" 'symbol-overlay-switch-forward ; 当在高亮的字符外时, 可快速返回.
+  ;;                     "p" 'symbol-overlay-switch-backward
+  ;;                     "d" 'symbol-overlay-remove-all
+  ;;                     "R" 'symbol-overlay-query-replace)
+  ;; 等价设置; 备忘
+  ;; (setq symbol-overlay-map (make-sparse-keymap))
+  ;; (setq gwp::symbol-overlay-map (make-sparse-keymap))
+  ;; (define-key gwp::symbol-overlay-map (kbd "h") 'symbol-overlay-put)
+  ;; (define-key gwp::symbol-overlay-map (kbd "n") 'symbol-overlay-jump-next)
+  ;; (define-key gwp::symbol-overlay-map (kbd "p") 'symbol-overlay-jump-prev)
+  ;; (define-key gwp::symbol-overlay-map (kbd "w") 'symbol-overlay-save-symbol)
+  ;; (define-key gwp::symbol-overlay-map (kbd "t") 'symbol-overlay-toggle-in-scope)
+  ;; (define-key gwp::symbol-overlay-map (kbd "e") 'symbol-overlay-echo-mark)
+  ;; (define-key gwp::symbol-overlay-map (kbd "d") 'symbol-overlay-jump-to-definition)
+  ;; (define-key gwp::symbol-overlay-map (kbd "s") 'symbol-overlay-isearch-literally)
+  ;; (define-key gwp::symbol-overlay-map (kbd "q") 'symbol-overlay-query-replace)
+  ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
+  )
 
-;; cp2k:1 ends here
+;; 以下命令仅在高亮区域外才用得上
+(transient-define-prefix gwp::symbol-overlay-transient ()
+  "citre tags"
+  ["View:"
+   ("n" "next" symbol-overlay-switch-forward) ; 当在高亮的字符外时, 可快速返回.
+   ("p" "previous" symbol-overlay-switch-backward)
+   ("t" "toggle in scope" symbol-overlay-toggle-in-scope)
+   ]
+  ["Edit"
+   ("h" "highlight" symbol-overlay-put) ; 原位时可用 i
+   ("d" "remove all" symbol-overlay-remove-all)
+   ("r" "rename" symbol-overlay-rename)
+   ("R" "replace" symbol-overlay-query-replace)
+   ]
+  )
+
+(bind-keys :map gwp::develop-map
+           ("h" . gwp::symbol-overlay-transient))
+;; 0deb729c ends here
 
 ;; [[file:../gwp-scratch.note::985a2495][985a2495]]
 (gwp::local-leader-def
@@ -146,6 +202,10 @@
   "d" #'eval-defun
   )
 ;; 985a2495 ends here
+
+;; [[file:../gwp-scratch.note::a9baf9f2][a9baf9f2]]
+(setq python-indent-guess-indent-offset-verbose nil)
+;; a9baf9f2 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)

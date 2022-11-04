@@ -3,6 +3,8 @@
 ;; 902df907 ends here
 
 ;; [[file:../gwp-scratch.note::36ca6867][36ca6867]]
+(require 'esh-mode)
+
 ;; credit: http://www.howardism.org/Technical/Emacs/eshell-fun.html
 (defun gwp::open-eshell-here ()
   (interactive)
@@ -83,6 +85,80 @@ Otherwise delete one character."
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
 (unbind-key "C-x C-p")
 ;; f95a72e3 ends here
+
+;; [[file:../gwp-scratch.note::942579e1][942579e1]]
+(defun gwp-mouse-toggle-bm (e)
+  "Toggle bookmarking
+This command should be bound to a mouse key.
+Argument E is a mouse event used by `mouse-set-point'."
+  (interactive "@e")
+  (save-excursion
+    (mouse-set-point e)
+    (bm-toggle)))
+
+;; credit: https://github.com/joodland/bm
+(use-package bm
+  :commands (bm-buffer-restore bm-buffer-save bm-toggle bm-next bm-previous bm-buffer-save-all)
+  :init
+  ;; restore on load (even before you require bm)
+  (setq bm-restore-repository-on-load t)
+  ;; Allow cross-buffer 'next'
+  (setq bm-cycle-all-buffers nil)
+  ;; save bookmarks
+  (setq-default bm-buffer-persistence t)
+  (setq bm-highlight-style 'bm-highlight-only-fringe)
+
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
+  (add-hook 'kill-buffer-hook 'bm-buffer-save)
+  (add-hook 'after-save-hook 'bm-buffer-save)
+  (add-hook 'after-revert-hook 'bm-buffer-restore)
+  (add-hook 'vc-before-checkin-hook 'bm-buffer-save)
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
+
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook '(lambda nil
+                                (bm-buffer-save-all)
+                                (bm-repository-save)))
+
+  :custom
+  ;; where to store persistant files
+  (bm-repository-file (expand-file-name "bm-repository" user-emacs-directory))
+
+  ;; :hook
+  ;; Loading the repository from file when on start up.
+  ;; (add-hook 'after-init-hook 'bm-repository-load)
+  :bind (
+         ([left-fringe double-mouse-1] . gwp-mouse-toggle-bm)
+         ([left-margin double-mouse-1] . gwp-mouse-toggle-bm)
+         ([left-fringe mouse-5] . bm-next-mouse)
+         ([left-margin mouse-5] . bm-next-mouse)
+         ([left-fringe mouse-4] . bm-previous-mouse)
+         ([left-margin mouse-4] . bm-previous-mouse)
+         ))
+;; 942579e1 ends here
+
+;; [[file:../gwp-scratch.note::ebe60f2d][ebe60f2d]]
+(require 'transient)
+(transient-define-prefix gwp::bookmark-transient ()
+  "visual bookmarks"
+  ["Edit bookmarks:"
+   ("b" "Toggle bookmarks" bm-toggle)
+   ("e" "Setting bookmarks based on a regexp" bm-bookmark-regexp)
+   ("d" "Remove all bookmarks in current buffer" bm-remove-all-current-buffer)
+   ("a" "Annotate bookmarks" bm-bookmark-annotate)
+   ("s" "Save bookmarks" bm-buffer-save)
+   ]
+  ["Navigate bookmarks"
+   ("n" "Next bookmark" bm-next)
+   ("p" "Prev bookmark" bm-previous)
+   ]
+  )
+
+(bind-keys :map gwp::develop-map
+           ("b" . gwp::bookmark-transient))
+;; ebe60f2d ends here
 
 ;; [[file:../gwp-scratch.note::f0f6f6eb][f0f6f6eb]]
 (provide 'init-workspace)

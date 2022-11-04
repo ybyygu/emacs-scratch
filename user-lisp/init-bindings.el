@@ -165,14 +165,20 @@ If two universal prefix arguments are used, then prompt for command to use."
     (gwp::zoxide-add-directory default-directory)
     (dired-jump)))
 
+(bind-keys :map gwp::develop-map
+           ("r" . gwp::recent-dirs)
+           ("l" . comment-dwim))
+
 (gwp::leader-def
-  ;; "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
-  "d" '(:ignore t :which-key "develop")
-  "dr" '(gwp::recent-dirs :which-key "recent dirs")
-  "dl" '(comment-dwim :which-key "comment/uncomment lines")
-  "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
-  "dj" '(:keymap gwp::citre-map :package citre :which-key "citre jump")
-  )
+  "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
+;; (gwp::leader-def
+;;   ;; "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
+;;   "d" '(:ignore t :which-key "develop")
+;;   "dr" '(gwp::recent-dirs :which-key "recent dirs")
+;;   "dl" '(comment-dwim :which-key "comment/uncomment lines")
+;;   "dh" '(:keymap gwp::symbol-overlay-map :package symbol-overlay :which-key "highlight symbol")
+;;   "dj" '(:keymap gwp::citre-map :package citre :which-key "citre jump")
+;;   )
 ;; e724170b ends here
 
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]

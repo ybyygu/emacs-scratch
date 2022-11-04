@@ -1028,19 +1028,22 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
 ;; org-insert-structure-template
 ;; 换到 org-edit-special 上更方便
-(unbind-key "C-c C-,")
-(bind-key "C-c C-, " 'org-edit-special org-mode-map)
-(bind-key "C-c C-, " 'org-edit-src-exit org-src-mode-map)
+(unbind-key "C-c ,") ; 默认为org-priority 很少用
+(unbind-key "C-c C-," org-mode-map)
+(bind-key "C-c C-," 'org-edit-special org-mode-map)
+(bind-key "C-c C-," 'org-edit-src-exit org-src-mode-map)
 
-;; org-priority
-;; 很少用
-(unbind-key "C-c ,")
+;; 文件按 C-c C-< 或 C-c C-> 调整 heading level
+(unbind-key "C-c <" 'org-mode-map)
+(unbind-key "C-c >" 'org-mode-map)
+(bind-key "C-c >" 'org-demote-subtree)
+(bind-key "C-c <" 'org-promote-subtree)
 
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- "a"  #'(:ignore t :which-key "attach")
- "aa" #'org-attach
- "an" #'gwp::org-attach-auto-directory)
+  :keymaps 'org-mode-map
+  "a"  #'(:ignore t :which-key "attach")
+  "aa" #'org-attach
+  "an" #'gwp::org-attach-auto-directory)
 
 (gwp::local-leader-def
   :keymaps 'org-mode-map
@@ -1053,34 +1056,34 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   "b M-n" '(org-next-block :which-key "next block"))
 
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- "m"  #'(:ignore t :which-key "mark")
- "m." #'org-mark-element
- "mm" #'org-mark-ring-push
- "mp" #'org-mark-ring-goto
- "ml" #'gwp::org-mark-link
- "ms" #'org-babel-mark-block)
+  :keymaps 'org-mode-map
+  "m"  #'(:ignore t :which-key "mark")
+  "m." #'org-mark-element
+  "mm" #'org-mark-ring-push
+  "mp" #'org-mark-ring-goto
+  "ml" #'gwp::org-mark-link
+  "ms" #'org-babel-mark-block)
 
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
- "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
- "t"  #'(:ignore t :which-key "toggle")
- "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
- "th" #'org-toggle-heading
- "t:" #'org-toggle-fixed-width
- ;; 可用 C-c C-x C-l
- "tL" #'org-latex-preview
- ;; 可用 C-c C-x v
- "tI" #'org-toggle-inline-images
- "tc" #'gwp::org-toggle-checkbox
- "ts" #'org-sidebar-tree-toggle
-)
+  :keymaps 'org-mode-map
+  "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
+  "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
+  "t"  #'(:ignore t :which-key "toggle")
+  "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
+  "th" #'org-toggle-heading
+  "t:" #'org-toggle-fixed-width
+  ;; 可用 C-c C-x C-l
+  "tL" #'org-latex-preview
+  ;; 可用 C-c C-x v
+  "tI" #'org-toggle-inline-images
+  "tc" #'gwp::org-toggle-checkbox
+  "ts" #'org-sidebar-tree-toggle
+  )
 
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- [tab] '(org-next-link :which-key "goto next link")
- [backtab] '(org-previous-link :which-key "goto next link"))
+  :keymaps 'org-mode-map
+  [tab] '(org-next-link :which-key "goto next link")
+  [backtab] '(org-previous-link :which-key "goto next link"))
 
 (gwp::goto-leader-def
   :keymaps 'org-mode-map
