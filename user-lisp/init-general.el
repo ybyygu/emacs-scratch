@@ -58,6 +58,10 @@
 (general-define-key
  :prefix-map 'gwp::develop-map
  )
+
+(general-define-key
+ :prefix-map 'gwp::open-map
+ )
 ;; edaec1b8 ends here
 
 ;; [[file:../gwp-scratch.note::afede203][afede203]]
