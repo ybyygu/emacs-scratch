@@ -381,13 +381,26 @@ If on a:
 ;; 95825713 ends here
 
 ;; [[file:../gwp-scratch.note::492d6ae4][492d6ae4]]
+(transient-define-prefix gwp::org-insert-transient ()
+  "Common insert commands"
+  ["常用"
+   ("n" "Insert note" org-add-note) ; or C-c C-z
+   ("m" "Insert memo" gwp::new-memo-time-stamp)
+   ("i" "Insert item" gwp::new-item-time-stamp)
+   ("p" "Set property" org-set-property)
+   ("h" "Insert heading" org-insert-heading)
+   ("s" "Insert subheading" org-insert-subheading)
+   ("t" "Insert structured template" org-insert-structure-template)]
+  ["备用"
+   ("e" "Set effort" org-set-effort)
+   ("d" "Insert drawer" org-insert-drawer)
+   ("f" "Insert footnote" org-footnote-new)
+   ("l" "Insert link" org-insert-link)])
+
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- "i"  #'(:ignore t :which-key "insert")
- "im" #'gwp::new-memo-time-stamp ; 简化操作
- "ii" #'gwp::new-item-time-stamp
- "in" #'org-add-note			; or C-c C-z
-)
+  :keymaps 'org-mode-map
+  "i" #'(gwp::org-insert-transient :which-key "insert")
+  )
 ;; 492d6ae4 ends here
 
 ;; [[file:../gwp-scratch.note::3b9396a6][3b9396a6]]
@@ -1022,6 +1035,110 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
                ))
 ;; 3516de82 ends here
 
+;; [[file:../gwp-scratch.note::e13e8c0f][e13e8c0f]]
+(defun gwp::org-in-latext-env-p ()
+  "Return whether point is latex environment."
+  (let* ((context (org-element-context))
+         (type (org-element-type context)))
+    (or (eql type 'latex-fragment)
+        (eql type 'latex-environment))))
+
+(defun gwp::org-in-link-env-p ()
+  "Return whether point is link environment."
+  (let* ((context (org-element-context))
+         (type (org-element-type context)))
+    (eql type 'link)))
+
+(defun gwp::org-in-zotero-link-p ()
+  "Return whether point is zotero link environment."
+  (let* ((context (org-element-context))
+         (type (org-element-type context)))
+    (if (eq 'link type)
+        (let ((link (org-element-property :raw-link context)))
+          (s-starts-with? "zotero://" link)))))
+
+(defun gwp::org-in-image-link-p ()
+  "Return whether point is image link environment."
+  (let* ((context (org-element-context))
+         (type (org-element-type context)))
+    (if (eq 'link type)
+        (let* ((lineage (org-element-lineage context '(link) t))
+               (path (org-element-property :path lineage))
+               (type (org-element-property :type lineage)))
+          (or (equal type "img")
+              (and path (image-type-from-file-name path)))
+          ))))
+
+(transient-define-prefix gwp::org-menu-at-point ()
+  "Show relevant menu for thing at point"
+  ["src block" :if org-in-src-block-p
+   ("RET" "edit" org-edit-special)
+   ("n" "next" org-next-block :transient t)
+   ("p" "prev" org-previous-block :transient t)
+   ("b" "tangle dwim" gwp::org-babel-tangle-dwim)
+   ("." "mark" org-babel-mark-block)
+   ]
+  ["latex" :if gwp::org-in-latext-env-p
+   ("RET" "toggle inline display" org-latex-preview)
+   ]
+  ["image" :if gwp::org-in-image-link-p
+   ("RET" "toggle inline display" org-toggle-inline-images)
+   ]
+  ["link" :if gwp::org-in-link-env-p
+   ("n" "next" org-next-link :transient t)
+   ("p" "prev" org-previous-link :transient t)
+   ("." "mark" gwp::org-mark-link)
+   ("o" "open" gwp::org-open-at-point-dwim)
+   ]
+  ["heading" :if org-at-heading-p
+   ("i" "insert memo" gwp::new-memo-time-stamp)
+   ("t" "toggle todo" org-todo)
+   ;; ("n" "next" org-next-visible-heading :transient t)
+   ;; ("p" "prev" org-previous-visible-heading :transient t)
+   ("." "mark" org-mark-subtree)
+   ("a" "attachments" org-attach)
+   ("A" "archive" org-archive-subtree)
+   ("mh" "make heading (before)" org-insert-heading)
+   ("ml" "make heading (after)" org-insert-heading-after-current)
+   ("mt" "make todo (before)" org-insert-todo-heading)]
+  ["property" :if org-at-heading-p
+   ("pp" "property" org-set-property)
+   ("pd" "delete property" org-delete-property)
+   ]
+  ["item" :if org-at-item-p
+   ("i" "insert item" gwp::new-item-time-stamp)
+   ("r" "repair" org-list-repair)
+   ("*" "turn into tree" org-list-make-subtree)
+   ("s" "sort" org-sort-list)
+   ]
+  ["checkbox"  :if org-at-item-checkbox-p
+   ("RET" "toggle" org-toggle-checkbox)
+   ]
+  ["table"  :if org-at-table-p
+   ("e" "edit all" org-table-edit-formulas)
+   ("ir" "insert row" org-table-insert-row)
+   ("ic" "insert column" org-table-insert-column)
+   ("il" "insert hline" org-table-insert-hline)
+   ("dc" "delete column" org-table-delete-column)
+   ("dr" "delete row" org-table-kill-row)
+   ("td" "toggle debug" org-table-toggle-formula-debugger)
+   ]
+  ["zotero"  :if gwp::org-in-zotero-link-p
+   ("RET" "zotero menu" gwp/zotero-search-transient)
+   ]
+  ["motion"
+   ("g" "goto" consult-org-heading)
+   ])
+
+;; org 跳转前后设置 mark, 方便跳回
+(advice-add #'consult-org-heading :before #'org-mark-ring-push)
+(advice-add #'consult-org-heading :after #'org-mark-ring-push)
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  ","  #'(gwp::org-menu-at-point :which-key "context menu"))
+;; e13e8c0f ends here
+
 ;; [[file:../gwp-scratch.note::27b71342][27b71342]]
 (use-package org
   :config
@@ -1063,39 +1180,50 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   "aa" #'org-attach
   "an" #'gwp::org-attach-auto-directory)
 
-(gwp::local-leader-def
-  :keymaps 'org-mode-map
-  "b"  #'(:ignore t :which-key "babel/buffer")
-  "bn" #'gwp/org-babel-tangle-no
-  "bj" #'gwp::org-babel-tangle-jump-to-file
-  "bt" #'gwp/org-tangle-subtree
-  "bb" #'org-switchb ; 仿SPC-b-b
-  "b M-p" '(org-previous-block :which-key "previous block")
-  "b M-n" '(org-next-block :which-key "next block"))
+(transient-define-prefix gwp::org-babel-transient ()
+  ["babel"
+   ("n" "toggle tangle" gwp/org-babel-tangle-no)
+   ("j" "jump to tangled file" gwp::org-babel-tangle-jump-to-file)
+   ("t" "tangle subtree" gwp/org-tangle-subtree)
+   ("M-p" "prev src block" org-previous-block :transient t)
+   ("M-n" "next src block" org-next-block :transient t)
+   ]
+  ["buffer"
+   ("b" "switch org buffer" org-switchb)
+   ])
 
 (gwp::local-leader-def
   :keymaps 'org-mode-map
-  "m"  #'(:ignore t :which-key "mark")
-  "m." #'org-mark-element
-  "mm" #'org-mark-ring-push
-  "mp" #'org-mark-ring-goto
-  "ml" #'gwp::org-mark-link
-  "ms" #'org-babel-mark-block)
+  "b"  #'(gwp::org-babel-transient :which-key "babel/buffer"))
+
+(transient-define-prefix gwp::org-mark-transient ()
+  [("." "mark element" org-mark-element)
+   ("m" "push mark" org-mark-ring-push)
+   ("n" "goto mark" org-mark-ring-goto :transient t)
+   ("l" "mark link" gwp::org-mark-link)
+   ("s" "mark src block" org-babel-mark-block)])
+
+(gwp::local-leader-def
+  :keymaps 'org-mode-map
+  "m"  #'(gwp::org-mark-transient :which-key "mark"))
+
+(transient-define-prefix gwp::org-toggle-transient ()
+  [("i" "toggle item (-)" org-ctrl-c-minus)
+   ("h" "toggle heading" org-toggle-heading)
+   (":" "toggle (:)" org-toggle-fixed-width)
+   ;; 可用 C-c C-x C-l
+   ("L" "toggle latex preview" org-latex-preview :transient t)
+   ;; 可用 C-c C-x v
+   ("I" "toggle inline images" org-toggle-inline-images)
+   ("c" "toggle checkbox" gwp::org-toggle-checkbox)
+   ("s" "toggle org sidebar" org-sidebar-tree)
+   ])
 
 (gwp::local-leader-def
   :keymaps 'org-mode-map
   "-"  #'(org-ctrl-c-minus :which-key "toggle item (-)")
   "*"  #'(org-ctrl-c-star :which-key "toggle headline (*)")
-  "t"  #'(:ignore t :which-key "toggle")
-  "ti" #'(org-ctrl-c-minus :which-key "toggle item (-)")
-  "th" #'org-toggle-heading
-  "t:" #'org-toggle-fixed-width
-  ;; 可用 C-c C-x C-l
-  "tL" #'org-latex-preview
-  ;; 可用 C-c C-x v
-  "tI" #'org-toggle-inline-images
-  "tc" #'gwp::org-toggle-checkbox
-  "ts" #'org-sidebar-tree-toggle
+  "t"  #'(gwp::org-toggle-transient :which-key "toggle")
   )
 
 (gwp::local-leader-def

@@ -166,8 +166,8 @@
   (transient-define-prefix gwp::symbol-overlay-transient ()
     "citre tags"
     ["View:"
-     ("n" "next" symbol-overlay-switch-forward) ; 当在高亮的字符外时, 可快速返回.
-     ("p" "previous" symbol-overlay-switch-backward)
+     ("n" "next" symbol-overlay-switch-forward :transient t) ; 当在高亮的字符外时, 可快速返回.
+     ("p" "previous" symbol-overlay-switch-backward :transient t)
      ("t" "toggle in scope" symbol-overlay-toggle-in-scope)
      ]
     ["Edit"
