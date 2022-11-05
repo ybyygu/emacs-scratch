@@ -8,6 +8,17 @@
   (bind-key [remap move-beginning-of-line] #'crux-move-beginning-of-line))
 ;; 20ff3f1b ends here
 
+;; [[file:../gwp-scratch.note::f3c25d9e][f3c25d9e]]
+(use-package transient
+  :commands (transient-define-prefix define-infix-argument define-suffix-command)
+  :custom
+  ;; 延时显示
+  (transient-show-popup 0.5)
+  :bind
+  (:map transient-map
+        ([escape] . transient-quit-one)))
+;; f3c25d9e ends here
+
 ;; [[file:../gwp-scratch.note::0a9921e5][0a9921e5]]
 (setq bookmark-file-coding-system 'utf-8)
 (setq magit-git-output-coding-system 'utf-8)
@@ -401,9 +412,8 @@
   (show-paren-when-point-inside-paren t)
   (show-paren-when-point-in-periphery t)
   (show-paren-ring-bell-on-mismatch t)
-  :init
-  (custom-set-faces
-   '(show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold))))))
+  :custom-face
+  (show-paren-match ((t (:foreground "gray100" :background "#9c7618" :weight bold)))))
 
 (use-package smartparens
   :custom

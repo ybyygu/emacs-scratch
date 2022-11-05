@@ -93,41 +93,39 @@ Otherwise delete one character."
   :hook
   ((find-file
     consult-find-file
-    dired-after-readin) . zoxide-add))
+    dired-after-readin) . zoxide-add)
 
-;; 需要保留 zoxide 目录的次序
+  :config
+  ;; 需要保留 zoxide 目录的次序
 ;;;###autoload
-(defun gwp::zoxide-travel ()
-  (interactive)
-  (let ((vertico-sort-function nil))
-    ;; do not sort candidates
-    (call-interactively #'zoxide-travel)))
+  (defun gwp::zoxide-travel ()
+    (interactive)
+    (let ((vertico-sort-function nil))
+      ;; do not sort candidates
+      (call-interactively #'zoxide-travel)))
 
-(bind-keys :map gwp::develop-map
-           ("r" . gwp::zoxide-travel))
+  :bind
+  (:map gwp::develop-map
+        ("r" . gwp::zoxide-travel)
+        ))
 ;; 62d090d7 ends here
 
 ;; [[file:../gwp-scratch.note::942579e1][942579e1]]
-(defun gwp-mouse-toggle-bm (e)
-  "Toggle bookmarking
-This command should be bound to a mouse key.
-Argument E is a mouse event used by `mouse-set-point'."
-  (interactive "@e")
-  (save-excursion
-    (mouse-set-point e)
-    (bm-toggle)))
-
 ;; credit: https://github.com/joodland/bm
 (use-package bm
   :commands (bm-buffer-restore bm-buffer-save bm-toggle bm-next bm-previous bm-buffer-save-all)
+  :custom
+  ;; do not cross-buffer for 'next'
+  (bm-cycle-all-buffers nil)
+  (bm-highlight-style 'bm-highlight-only-fringe)
+  ;; save bookmarks
+  (bm-buffer-persistence t)
+  ;; where to store persistant files
+  (bm-repository-file (expand-file-name "bm-repository" user-emacs-directory))
+
   :init
   ;; restore on load (even before you require bm)
   (setq bm-restore-repository-on-load t)
-  ;; Allow cross-buffer 'next'
-  (setq bm-cycle-all-buffers nil)
-  ;; save bookmarks
-  (setq-default bm-buffer-persistence t)
-  (setq bm-highlight-style 'bm-highlight-only-fringe)
 
   (add-hook 'find-file-hooks 'bm-buffer-restore)
   (add-hook 'kill-buffer-hook 'bm-buffer-save)
@@ -145,9 +143,15 @@ Argument E is a mouse event used by `mouse-set-point'."
   ;; 自动展开 org heading
   (add-hook 'bm-after-goto-hook 'org-bookmark-jump-unhide)
 
-  :custom
-  ;; where to store persistant files
-  (bm-repository-file (expand-file-name "bm-repository" user-emacs-directory))
+  :config
+  (defun gwp-mouse-toggle-bm (e)
+    "Toggle bookmarking
+This command should be bound to a mouse key.
+Argument E is a mouse event used by `mouse-set-point'."
+    (interactive "@e")
+    (save-excursion
+      (mouse-set-point e)
+      (bm-toggle)))
 
   ;; :hook
   ;; Loading the repository from file when on start up.
@@ -163,24 +167,27 @@ Argument E is a mouse event used by `mouse-set-point'."
 ;; 942579e1 ends here
 
 ;; [[file:../gwp-scratch.note::ebe60f2d][ebe60f2d]]
-(require 'transient)
-(transient-define-prefix gwp::bookmark-transient ()
-  "visual bookmarks"
-  ["Edit bookmarks:"
-   ("b" "Toggle bookmarks" bm-toggle)
-   ("e" "Setting bookmarks based on a regexp" bm-bookmark-regexp)
-   ("d" "Remove all bookmarks in current buffer" bm-remove-all-current-buffer)
-   ("a" "Annotate bookmarks" bm-bookmark-annotate)
-   ("s" "Save bookmarks" bm-buffer-save)
-   ]
-  ["Navigate bookmarks"
-   ("n" "Next bookmark" bm-next)
-   ("p" "Prev bookmark" bm-previous)
-   ]
-  )
-
-(bind-keys :map gwp::develop-map
-           ("b" . gwp::bookmark-transient))
+(use-package bm
+  :requires transient
+  :config
+  (transient-define-prefix gwp::bookmark-transient ()
+    "visual bookmarks"
+    ["Edit bookmarks:"
+     ("b" "Toggle bookmarks" bm-toggle)
+     ("e" "Setting bookmarks based on a regexp" bm-bookmark-regexp)
+     ("d" "Remove all bookmarks in current buffer" bm-remove-all-current-buffer)
+     ("a" "Annotate bookmarks" bm-bookmark-annotate)
+     ("s" "Save bookmarks" bm-buffer-save)
+     ]
+    ["Navigate bookmarks"
+     ("n" "Next bookmark" bm-next)
+     ("p" "Prev bookmark" bm-previous)
+     ]
+    )
+  :bind (
+         :map gwp::develop-map
+         ("b" . gwp::bookmark-transient)
+         ))
 ;; ebe60f2d ends here
 
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]

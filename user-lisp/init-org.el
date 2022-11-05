@@ -4,11 +4,12 @@
 
 ;; [[file:../gwp-scratch.note::e2f6b646][e2f6b646]]
 (use-package org
-  :config
+  :ensure nil
+  :commands (org-mode org-agenda org-capture)
   ;; treat .note files as org-mode
-  (add-to-list 'auto-mode-alist '("\\.note\\'" . org-mode))
-  (add-to-list 'auto-mode-alist '("NOTE" . org-mode))
-
+  :mode (("\\.note\\". org-mode)
+         ("NOTE". org-mode))
+  :config
   (setq org-blank-before-new-entry nil)
   (setq org-default-notes-file (concat org-directory "/life.note"))
 
@@ -28,29 +29,32 @@
 ;; e2f6b646 ends here
 
 ;; [[file:../gwp-scratch.note::0c698627][0c698627]]
-;; https://orgmode.org/manual/Clean-view.html
-(setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
-(with-eval-after-load 'org-indent
-  (setq org-indent-indentation-per-level 1)) ;; default = 2
+(use-package org
+  :config
+  ;; https://orgmode.org/manual/Clean-view.html
+  (setq org-startup-indented t)      ;Enable `org-indent-mode' on Org startup
+  (with-eval-after-load 'org-indent
+    (setq org-indent-indentation-per-level 1)) ;; default = 2
 
-;; 对齐headline中的TAGs
-(setq org-tags-column -80)
+  ;; 对齐headline中的TAGs
+  (setq org-tags-column -80)
 
-;; 方便用 property 来控制 image 显示大小
-(setq org-image-actual-width nil)
+  ;; 方便用 property 来控制 image 显示大小
+  (setq org-image-actual-width nil)
 
-;; 避免误编辑
-(setq org-catch-invisible-edits 'show-and-error)
+  ;; 避免误编辑
+  (setq org-catch-invisible-edits 'show-and-error)
 
-;; 避免显示subtree之间多余的空行
-(setq org-cycle-separator-lines 0)
+  ;; 避免显示subtree之间多余的空行
+  (setq org-cycle-separator-lines 0)
 
-;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
-(setq org-fontify-emphasized-text nil)
+  ;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
+  (setq org-fontify-emphasized-text nil)
 
-;; 表格中文混排更整齐些
-;; (custom-set-faces
-;;  '(org-table ((t (:family "Ubuntu Mono")))))
+  ;; 表格中文混排更整齐些
+  ;; (custom-set-faces
+  ;;  '(org-table ((t (:family "Ubuntu Mono")))))
+  )
 ;; 0c698627 ends here
 
 ;; [[file:../gwp-scratch.note::10584ca0][10584ca0]]
@@ -67,6 +71,16 @@
 ;; 默认的为 org-reveal, 但不太好用
 (bind-key "C-c C-r" 'gwp::org-show-context-at-point org-mode-map)
 ;; 10584ca0 ends here
+
+;; [[file:../gwp-scratch.note::67171862][67171862]]
+(use-package org
+  :config
+  (defun gwp::goto-line-unhide (&rest _)
+    (org-bookmark-jump-unhide))
+
+  (advice-add #'goto-line :after #'gwp::goto-line-unhide)
+  (advice-add #'avy-goto-line :after #'gwp::goto-line-unhide))
+;; 67171862 ends here
 
 ;; [[file:../gwp-scratch.note::2f61258f][2f61258f]]
 ;; https://stackoverflow.com/questions/17590784/how-to-let-org-mode-open-a-link-like-file-file-org-in-current-window-inste
@@ -421,10 +435,12 @@ If on a:
 
 ;; [[file:../gwp-scratch.note::0caa1907][0caa1907]]
 (use-package org-superstar
+  :after org
+  :hook (org-mode . org-superstar-mode)
   :init
   ;; ◉ ○ ◆ » ◇ ▶ ▷
   (setq org-superstar-headline-bullets-list '("☰" "▶" "▷" "»"))
-  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+  )
 ;; 0caa1907 ends here
 
 ;; [[file:../gwp-scratch.note::99465500][99465500]]
@@ -1007,22 +1023,24 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; 3516de82 ends here
 
 ;; [[file:../gwp-scratch.note::27b71342][27b71342]]
-(gwp::dwim-leader-def
-  :keymaps 'org-mode-map
-  "g" 'org-goto                                ; goto
-  "t" 'org-todo                                ; todo
-  "e" 'org-edit-special                        ; edit
-  "a" 'org-attach                              ; attach
-  "b" 'gwp::org-babel-tangle-dwim              ; babel
-  "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
-  "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
-  )
+(use-package org
+  :config
+  (gwp::dwim-leader-def
+    :keymaps 'org-mode-map
+    "g" 'org-goto                                ; goto
+    "t" 'org-todo                                ; todo
+    "e" 'org-edit-special                        ; edit
+    "a" 'org-attach                              ; attach
+    "b" 'gwp::org-babel-tangle-dwim              ; babel
+    "n" 'gwp::org-babel-narrow-to-tangle-heading ; narrow
+    "j" 'gwp::org-babel-tangle-jump-to-file      ; jump to tangled file
+    )
 
-(gwp::dwim-leader-def
-  :keymaps 'org-src-mode-map
-  ;; "b" 'gwp/org-babel-tangle-dwim
-  "q" 'org-edit-src-exit
-  )
+  (gwp::dwim-leader-def
+    :keymaps 'org-src-mode-map
+    ;; "b" 'gwp/org-babel-tangle-dwim
+    "q" 'org-edit-src-exit
+    ))
 ;; 27b71342 ends here
 
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
