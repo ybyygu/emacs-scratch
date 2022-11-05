@@ -71,7 +71,9 @@
 
   :config
   ;; Don't complain about this command being disabled when we use it
-  (put 'dired-find-alternate-file 'disabled nil)
+  ;; 2022-11-05: 这个命令在 emacsclient 中应用确有问题, 会导致无法正常打开文件
+  ;; 参见: https://emacs.stackexchange.com/questions/59541/prevent-dired-find-alternate-file-from-killing-emacsclient
+  ;; (put 'dired-find-alternate-file 'disabled nil)
   ;; 安全第一
   (setq delete-by-moving-to-trash t))
 ;; f3b2a13e ends here
@@ -142,7 +144,7 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (define-key dired-mode-map (kbd "C-s") 'prot-dired-limit-regexp)
   (define-key dired-mode-map (kbd "C-r") 'dired-do-redisplay)
   (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
-  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+  (define-key dired-mode-map (kbd "RET") 'dired-find-file))
 
 (gwp::local-leader-def
   :keymaps 'dired-mode-map
@@ -153,12 +155,6 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   "!" '(dired-do-async-shell-command :which-key "Async shell command")
   "f" '(gwp::dired-fd :which-key "fd files"))
 ;; 5a48a92b ends here
-
-;; [[file:../gwp-scratch.note::c3710097][c3710097]]
-(with-eval-after-load 'wdired
-  (define-key dired-mode-map (kbd "C-c C-,") 'wdired-change-to-wdired-mode)
-  (define-key wdired-mode-map (kbd "C-c C-,") 'wdired-exit))
-;; c3710097 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-dired)
