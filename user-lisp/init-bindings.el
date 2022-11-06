@@ -105,13 +105,13 @@ If two universal prefix arguments are used, then prompt for command to use."
 
 ;; [[file:../gwp-scratch.note::92af756a][92af756a]]
 (gwp::leader-def
- "j" '(:ignore t :which-key "jump")
- "ja" '(gwp::avy-transient :which-key "jump using avy")
- "jl" '(avy-goto-line :which-key "avy goto line")
- "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
- "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
- "jc" '(gwp::hydra-last-change/body :which-key "last changed positions")
- )
+  "j" '(:ignore t :which-key "jump")
+  "ja" '(gwp::avy-transient :which-key "jump using avy")
+  "jl" '(avy-goto-line :which-key "avy goto line")
+  "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
+  "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
+  "jc" '(gwp::hydra-last-change/body :which-key "last changed positions")
+  )
 ;; 92af756a ends here
 
 ;; [[file:../gwp-scratch.note::826282dd][826282dd]]

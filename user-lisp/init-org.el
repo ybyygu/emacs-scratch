@@ -6,10 +6,11 @@
 (use-package org
   :ensure nil
   :commands (org-mode org-agenda org-capture)
-  ;; treat .note files as org-mode
-  :mode (("\\.note\\". org-mode)
-         ("NOTE". org-mode))
   :config
+  ;; treat .note files as org-mode
+  (add-to-list 'auto-mode-alist '("\\.note\\'" . org-mode))
+  (add-to-list 'auto-mode-alist '("NOTE" . org-mode))
+
   (setq org-blank-before-new-entry nil)
   (setq org-default-notes-file (concat org-directory "/life.note"))
 
