@@ -151,7 +151,7 @@ If two universal prefix arguments are used, then prompt for command to use."
 
 ;; [[file:../gwp-scratch.note::e7792733][e7792733]]
 (gwp::leader-def
- "h" '(:keymap help-map :which-key "Help" :package emacs))
+  "h" '(:keymap help-map :which-key "Help" :package emacs))
 
 ;; 可以查看不同 mode 下的按键绑定
 (bind-key "m" 'describe-keymap help-map)
@@ -160,6 +160,13 @@ If two universal prefix arguments are used, then prompt for command to use."
 (bind-key "V" 'apropos-value help-map)
 ;; default: describe-key-briefly
 (bind-key "c" 'describe-char help-map)
+
+;;;###autoload
+(defun gwp::help-show-major-mode-bindings ()
+  (interactive)
+  (let* ((keymap (concat (symbol-name major-mode) "-map")))
+    (which-key-show-keymap (intern-soft keymap))))
+(bind-key "b" 'gwp::help-show-major-mode-bindings help-map)
 ;; e7792733 ends here
 
 ;; [[file:../gwp-scratch.note::c54b17b5][c54b17b5]]
