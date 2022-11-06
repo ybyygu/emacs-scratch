@@ -986,7 +986,9 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
 (gwp::local-leader-def
  :keymaps 'org-agenda-mode-map
- "TAB"  #'org-next-link)
+ "TAB"  #'org-next-link
+ "RET" #'org-agenda-open-link
+ )
 ;; fc776ca8 ends here
 
 ;; [[file:../gwp-scratch.note::6f58facc][6f58facc]]
@@ -1149,7 +1151,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 
   (gwp::dwim-leader-def
     :keymaps 'org-src-mode-map
-    ;; "b" 'gwp/org-babel-tangle-dwim
+    "b" 'gwp::org-babel-tangle-dwim
     "q" 'org-edit-src-exit
     ))
 ;; 27b71342 ends here

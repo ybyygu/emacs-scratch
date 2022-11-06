@@ -108,6 +108,12 @@
 
 (eval-after-load 'rust-mode
   '(require 'smartparens-rust))
+
+(use-package smartparens
+  :after rust-mode
+  :config
+  ;; rust 回车后自动格式化 {|}
+  (sp-local-pair 'rust-mode "{" nil :post-handlers '(:add ("||\n[i]" "RET"))))
 ;; a267f2ee ends here
 
 ;; [[file:../gwp-scratch.note::f2289888][f2289888]]

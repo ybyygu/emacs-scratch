@@ -214,7 +214,8 @@
          ;; 相当于选中文件弹出右键菜单
          ("C-;" . embark-act)
          ;; more like `ivy-occur'
-         ("C-c C-e" . embark-export)
+         ;; (:map minibuffer-mode-map
+         ;;       ("C-c C-e" . embark-export))
          ;; 相当于选中文件双击, 用处不大
          ;; ("C-." . embark-dwim)
          )
