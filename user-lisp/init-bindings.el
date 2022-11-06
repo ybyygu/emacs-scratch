@@ -42,7 +42,7 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; [[file:../gwp-scratch.note::f220a2a2][f220a2a2]]
 (gwp::leader-def
  "s" '(:ignore t :which-key "search")
- "ss" '(isearch-forward :which-key "search buffer")
+ "ss" '(consult-line :which-key "search buffer")
  "si" '(imenu :which-key "jump to symbol(imenu)")
  ;; gwp::rg 会虚拟命令, 待 consult remap
  "sd" '(gwp::rg :which-key "search directory")
@@ -93,8 +93,9 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; 45f27ad1 ends here
 
 ;; [[file:../gwp-scratch.note::860eb4b2][860eb4b2]]
-;; 可仿 vi :q
+;; 可仿 vi :q, :q
 (defalias 'q 'save-buffers-kill-terminal)
+(defalias 'wq 'save-buffers-kill-terminal)
 
 (gwp::leader-def
  "q" '(:ignore t :which-key "quit/session")

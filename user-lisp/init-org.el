@@ -750,13 +750,6 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; [[file:../gwp-scratch.note::05419467][05419467]]
 (require 'simpleclip)
 
-(defun gwp::find-file-from-clipboard ()
-  "打开 clipboard 中复制的文件路径"
-  (interactive)
-  (require 'find-file-in-project)
-  (let ((path (simpleclip-get-contents)))
-    (ffip-find-files path nil)))
-
 (defun gwp::search-org-notes (query)
   "Perform a text search on `org-directory'."
   (interactive
@@ -1103,8 +1096,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("ml" "make heading (after)" org-insert-heading-after-current)
    ("mt" "make todo (before)" org-insert-todo-heading)]
   ["property" :if org-at-heading-p
-   ("pp" "property" org-set-property)
-   ("pd" "delete property" org-delete-property)
+   ("sp" "property" org-set-property)
+   ("sd" "delete property" org-delete-property)
    ]
   ["item" :if org-at-item-p
    ("i" "insert item" gwp::new-item-time-stamp)
@@ -1172,8 +1165,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; 文件按 C-c C-< 或 C-c C-> 调整 heading level
 (unbind-key "C-c <" 'org-mode-map)
 (unbind-key "C-c >" 'org-mode-map)
-(bind-key "C-c >" 'org-demote-subtree)
-(bind-key "C-c <" 'org-promote-subtree)
+(bind-key "C-c >" 'org-demote-subtree org-mode-map)
+(bind-key "C-c <" 'org-promote-subtree org-mode-map)
 
 (gwp::local-leader-def
   :keymaps 'org-mode-map

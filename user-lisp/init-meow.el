@@ -61,6 +61,18 @@
   (call-interactively #'gwp::meow-change-to-the-end))
 ;; 4e63ecbf ends here
 
+;; [[file:../gwp-scratch.note::802d8bd9][802d8bd9]]
+(require 'avy)
+
+;;;###autoload
+(defun gwp::avy-meow-find ()
+  "Jump to one of the current meow find candidates."
+  (interactive)
+  (let* ((isearch-regexp t)
+         (isearch-string (car regexp-search-ring)))
+    (call-interactively #'avy-isearch)))
+;; 802d8bd9 ends here
+
 ;; [[file:../gwp-scratch.note::00b73661][00b73661]]
 ;;;###autoload
 (defun meow/setup-states ()
@@ -157,7 +169,7 @@
    ;; 特殊功能
    ;; '("q" . meow-quit)               ; 退出window 或 buffer
    '("q" . quit-window)             ; 退出window 或 buffer
-   '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
+   ;; '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
    '(";" . meow-comment)            ; 相当于 M-;
    '("]" . sp-unwrap-sexp)
    '("R" . sp-unwrap-sexp)          ; 比] 容易按一些
@@ -165,6 +177,7 @@
    '("$" . ispell-word)
    '("=" . count-words-region)      ; 默认为 M-=
    '("z" . repeat)                  ; 重复上一个命令; 默认为 C-x z
+   '("`" . gwp::avy-meow-find)      ; 使用 avy 来跳转到搜索项
    '("Z" . repeat-complex-command)  ; 重复上一个需要 minibuffer 输入的命令
    ;; TODO
    ;; "F"
@@ -172,9 +185,9 @@
    ;; "W"
    ;; "T"
    ;; "Y"
-   ;; "?"
    ;; "["
    ;; "|"
+   ;; "'"
    ;; "~"
    ;; "!"
    ;; "@"

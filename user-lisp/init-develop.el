@@ -14,6 +14,19 @@
 (add-hook 'with-editor-mode-hook 'meow-insert-mode)
 ;; 24325443 ends here
 
+;; [[file:../gwp-scratch.note::4c0b6f58][4c0b6f58]]
+(use-package isearch
+  :ensure nil
+  :requires avy
+  :config
+  :bind
+  (:map search-map
+        ("`" . avy-isearch))
+  (:map isearch-mode-map
+        ("C-c j" . avy-isearch)
+        ("C-c C-j" . avy-isearch)))
+;; 4c0b6f58 ends here
+
 ;; [[file:../gwp-scratch.note::81cb1ab5][81cb1ab5]]
 (use-package find-file-in-project
   :config

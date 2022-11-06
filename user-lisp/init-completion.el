@@ -114,8 +114,6 @@
   :bind (
          ([remap apropos-command] . consult-apropos) ; SPC-h-a
          ;; avy-goto-line 更好用
-         ;; ([remap goto-line] . consult-goto-line)
-         ([remap isearch-forward] . consult-line)
          ([remap yank-pop] . consult-yank-pop)
          ([remap repeat-complex-command] . consult-complex-command)
          ([remap recentf-open-files] . consult-recent-file)
