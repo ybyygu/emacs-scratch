@@ -1138,6 +1138,126 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   ","  #'(gwp::org-menu-at-point :which-key "context menu"))
 ;; e13e8c0f ends here
 
+;; [[file:../gwp-scratch.note::d737c18e][d737c18e]]
+;; (setq org-export-backends '(ascii html icalendar latex odt md))
+(require 'ox-md)
+;; d737c18e ends here
+
+;; [[file:../gwp-scratch.note::*zotero/export][zotero/export:1]]
+(with-eval-after-load 'org-compat
+  (defun gwp/org-zotero-export (path desc format)
+    "Create the export version of zotero link specified by PATH and
+DESC. FORMATs understood are 'odt','latex and 'html."
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"zotero:%s\">%s</a>" path desc))
+     ((eq format 'latex)
+      (format "\\href{zotero:%s}{%s}" path desc))
+     ((eq format 'odt)
+      ;; (format "<text:a xlink:type=\"simple\" xlink:href=\"zotero:%s\">%s</text:a>" path desc)
+      (gwp/org-zotero-export-odt path desc))
+     (t desc))))
+
+;;;; The magic string of zitem:
+;; ZOTERO_ITEM CSL_CITATION
+;; {
+;; "properties": {
+;; "formattedCitation": "[1]",
+;; "plainCitation": "[1]"
+;; },
+;; "citationItems": [
+;;                   {
+;;                   "uri": [
+;;                           "http://zotero.org/users/15074/items/S5JM4V35"
+;;                           ]
+;;                   }
+;;                   ],
+;; "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+;; } %s-rnd
+
+;; adopted from https://www.mail-archive.com/emacs-orgmode@gnu.org/msg48905.html
+(defun gwp/org-zotero-export-odt (path desc)
+  (let
+      ((refmark "<text:reference-mark-start text:name=\"%s\"/>%s<text:reference-mark-end text:name=\"%s\"/>")
+       (zitem "ZOTERO_ITEM CSL_CITATION {
+    &quot;properties&quot;: {
+        &quot;formattedCitation&quot;: &quot;%s&quot;,
+        &quot;plainCitation&quot;: &quot;%s&quot;
+    },
+    &quot;citationItems&quot;: [
+        {
+            &quot;uri&quot;: [
+                &quot;http://zotero.org/users/15074/items/%s&quot;
+            ]
+        }
+    ],
+    &quot;schema&quot;: &quot;https://github.com/citation-style-language/schema/raw/master/csl-citation.json&quot;
+} %s ")
+
+       (item-key (car (cdr (split-string path "_"))))
+       (rnd (concat "RND" (substring (org-id-new) -10))))
+    (setq zitem
+          (format zitem
+                  desc
+                  desc
+                  item-key
+                  rnd)
+          )
+    (setq desc (format "%s" desc))
+    (format refmark zitem desc zitem))
+  )
+;; zotero/export:1 ends here
+
+;; [[file:../gwp-scratch.note::8fc79737][8fc79737]]
+(use-package ox-odt
+  :ensure nil
+  :config
+  (progn
+    ;; continually numbering captions without outline level
+    (setq org-odt-display-outline-level 0)
+
+    ;; useful for odt export using dvipng
+    (setq org-format-latex-options (plist-put org-format-latex-options :html-scale 3.0))
+    (setq org-odt-pixels-per-inch 300.0)))
+;; 8fc79737 ends here
+
+;; [[file:../gwp-scratch.note::*odt export][odt export:2]]
+;; adopted from https://github.com/tumashu/emacs-helper/blob/master/eh-org.el
+(defun gwp/clear-unwanted-space (text)
+  "clear unwanted space when exporting org-mode to other formats"
+  (let ((regexp "[[:multibyte:]]")
+        (string text))
+    ;; org-mode 默认将一个换行符转换为空格，但中文不需要这个空格，删除。
+    (setq string
+          (replace-regexp-in-string
+           (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp)
+           "\\1\\2" string))
+    ;; 删除粗体之后的空格
+    (dolist (str '("</b>" "</code>" "</del>" "</i>"))
+      (setq string
+            (replace-regexp-in-string
+             (format "\\(%s\\)\\(%s\\)[ ]+\\(%s\\)" regexp str regexp)
+             "\\1\\2\\3" string)))
+    ;; 删除粗体之前的空格
+    (dolist (str '("<b>" "<code>" "<del>" "<i>" "<span class=\"underline\">"))
+      (setq string
+            (replace-regexp-in-string
+             (format "\\(%s\\)[ ]+\\(%s\\)\\(%s\\)" regexp str regexp)
+             "\\1\\2\\3" string)))
+    string)
+  )
+
+(defun gwp/ox-odt-wash-text (text backend info)
+  "导出 org file 时，删除中文之间不必要的空格。"
+  (when (org-export-derived-backend-p backend 'odt 'html 'latex)
+    (gwp/clear-unwanted-space text)
+    )
+  )
+
+(add-hook 'org-export-filter-headline-functions #'gwp/ox-odt-wash-text)
+(add-hook 'org-export-filter-paragraph-functions #'gwp/ox-odt-wash-text)
+;; odt export:2 ends here
+
 ;; [[file:../gwp-scratch.note::27b71342][27b71342]]
 (use-package org
   :config
