@@ -203,12 +203,17 @@
       (setq ispell-alternate-dictionary (file-truename dict)))))
 ;; corfu:2 ends here
 
-;; [[file:../gwp-scratch.note::74ebe55a][74ebe55a]]
+;; [[file:../gwp-scratch.note::1ae6031b][1ae6031b]]
 ;; 补全窗口显示补助等信息
 (use-package marginalia
+  :custom
+  ;; 默认仅80, 文档有时显示不全
+  (marginalia-field-width 160)
   :config
   (marginalia-mode))
+;; 1ae6031b ends here
 
+;; [[file:../gwp-scratch.note::74ebe55a][74ebe55a]]
 (use-package embark
   :bind (
          ;; 相当于选中文件弹出右键菜单

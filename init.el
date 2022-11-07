@@ -57,9 +57,9 @@
 
 (unless init-no-x-flag
   (require 'init-org)
-  (require 'init-develop)
   (require 'init-note)
   (require 'init-eaf))
+(require 'init-develop)
 (require 'init-completion)
 (require 'init-chemistry)
 (require 'init-bindings)

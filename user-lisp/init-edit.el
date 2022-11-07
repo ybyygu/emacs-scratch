@@ -8,6 +8,9 @@
   "M-l" #'downcase-dwim
   "M-c" #'capitalize-dwim
   )
+;; 原用于 downcase-region, upcase-region. 可释放
+(global-unset-key (kbd "C-x C-l"))
+(global-unset-key (kbd "C-x C-u"))
 ;; b76494d2 ends here
 
 ;; [[file:../gwp-scratch.note::28526451][28526451]]
@@ -108,6 +111,19 @@
   "C-o" #'cycle-spacing
   )
 ;; 989c4b3c ends here
+
+;; [[file:../gwp-scratch.note::4c0b6f58][4c0b6f58]]
+(use-package isearch
+  :ensure nil
+  :requires avy
+  :config
+  :bind
+  (:map search-map
+        ("`" . avy-isearch))
+  (:map isearch-mode-map
+        ("C-c j" . avy-isearch)
+        ("C-c C-j" . avy-isearch)))
+;; 4c0b6f58 ends here
 
 ;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
 (gwp::goto-leader-def

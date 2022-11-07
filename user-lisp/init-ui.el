@@ -453,6 +453,7 @@ Assumes that the frame is only split into two."
  "j" #'windmove-down
  "k" #'windmove-up
  "l" #'windmove-right
+ "L" #'gwp::toggle-frame-split
  "d" #'delete-window
  "q" #'delete-window
  "=" #'balance-windows

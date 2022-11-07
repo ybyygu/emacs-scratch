@@ -52,6 +52,9 @@
   ;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
   (setq org-fontify-emphasized-text nil)
 
+  ;; 默认为 ...
+  (setq org-ellipsis "⤵")
+
   ;; 表格中文混排更整齐些
   ;; (custom-set-faces
   ;;  '(org-table ((t (:family "Ubuntu Mono")))))

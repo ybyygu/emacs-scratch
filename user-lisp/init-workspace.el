@@ -173,15 +173,16 @@ Argument E is a mouse event used by `mouse-set-point'."
   (transient-define-prefix gwp::bookmark-transient ()
     "visual bookmarks"
     ["Edit bookmarks:"
-     ("b" "Toggle bookmarks" bm-toggle :transient t)
+     ("b" "Toggle bookmarks" bm-toggle)
      ("e" "Setting bookmarks based on a regexp" bm-bookmark-regexp)
      ("d" "Remove all bookmarks in current buffer" bm-remove-all-current-buffer)
      ("a" "Annotate bookmarks" bm-bookmark-annotate)
      ("s" "Save bookmarks" bm-buffer-save)
      ]
     ["Navigate bookmarks"
-     ("n" "Next bookmark" bm-next :transient t)
-     ("p" "Prev bookmark" bm-previous :transient t)
+     ;; 以下不设置 :transient, 按z 键 repeat 更方便些
+     ("n" "Next bookmark" bm-next)
+     ("p" "Prev bookmark" bm-previous)
      ]
     )
   :bind (
