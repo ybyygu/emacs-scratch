@@ -184,7 +184,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "tr" '(read-only-mode :which-key "read only")
  "tw" '(visual-line-mode :which-key "soft line wrapping")
  "tl" '(gwp::toggle-line-numbers :which-key "display line numbers")
- "tg" '(golden-ratio-mode :which-key "auto zoom window")
+ "tg" '(gwp::toggle-golden-ratio :which-key "auto zoom window")
  )
 ;; 703c9a6f ends here
 

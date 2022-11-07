@@ -191,6 +191,109 @@ Argument E is a mouse event used by `mouse-set-point'."
          ))
 ;; ebe60f2d ends here
 
+;; [[file:../gwp-scratch.note::fc2cdcbf][fc2cdcbf]]
+;; credit: doom/tools/tmux
+;;
+(defvar +tmux-last-command nil
+  "The last command ran by `+tmux'. Used by `+tmux/rerun'")
+
+(defvar +tmux-last-retcode nil
+  "The last tmux return code.")
+
+;;
+;; Commands
+
+;;;###autoload
+(defun +tmux (command &rest args)
+  "Execute COMMAND in tmux"
+  (let ((bin (executable-find "tmux")))
+    (unless bin
+      (error "Could not find tmux executable"))
+    (let* ((args (mapcar #'shell-quote-argument (delq nil args)))
+           (cmdstr (format "%s %s" bin (if args (apply #'format command args) command)))
+           (output (get-buffer-create " *tmux stdout*"))
+           (errors (get-buffer-create " *tmux stderr*"))
+           code)
+      (unwind-protect
+          (if (= 0 (setq code (shell-command cmdstr output errors)))
+              (with-current-buffer output
+                (setq +tmux-last-command `(,(substring cmdstr (+ 1 (length bin))) ,@args))
+                (buffer-string))
+            (error "[%d] tmux $ %s (%s)"
+                   code
+                   (with-current-buffer errors
+                     (buffer-string))
+                   cmdstr))
+        (and (kill-buffer output)
+             (kill-buffer errors))))))
+
+;;;###autoload
+(defun +tmux/run (command &optional noreturn)
+  "Run COMMAND in tmux. If NORETURN is non-nil, send the commands as keypresses
+but do not execute them."
+  (interactive
+   (list (read-string "tmux $ ")
+         current-prefix-arg))
+  (+tmux (concat "send-keys C-u "
+                 (shell-quote-argument command)
+                 (unless noreturn " Enter"))))
+
+;;;###autoload
+(defun +tmux/send-region (beg end &optional noreturn)
+  "Send region to tmux."
+  (interactive (list (region-beginning)
+                     (region-end)
+                     current-prefix-arg))
+  (+tmux/run (string-trim (buffer-substring-no-properties beg end))
+             noreturn))
+
+;;;###autoload
+(defun +tmux/rerun ()
+  "Rerun the last command executed by `+tmux' and `+tmux/run'."
+  (interactive)
+  (unless +tmux-last-command
+    (user-error "No last command to run"))
+  (apply #'+tmux +tmux-last-command))
+
+;;;###autoload
+(defun +tmux/cd (&optional directory noreturn)
+  "Change the pwd of the currently active tmux pane to DIRECTORY.
+
+DIRECTORY defaults to `default-directory' if omitted, or to `doom-project-root'
+if prefix arg is non-nil.
+
+If NORETURN is non-nil, send the cd command to tmux, but do not execute the
+command."
+  (interactive "D")
+  (+tmux/run (format "cd %S" (or directory default-directory))
+             noreturn))
+
+;;;###autoload
+(defun +tmux/cd-to-here ()
+  "cd into `default-directory' in tmux."
+  (interactive)
+  (+tmux/cd default-directory))
+;; fc2cdcbf ends here
+
+;; [[file:../gwp-scratch.note::90e483a3][90e483a3]]
+;;;###autoload
+(defun gwp::tmux-open-vertical ()
+  "Open a vertical pane."
+  (interactive)
+  (+tmux "split-window -h -p 40"))
+
+;;;###autoload
+(defun gwp::tmux-open-horizontal ()
+  "Open a horizontal pane."
+  (interactive)
+  (+tmux "split-window -v -p 40"))
+
+(when init-no-x-flag
+  (bind-keys :map gwp::open-map
+             ("t" . gwp::tmux-open-horizontal)
+             ("v" . gwp::tmux-open-vertical)))
+;; 90e483a3 ends here
+
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
 (unbind-key "C-x C-p")
 ;; f95a72e3 ends here

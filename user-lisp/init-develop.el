@@ -170,6 +170,10 @@
   ;; (define-key gwp::symbol-overlay-map (kbd "q") 'symbol-overlay-query-replace)
   ;; (define-key gwp::symbol-overlay-map (kbd "r") 'symbol-overlay-rename)
   ;; 以下命令仅在高亮区域外才用得上
+  ;; (add-hook 'symbol-overlay-mode-hook #'org-mark-jump-unhide)
+  (advice-add #'symbol-overlay-jump-next :after #'gwp::goto-line-unhide)
+  (advice-add #'symbol-overlay-jump-prev :after #'gwp::goto-line-unhide)
+
   (transient-define-prefix gwp::symbol-overlay-transient ()
     "citre tags"
     ["View:"

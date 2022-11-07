@@ -4,7 +4,9 @@
   :type 'boolean)
 
 ;; 自动检测, 自动设置
-(and (fboundp 'x-create-frame) (getenv "DISPLAY")
+(and (fboundp 'x-create-frame)
+     (getenv "DISPLAY")
+     (display-graphic-p)
      (setq init-no-x-flag nil))
 ;; ec81fe51 ends here
 
@@ -23,8 +25,9 @@
         ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
         ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 
+(package-initialize)
 (unless init-no-x-flag
-  (package-initialize)
+  (setq use-package-always-ensure t)
   (unless package-archive-contents
     (package-refresh-contents)))
 
@@ -33,7 +36,6 @@
   (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
 ;; 158fcd0c ends here
 
 ;; [[file:gwp-scratch.note::07c1e867][07c1e867]]

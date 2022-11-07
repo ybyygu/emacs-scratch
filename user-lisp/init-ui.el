@@ -309,10 +309,6 @@
   (switch-to-buffer-other-frame (current-buffer)))
 ;; 19e08aef ends here
 
-;; [[file:../gwp-scratch.note::bfacbb8e][bfacbb8e]]
-(use-package golden-ratio)
-;; bfacbb8e ends here
-
 ;; [[file:../gwp-scratch.note::9a32eb12][9a32eb12]]
 ;; 新建frame时最大化窗口
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -371,14 +367,29 @@ Call a second time to restore the original window configuration."
 
 (general-define-key
  :prefix-map 'gwp::window-map
- "z"       #'golden-ratio
- "g"       #'golden-ratio
  "1"       #'gwp::toggle-maximize-window
  "o"       #'gwp::toggle-maximize-window     ; show "only"
  "t"       #'gwp::maximize-window-vertically ; show top
- "`"       #'sanityinc/split-window
- )
+ "`"       #'sanityinc/split-window)
 ;; 9a32eb12 ends here
+
+;; [[file:../gwp-scratch.note::abf44a6d][abf44a6d]]
+(use-package golden-ratio
+  :custom
+  (golden-ratio-wide-adjust-factor 1.2)
+  :config
+  ;;;###autoload
+  (defun gwp::toggle-golden-ratio ()
+    (interactive)
+    ;; 切换前先放大当前窗口
+    (unless golden-ratio-mode
+      (call-interactively #'golden-ratio))
+    (call-interactively #'golden-ratio-mode))
+  (general-define-key
+   :prefix-map 'gwp::window-map
+   "z"       #'golden-ratio-toggle-widescreen
+   "g"       #'golden-ratio))
+;; abf44a6d ends here
 
 ;; [[file:../gwp-scratch.note::1429fad5][1429fad5]]
 (setq split-width-threshold 200)        ; default is 160
