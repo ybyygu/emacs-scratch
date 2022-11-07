@@ -1,6 +1,11 @@
 ;; [[file:gwp-scratch.note::ec81fe51][ec81fe51]]
-(defvar init-no-x-flag nil
-  "for running in remote ssh server no X display")
+(defcustom init-no-x-flag t
+  "for running in remote ssh server no X display"
+  :type 'boolean)
+
+;; 自动检测, 自动设置
+(and (fboundp 'x-create-frame) (getenv "DISPLAY")
+     (setq init-no-x-flag nil))
 ;; ec81fe51 ends here
 
 ;; [[file:gwp-scratch.note::158fcd0c][158fcd0c]]

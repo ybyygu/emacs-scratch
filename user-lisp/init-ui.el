@@ -309,21 +309,6 @@
   (switch-to-buffer-other-frame (current-buffer)))
 ;; 19e08aef ends here
 
-;; [[file:../gwp-scratch.note::bf66c13f][bf66c13f]]
-(require 'ivy)
-
-(defvar gwp::ivy-buffer-actions
-  '(("j" switch-to-buffer-other-window "other window")
-    ("x" counsel-open-buffer-file-externally "open externally")
-    ("k" ivy--kill-buffer-action "kill")
-    ("r" ivy--rename-buffer-action "rename")
-    ("t" switch-to-buffer-other-tab "other tab")     ; 默认没有
-    ("f" switch-to-buffer-other-frame "other frame") ; 默认没有
-    )
-  "Default ivy actions for files.")
-(ivy-set-actions 'ivy-switch-buffer gwp::ivy-buffer-actions)
-;; bf66c13f ends here
-
 ;; [[file:../gwp-scratch.note::bfacbb8e][bfacbb8e]]
 (use-package golden-ratio)
 ;; bfacbb8e ends here

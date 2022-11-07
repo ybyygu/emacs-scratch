@@ -979,6 +979,9 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 ;; (unbind-key "j" org-agenda-mode-map)
 ;; (unbind-key "k" org-agenda-mode-map)
 
+;; org-agenda-add-note
+;; (unbind-key "z" org-agenda-mode-map)
+
 (bind-key "j" #'org-agenda-next-line org-agenda-mode-map)
 (bind-key "k" #'org-agenda-previous-line org-agenda-mode-map)
 (bind-key "h" #'backward-char org-agenda-mode-map)

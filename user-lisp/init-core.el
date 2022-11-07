@@ -2,6 +2,12 @@
 ;; -*- lexical-binding: t; -*-
 ;; 4cd1adaf ends here
 
+;; [[file:../gwp-scratch.note::6c574db8][6c574db8]]
+;; 本地使用时不生成 backup~ 文件, 但在服务器端有必要.
+(unless init-no-x-flag
+  (customize-set-variable 'make-backup-files nil))
+;; 6c574db8 ends here
+
 ;; [[file:../gwp-scratch.note::20ff3f1b][20ff3f1b]]
 (use-package crux
   :config
