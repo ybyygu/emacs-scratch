@@ -174,6 +174,10 @@
   (advice-add #'symbol-overlay-jump-next :after #'gwp::goto-line-unhide)
   (advice-add #'symbol-overlay-jump-prev :after #'gwp::goto-line-unhide)
 
+  ;; 方便 hjkl 移动
+  (unbind-key "h" symbol-overlay-map)
+  (bind-key "?" #'symbol-overlay-map-help symbol-overlay-map)
+
   (transient-define-prefix gwp::symbol-overlay-transient ()
     "citre tags"
     ["View:"
