@@ -84,30 +84,11 @@ Otherwise delete one character."
 
 ;; [[file:../gwp-scratch.note::62d090d7][62d090d7]]
 (use-package zoxide
-  :custom
-  ;; related issues:
-  ;; 1. https://gitlab.com/Vonfry/zoxide.el/-/issues/3
-  ;; 2. https://github.com/ajeetdsouza/zoxide/issues/421
-  (zoxide-get-path-function
-   (lambda (&rest _) (expand-file-name default-directory)))
-  :hook
-  ((find-file
-    consult-find-file
-    dired-after-readin) . zoxide-add)
-
-  :config
-  ;; 需要保留 zoxide 目录的次序
-;;;###autoload
-  (defun gwp::zoxide-travel ()
-    (interactive)
-    (let ((vertico-sort-function nil))
-      ;; do not sort candidates
-      (call-interactively #'zoxide-travel)))
-
+  :ensure nil
+  :commands (gwp::recent-dirs)
   :bind
   (:map gwp::develop-map
-        ("r" . gwp::zoxide-travel)
-        ))
+        ("r" . gwp::recent-dirs)))
 ;; 62d090d7 ends here
 
 ;; [[file:../gwp-scratch.note::942579e1][942579e1]]
@@ -288,9 +269,15 @@ command."
   (interactive)
   (+tmux "split-window -v -p 40"))
 
+;;;###autoload
+(defun gwp::tmux-new-window ()
+  "Open a new window."
+  (interactive)
+  (+tmux "new-window"))
+
 (when init-no-x-flag
   (bind-keys :map gwp::open-map
-             ("t" . gwp::tmux-open-horizontal)
+             ("t" . gwp::tmux-new-window)
              ("v" . gwp::tmux-open-vertical)))
 ;; 90e483a3 ends here
 
