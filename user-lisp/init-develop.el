@@ -29,8 +29,6 @@
 ;; 81cb1ab5 ends here
 
 ;; [[file:../gwp-scratch.note::8970c514][8970c514]]
-(general-define-key :prefix-map 'gwp::magit-map)
-
 (use-package magit
   :demand t
   :unless init-no-x-flag
@@ -69,7 +67,7 @@
         ("u" . magit-pull)
         ("e" . magit-ediff-resolve)
         ("r" . magit-rebase-interactive)
-        ("." . magit-file-dispatch)
+        ("f" . magit-file-dispatch)
         :map magit-status-mode-map
         ;; ("j" . magit-next-line)
         ;; ("k" . magit-previous-line)
@@ -89,6 +87,17 @@
   ;; (magit-todos-mode)
   )
 ;; 8970c514 ends here
+
+;; [[file:../gwp-scratch.note::275df196][275df196]]
+(require 'yadm)
+
+(bind-key "." #'yadm-status gwp::magit-map)
+(bind-key "." #'yadm-find-file gwp::develop-map)
+
+(gwp::local-leader-def
+  :keymaps 'dired-mode-map
+  "a" #'yadm-add-file)
+;; 275df196 ends here
 
 ;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]
 (use-package rust-mode)

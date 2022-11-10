@@ -51,17 +51,13 @@
 ;; 25771477 ends here
 
 ;; [[file:../gwp-scratch.note::edaec1b8][edaec1b8]]
-(general-define-key
- :prefix-map 'gwp::edit-map
- )
+(general-define-key :prefix-map 'gwp::edit-map)
 
-(general-define-key
- :prefix-map 'gwp::develop-map
- )
+(general-define-key :prefix-map 'gwp::develop-map)
 
-(general-define-key
- :prefix-map 'gwp::open-map
- )
+(general-define-key :prefix-map 'gwp::open-map)
+
+(general-define-key :prefix-map 'gwp::magit-map)
 ;; edaec1b8 ends here
 
 ;; [[file:../gwp-scratch.note::afede203][afede203]]
