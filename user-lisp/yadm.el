@@ -5,7 +5,7 @@
 (use-package tramp
   :ensure nil
   :config
-  (setenv "SHELL" (executable-find "bash"))
+  ;; (setenv "SHELL" (executable-find "bash"))
   (unless (assoc-default "yadm" tramp-methods)
     ;; https://github.com/TheLocehiliosan/yadm/blob/master/yadm.md#commands
     (add-to-list 'tramp-methods
