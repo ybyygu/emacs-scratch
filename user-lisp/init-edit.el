@@ -44,6 +44,46 @@
   )
 ;; 28526451 ends here
 
+;; [[file:../gwp-scratch.note::500a7c61][500a7c61]]
+;; https://github.com/manateelazycat/delete-block/blob/master/delete-block.el
+(require 'subword)
+
+(defun delete-block-forward ()
+  (interactive)
+  (if (eobp)
+      (message "End of buffer")
+    (let* ((syntax-move-point
+            (save-excursion
+              (skip-syntax-forward (string (char-syntax (char-after))))
+              (point)
+              ))
+           (subword-move-point
+            (save-excursion
+              (subword-forward)
+              (point))))
+      (kill-region (point) (min syntax-move-point subword-move-point)))))
+
+(defun delete-block-backward ()
+  (interactive)
+  (if (bobp)
+      (message "Beginning of buffer")
+    (let* ((syntax-move-point
+            (save-excursion
+              (skip-syntax-backward (string (char-syntax (char-before))))
+              (point)
+              ))
+           (subword-move-point
+            (save-excursion
+              (subword-backward)
+              (point))))
+      (kill-region (point) (max syntax-move-point subword-move-point)))))
+
+(gwp::text-edit-def
+  "M-d" #'delete-block-forward
+  "M-<backspace>" #'delete-block-backward
+  )
+;; 500a7c61 ends here
+
 ;; [[file:../gwp-scratch.note::c84fab18][c84fab18]]
 (use-package avy
   :config

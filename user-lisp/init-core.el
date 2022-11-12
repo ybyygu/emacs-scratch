@@ -492,6 +492,13 @@
         (doom-auto-revert-buffer-h)))))
 ;; 2bf53d30 ends here
 
+;; [[file:../gwp-scratch.note::41f7e044][41f7e044]]
+(require 'server)
+(unless (server-running-p)
+  (message "Starting a server...")
+  (server-start))
+;; 41f7e044 ends here
+
 ;; [[file:../gwp-scratch.note::7b0203a1][7b0203a1]]
 (provide 'init-core)
 ;; 7b0203a1 ends here
