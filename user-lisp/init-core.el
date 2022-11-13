@@ -443,54 +443,22 @@
   (save-interprogram-paste-before-kill t))
 ;; dda75ec0 ends here
 
-;; [[file:../gwp-scratch.note::2bf53d30][2bf53d30]]
+;; [[file:../gwp-scratch.note::a2046c14][a2046c14]]
 (use-package autorevert
   :ensure nil
-  ;; revert buffers when their files/state have changed
-  :hook (focus-in . doom-auto-revert-buffers-h)
-  :hook (after-save . doom-auto-revert-buffers-h)
-  :hook (doom-switch-buffer . doom-auto-revert-buffer-h)
-  :hook (doom-switch-window . doom-auto-revert-buffer-h)
-  :config
-  (setq auto-revert-verbose t ; let us know when it happens
-        auto-revert-use-notify nil
-        auto-revert-stop-on-user-input nil
-        ;; Only prompts for confirmation when buffer is unsaved.
-        revert-without-query (list "."))
-
-  ;; `auto-revert-mode' and `global-auto-revert-mode' would, normally, abuse the
-  ;; heck out of file watchers _or_ aggressively poll your buffer list every X
-  ;; seconds. Too many watchers can grind Emacs to a halt if you preform
-  ;; expensive or batch processes on files outside of Emacs (e.g. their mtime
-  ;; changes), and polling your buffer list is terribly inefficient as your
-  ;; buffer list grows into the hundreds.
-  ;;
-  ;; Doom does this lazily instead. i.e. All visible buffers are reverted
-  ;; immediately when a) a file is saved or b) Emacs is refocused (after using
-  ;; another app). Meanwhile, buried buffers are reverted only when they are
-  ;; switched to. This way, Emacs only ever has to operate on, at minimum, a
-  ;; single buffer and, at maximum, ~10 buffers (after all, when do you ever
-  ;; have more than 10 windows in any single frame?).
-  (defun doom-auto-revert-buffer-h ()
-    "Auto revert current buffer, if necessary."
-    (unless (or auto-revert-mode (active-minibuffer-window))
-      (let ((auto-revert-mode t))
-        (auto-revert-handler))))
-
-  (defun doom-visible-buffers (&optional buffer-list)
-    "Return a list of visible buffers (i.e. not buried)."
-    (let ((buffers (delete-dups (mapcar #'window-buffer (window-list)))))
-      (if buffer-list
-          (cl-delete-if (lambda (b) (memq b buffer-list))
-			buffers)
-	(delete-dups buffers))))
-
-  (defun doom-auto-revert-buffers-h ()
-    "Auto revert stale buffers in visible windows, if necessary."
-    (dolist (buf (doom-visible-buffers))
-      (with-current-buffer buf
-        (doom-auto-revert-buffer-h)))))
-;; 2bf53d30 ends here
+  :defer 5
+  :commands (global-auto-revert-mode auto-revert-mode)
+  :hook ((after-init . global-auto-revert-mode)
+         ;; (dired-mode . auto-revert-mode)
+         )
+  :custom
+  ;; 忽略 dired 等特殊 buffer
+  (global-auto-revert-non-file-buffers nil)
+  (auto-revert-verbose t)
+  (auto-revert-use-notify nil)
+  ;; Only prompts for confirmation when buffer is unsaved.
+  (revert-without-query (list ".")))
+;; a2046c14 ends here
 
 ;; [[file:../gwp-scratch.note::41f7e044][41f7e044]]
 (require 'server)

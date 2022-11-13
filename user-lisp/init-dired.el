@@ -57,7 +57,7 @@
   ;; of the current subdir of this dired buffer. The target is used
   ;; in the prompt for file copy, rename etc.
   (dired-dwim-target t)
-  (dired-auto-revert-buffer t)          ; don't prompt to revert; just do it
+  ;; (dired-auto-revert-buffer t)          ; don't prompt to revert; just do it
   (dired-recursive-copies  'always)
   (dired-recursive-deletes 'top)
 
@@ -103,6 +103,14 @@
 ;; 241e0f16 ends here
 
 ;; [[file:../gwp-scratch.note::8903fab8][8903fab8]]
+(defun gwp::dired-do-kill-lines ()
+  "清除清前文件或标记的文件"
+  (interactive)
+  (call-interactively #'dired-mark)
+  (call-interactively #'dired-do-kill-lines))
+
+;; (add-to-list 'global-auto-revert-ignore-modes 'dired-mode)
+
 ;; credit: https://protesilaos.com/emacs/denote#h:d35d8d41-f51b-4139-af8f-9c8cc508e35b
 (defvar prot-dired--limit-hist '()
   "Minibuffer history for `prot-dired-limit-regexp'.")
@@ -124,9 +132,11 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
              "matching PATTERN: ")
      nil 'prot-dired--limit-hist)
     current-prefix-arg))
-  (dired-mark-files-regexp regexp)
-  (unless omit (dired-toggle-marks))
-  (dired-do-kill-lines))
+  ;; 保持 filter buffer 固定, 避免更新
+  (let ((dired-auto-revert-buffer nil))
+    (dired-mark-files-regexp regexp)
+    (unless omit (dired-toggle-marks))
+    (dired-do-kill-lines)))
 ;; 8903fab8 ends here
 
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
@@ -137,12 +147,10 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   (define-key dired-mode-map (kbd "k") 'dired-previous-line)
   (define-key dired-mode-map (kbd "h") 'dired-up-directory)
   (define-key dired-mode-map (kbd "l") 'dired-view-file)
-  (define-key dired-mode-map (kbd "K") 'dired-do-kill-lines) ; 移除 dired buffer 中标记的行, 不影响真实文件, 相当于过滤
+  (define-key dired-mode-map (kbd "K") 'gwp::dired-do-kill-lines) ; 移除 dired buffer 中标记的行, 不影响真实文件, 相当于过滤
   (define-key dired-mode-map (kbd "C-S-n") 'dired-create-directory)
   (define-key dired-mode-map (kbd "C-S-f") 'dired-create-empty-file)
   ;; 像 nautilus 中一样处理
-  (define-key dired-mode-map (kbd "C-s") 'prot-dired-limit-regexp)
-  (define-key dired-mode-map (kbd "C-r") 'dired-do-redisplay)
   (define-key dired-mode-map (kbd "DEL") 'dired-up-directory)
   (define-key dired-mode-map (kbd "RET") 'dired-find-file))
 
@@ -150,8 +158,9 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   :keymaps 'dired-mode-map
   "y" '(gwp::dired-copy-file-path :which-key "Copy file path")
   "h" '(dired-omit-mode :which-key "toggle hidden files")
-  ;; "r" '(dired-toggle-read-only :which-key "edit file names (wdired)")
   "t" '(dired-hide-details-mode :which-key "hide details")
+  "r" '(revert-buffer-quick :which-key "revert buffer")
+  "s" '(prot-dired-limit-regexp :which-key "filter")
   "!" '(dired-do-async-shell-command :which-key "Async shell command")
   "f" '(gwp::dired-fd :which-key "fd files"))
 ;; 5a48a92b ends here
