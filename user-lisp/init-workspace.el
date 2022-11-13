@@ -60,26 +60,18 @@ Otherwise delete one character."
 (bind-keys :map eshell-mode-map
            ("C-c t" . gwp::eshell-insert-scp))
 
-(bind-keys :map gwp::open-map
-           ("f" . make-frame)
-           ("e" . gwp::open-eshell-here))
+(defun gwp::open-in-x-terminal (the-directory)
+  (let ((process-connection-type nil))
+    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")))
 
-(unless init-no-x-flag
-  (defun gwp/open-in-gnome-terminal (the-directory)
-    "Open `the-directory' in external gnome-terminal."
-    (let ((process-connection-type nil))
-      (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")))
-
-  (defun gwp::open-terminal-here ()
-    "Open the current dir in a new terminal window"
-    (interactive)
-    (let ((default-directory (or (and (eq major-mode 'dired-mode)
-                                      (dired-current-directory))
-                                 default-directory)))
-      (gwp/open-in-gnome-terminal (expand-file-name default-directory))))
-
-  (bind-keys :map gwp::open-map
-             ("t" . gwp::open-terminal-here)))
+;;;###autoload
+(defun gwp::open-terminal-here ()
+  "Open the current dir in a new terminal window"
+  (interactive)
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
+    (gwp::open-in-x-terminal (expand-file-name default-directory))))
 ;; 36ca6867 ends here
 
 ;; [[file:../gwp-scratch.note::62d090d7][62d090d7]]
@@ -275,10 +267,10 @@ command."
   (interactive)
   (+tmux "new-window"))
 
-(when init-no-x-flag
-  (bind-keys :map gwp::open-map
-             ("t" . gwp::tmux-new-window)
-             ("v" . gwp::tmux-open-vertical)))
+;; (unless (display-graphic-p)
+;;   (bind-keys :map gwp::open-map
+;;              ("t" . gwp::tmux-new-window)
+;;              ("v" . gwp::tmux-open-vertical)))
 ;; 90e483a3 ends here
 
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]

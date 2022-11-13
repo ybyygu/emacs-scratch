@@ -55,7 +55,7 @@
 
 (general-define-key :prefix-map 'gwp::develop-map)
 
-(general-define-key :prefix-map 'gwp::open-map)
+;; (general-define-key :prefix-map 'gwp::open-map)
 
 (general-define-key :prefix-map 'gwp::magit-map)
 ;; edaec1b8 ends here

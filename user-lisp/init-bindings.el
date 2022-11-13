@@ -116,8 +116,22 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; 92af756a ends here
 
 ;; [[file:../gwp-scratch.note::826282dd][826282dd]]
+(transient-define-prefix gwp::open-transient ()
+  ["core"
+   ("f" "new frame" make-frame)
+   ("e" "eshell" gwp::open-eshell-here)
+   ]
+  ["tmux" :if-not display-graphic-p
+   ("t" "tmux window" gwp::tmux-new-window)
+   ("v" "tmux vertical split" gwp::tmux-open-vertical)
+   ]
+  ["normal" :if display-graphic-p
+   ("t" "tmux terminal" gwp::open-terminal-here)
+   ]
+  )
+
 (gwp::leader-def
-  "o" '(:keymap gwp::open-map :which-key "open" :package emacs))
+  "o" '(gwp::open-transient :which-key "open"))
 ;; 826282dd ends here
 
 ;; [[file:../gwp-scratch.note::574271f2][574271f2]]

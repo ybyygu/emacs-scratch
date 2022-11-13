@@ -260,7 +260,10 @@
 
 ;; [[file:../gwp-scratch.note::37628911][37628911]]
 (defun meow/setup-insert ()
-  (gwp::text-edit-def "C-v" #'gwp::yank-dwim))
+  (gwp::text-edit-def "C-v" #'gwp::yank-dwim)
+  ;; (gwp::text-edit-def "C-g" #'meow-insert-exit)
+  )
+(define-key meow-insert-state-keymap (kbd "C-g") #'meow-insert-exit)
 ;; 37628911 ends here
 
 ;; [[file:../gwp-scratch.note::9a723a5b][9a723a5b]]
