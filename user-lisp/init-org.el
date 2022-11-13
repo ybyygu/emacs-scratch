@@ -251,7 +251,7 @@ If on a:
   (browse-url url))
 
 ;; rust-modules
-(add-to-list 'load-path "/home/ybyygu/Workspace/Programming/emacs/rust-modules")
+;; (add-to-list 'load-path "/home/ybyygu/Workspace/Programming/emacs/rust-modules")
 (require 'zotero)
 
 (defun gwp/zotero-search-by-tag (name)
