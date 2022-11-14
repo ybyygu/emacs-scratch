@@ -100,17 +100,25 @@
 ;; 275df196 ends here
 
 ;; [[file:../gwp-scratch.note::a267f2ee][a267f2ee]]
-(use-package rust-mode)
+(use-package rust-mode
+  :requires smartparens
+  :config
+  (require 'smartparens-rust)
+  ;; Don't pair lifetime specifiers
+  (sp-local-pair 'rust-mode "'" nil :actions nil)
+  ;; rust 回车后自动格式化 {|}
+  ;; https://emacs.stackexchange.com/questions/2837/automatically-formatting-brackets
+  (sp-local-pair 'rust-mode "{" nil :post-handlers '(:add ("||\n[i]" "RET")))
+  ;; Rust closure中使用
+  (sp-with-modes '(rust-mode)
+    (sp-local-pair "|" "|")))
+
 (use-package cargo)
 
-(eval-after-load 'rust-mode
-  '(require 'smartparens-rust))
-
-(use-package smartparens
-  :after rust-mode
-  :config
-  ;; rust 回车后自动格式化 {|}
-  (sp-local-pair 'rust-mode "{" nil :post-handlers '(:add ("||\n[i]" "RET"))))
+(require 'rust-edit)
+(gwp::local-leader-def
+  :keymaps 'rust-mode-map
+  "e" #'rust-edit-transient)
 ;; a267f2ee ends here
 
 ;; [[file:../gwp-scratch.note::f2289888][f2289888]]
