@@ -126,6 +126,7 @@
          ([remap list-registers] . consult-register)
          ([remap point-to-register] . consult-register-store)
          ([remap gwp::rg] . consult-ripgrep)
+         ([remap gwp::git-grep] . consult-git-grep)
          ([remap gwp::mark-ring] . consult-mark)
          ;; Minibuffer history
          :map minibuffer-local-map

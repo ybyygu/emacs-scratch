@@ -46,6 +46,7 @@ Repeated invocations toggle between the two most recently open buffers."
  "si" '(imenu :which-key "jump to symbol(imenu)")
  ;; gwp::rg 会虚拟命令, 待 consult remap
  "sd" '(gwp::rg :which-key "search directory")
+ "sg" '(gwp::git-grep :which-key "git grep")
  "sn" '(gwp::search-all-notes :which-key "search all .note files"))
 ;; f220a2a2 ends here
 
