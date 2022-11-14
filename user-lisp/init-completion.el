@@ -3,28 +3,23 @@
 ;; 290a045b ends here
 
 ;; [[file:../gwp-scratch.note::7db2aa5a][7db2aa5a]]
+(defun gwp::yas-insert-snippet (&rest args)
+  (interactive)
+  (require 'yasnippet)
+  (cond
+   ((not yas-global-mode)
+    (yas-global-mode)
+    (yas-insert-snippet))
+   (t
+    (yas-insert-snippet))))
+
 (use-package yasnippet
   :unless init-no-x-flag
   :commands
   (yas-expand yas-minor-mode)
-  :init
-  (defun entropy/emacs-yas-enable-or-expand (&rest args)
-    "Auto enable `yas-global-mode' when not as it and call
-`yas-expand'."
-    (interactive)
-    (require 'yasnippet)
-    (cond
-     ((not yas-global-mode)
-      (yas-global-mode)
-      (yas-expand))
-     (t
-      (yas-expand))))
   :bind
-  (:map prog-mode-map
-   ("M-i" . entropy/emacs-yas-enable-or-expand)
-   :map org-mode-map
-   ("M-i" . entropy/emacs-yas-enable-or-expand)
-   )
+  (:map meow-insert-state-keymap
+        ("C-." . gwp::yas-insert-snippet))
   :config
   ;; 不用TAB, 因为要避免 org 中与 tab 键冲突
   (unbind-key "TAB" yas-minor-mode-map)
