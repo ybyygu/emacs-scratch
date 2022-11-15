@@ -54,6 +54,18 @@
   )
 ;; 3241e30e ends here
 
+;; [[file:../gwp-scratch.note::524a7643][524a7643]]
+(require 'rust-cargo)
+
+;;;###autoload
+(defun rust-edit-cargo-watch ()
+  "Compile using `cargo watch`"
+  (interactive)
+  ;; 编译时随新内容自动滚动更新
+  (let ((compilation-scroll-output t))
+    (rust--compile "env RUSTFLAGS=-Awarnings cargo watch -x d")))
+;; 524a7643 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'rust-edit)
 ;; provide:1 ends here
