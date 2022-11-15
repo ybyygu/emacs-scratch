@@ -273,6 +273,14 @@ command."
 ;;              ("v" . gwp::tmux-open-vertical)))
 ;; 90e483a3 ends here
 
+;; [[file:../gwp-scratch.note::3413b84e][3413b84e]]
+(unless init-no-x-flag
+  (use-package vterm
+    :ensure t
+    :config
+    (add-to-list 'meow-mode-state-list '(vterm-mode . insert))))
+;; 3413b84e ends here
+
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
 (unbind-key "C-x C-p")
 ;; f95a72e3 ends here

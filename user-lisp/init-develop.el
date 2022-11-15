@@ -126,21 +126,23 @@
 (use-package format-all
   :demand t
   :bind ("C-c C-f" . format-all-buffer)
+  :custom
+  (format-all-default-formatters
+   '(("Emacs Lisp" emacs-lisp)
+     ("Python" black)
+     ("Rust" rustfmt)
+     ("Shell" shfmt)
+     ("TOML" prettier)
+     ("Lua" lua-fmt)
+     ("Dockerfile" dockfmt)
+     ("CMake" cmake-format)
+     ("C" clang-format)
+     ("C++" clang-format)
+     ("HTML" html-tidy)
+     ("JSON" prettier)
+     ("YAML" prettier)))
   :config
-  (setq format-all-default-formatters
-        '(("Emacs Lisp" emacs-lisp)
-          ("Python" black)
-          ("Rust" rustfmt)
-          ("Shell" shfmt)
-          ("TOML" prettier)
-          ("Lua" lua-fmt)
-          ("Dockerfile" dockfmt)
-          ("CMake" cmake-format)
-          ("C" clang-format)
-          ("C++" clang-format)
-          ("HTML" html-tidy)
-          ("JSON" prettier)
-          ("YAML" prettier))))
+  )
 ;; f2289888 ends here
 
 ;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]

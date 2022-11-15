@@ -147,8 +147,8 @@
 (gwp::text-edit-def
   ;; 删除多余空行, 仅保留一行
   "C-x C-o" #'delete-blank-lines
-  ;; "C-c C-o" #'delete-blank-lines
   "C-o" #'cycle-spacing
+  "C-c SPC" #'untabify                  ; 将TAB 变为空格, 反向命令为 tabify
   )
 ;; 989c4b3c ends here
 
