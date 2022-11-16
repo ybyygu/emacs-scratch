@@ -101,11 +101,11 @@ Otherwise delete one character."
   (setq bm-restore-repository-on-load t)
 
   (add-hook 'find-file-hooks 'bm-buffer-restore)
-  (add-hook 'kill-buffer-hook 'bm-buffer-save)
-  (add-hook 'after-save-hook 'bm-buffer-save)
   (add-hook 'after-revert-hook 'bm-buffer-restore)
-  (add-hook 'vc-before-checkin-hook 'bm-buffer-save)
   (add-hook 'find-file-hooks 'bm-buffer-restore)
+  ;; (add-hook 'vc-before-checkin-hook 'bm-buffer-save)
+  ;; (add-hook 'kill-buffer-hook 'bm-buffer-save)
+  ;; (add-hook 'after-save-hook 'bm-buffer-save)
 
   ;; Saving the repository to file when on exit.
   ;; kill-buffer-hook is not called when emacs is killed, so we
@@ -125,6 +125,11 @@ Argument E is a mouse event used by `mouse-set-point'."
     (save-excursion
       (mouse-set-point e)
       (bm-toggle)))
+
+  ;; toggle bm 时第一时间保存, 避免冲突
+  (defun gwp::bm-buffer-save-advice (&rest r)
+    (bm-buffer-save))
+  (advice-add 'bm-toggle :after #'gwp::bm-buffer-save-advice)
 
   ;; :hook
   ;; Loading the repository from file when on start up.

@@ -152,6 +152,19 @@ If two universal prefix arguments are used, then prompt for command to use."
   "e" '(:keymap gwp::edit-map :which-key "edit" :package emacs))
 ;; b357bbd9 ends here
 
+;; [[file:../gwp-scratch.note::773bd9bb][773bd9bb]]
+(gwp::leader-def
+ "l" '(:ignore t :which-key "tab")
+ "ll" '(tab-recent :which-key "last tab")
+ "lt" '(tab-new :which-key "new tab")
+ "ld" '(tab-close :which-key "close tab")
+ "lr" '(tab-rename :which-key "rename tab")
+ "ln" '(tab-next :which-key "next tab")
+ "lp" '(tab-previous :which-key "prev tab")
+ "l TAB" '(tab-switch :which-key "switch tab")
+)
+;; 773bd9bb ends here
+
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
 (gwp::leader-def
   "d" '(:keymap gwp::develop-map :which-key "develop" :package emacs))
