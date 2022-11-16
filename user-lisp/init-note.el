@@ -31,10 +31,13 @@
 ;; [[file:../gwp-scratch.note::7f3b3bee][7f3b3bee]]
 (defun gwp::org-note::to-read-file-in-READ (document-path read-dir)
   (let* ((document-name (file-name-nondirectory document-path))
-         (document-in-read (concat read-dir document-name)))
+         (document-in-read (concat read-dir "/" document-name)))
 
     ;; 将当前文件复制至READ 目录下
     (message (format "%s => %s" document-path document-in-read))
+    (unless (file-exists-p read-dir)
+      (make-directory read-dir))
+    ;; 自动建立前置目录
     (rename-file document-path document-in-read)
     ;; 再将该文件反向软链回当前目录
     (make-symbolic-link (file-truename document-in-read) document-path)))
