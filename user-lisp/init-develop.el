@@ -119,7 +119,7 @@
 (gwp::local-leader-def
   :keymaps 'rust-mode-map
   "e" #'rust-edit-transient
-  "b" #'rust-edit-cargo-watch)
+  "b" #'rust-edit-cargo-transient)
 ;; a267f2ee ends here
 
 ;; [[file:../gwp-scratch.note::f2289888][f2289888]]

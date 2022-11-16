@@ -64,6 +64,54 @@
   ;; 编译时随新内容自动滚动更新
   (let ((compilation-scroll-output t))
     (rust--compile "env RUSTFLAGS=-Awarnings cargo watch -x d")))
+
+;; taken from cargo.el
+;;
+;; workaround cargo issue: https://github.com/rust-lang/cargo/issues/5895
+;;
+;; to make "jump-to-error" work, we need start compilation in workspace root dir
+(defun rust-edit--cargo-compile (args)
+  (when (null rust-buffer-project)
+    (rust-update-buffer-project))
+  (let* ((old-directory default-directory) ; save current directory
+         (default-directory
+           (or (and rust-buffer-project
+                    (file-name-directory rust-buffer-project))
+               default-directory)))
+    ;; 编译时随新内容自动滚动更新
+    (let ((compilation-scroll-output 'first-error))
+      (compile (format "cargo.sh \"%s\" %s" old-directory args)))))
+
+;;;###autoload
+(defun rust-edit-cargo-doc-open ()
+  "Execute `cargo doc --open` command"
+  (interactive)
+  (rust-edit--cargo-compile "doc --open --no-deps"))
+
+;;;###autoload
+(defun rust-edit-cargo-watch ()
+  "Execute `cargo watch -x d` command"
+  (interactive)
+  (rust-edit--cargo-compile "watch -x d"))
+
+;;;###autoload
+(defun rust-edit-cargo-update ()
+  "Execute `cargo update` command"
+  (interactive)
+  (rust-edit--cargo-compile "update"))
+
+;; 方便编译窗口操作
+(with-eval-after-load 'compile
+  (define-key compilation-mode-map (kbd "o") 'compile-goto-error))
+
+(transient-define-prefix rust-edit-cargo-transient ()
+  "rust development tools"
+  ["cargo"
+   ("b" "cargo watch build" rust-edit-cargo-watch)
+   ("d" "cargo doc" rust-edit-cargo-doc-open)
+   ("u" "cargo update" rust-edit-cargo-update)
+   ]
+  )
 ;; 524a7643 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
