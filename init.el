@@ -68,4 +68,14 @@
 
 ;; 也可这么设置
 ;; (use-package init-bindings :ensure nil)
+
+;; 解决 emacs 下环境变量与 X 下不同的问题
+(defun set-display-env-advice (&rest r)
+  (setenv "QT_SCREEN_SCALE_FACTORS" "DVI-D-0=2;HDMI-0=2;DP-0=2;DP-1=2")
+  (setenv "QT_FONT_DPI")
+  (setenv "QT_QPA_PLATFORM"))
+
+;; 可能是 eaf 修改了QT 相关变量, 现在只能硬改
+;; (add-hook 'after-init-hook 'set-display-env)
+(advice-add 'call-process :before #'set-display-env-advice)
 ;; 0cc5b7b8 ends here
