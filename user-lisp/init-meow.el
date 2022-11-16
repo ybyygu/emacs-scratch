@@ -167,8 +167,10 @@
    '("G" . meow-grab)                      ; 相当于 vi 中的 visual mode
    '("C-v" . meow-grab)                    ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
+   ;; 2022-11-16: q 更容易误按
    ;; '("q" . meow-quit)               ; 退出window 或 buffer
-   '("q" . quit-window)             ; 退出window 或 buffer
+   '("q" . quit-window)                ; 退出window 或 buffer
+   '("Q" . unbury-buffer)              ; 还原退出的 buffer
    ;; '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
    '(";" . meow-comment)            ; 相当于 M-;
    '("]" . sp-unwrap-sexp)
@@ -181,7 +183,6 @@
    '("Z" . repeat-complex-command)  ; 重复上一个需要 minibuffer 输入的命令
    ;; TODO
    ;; "F"
-   ;; "Q"
    ;; "W"
    ;; "T"
    ;; "Y"

@@ -285,11 +285,14 @@ If on a:
       (org-open-file pdf-file)
       (org-noter))))
 
+;; (advice-add #'find-file-other-tab :around #'eaf--find-file-advisor)
 (defun gwp--zotero-open-attachments (x)
-  "ivy completion for zotero attachments."
+  "completion for zotero attachments."
   (let* ((candidates (zotero-get-selected-item-attachment-paths x))
 	 (attach (completing-read "Open attachment: " candidates nil t)))
-    (org-open-file attach)))
+    (org-open-file attach)
+    ;; (find-file-other-tab attach)
+    ))
 
 (defun gwp--zotero-insert-link (x)
   (let ((uri (zotero-get-selected-item-link x)))
@@ -355,8 +358,8 @@ If on a:
   )
 
 (gwp::local-leader-def
- :keymaps 'org-mode-map
- "z" '(gwp/zotero-search-transient :which-key "zotero"))
+  :keymaps 'org-mode-map
+  "z" '(gwp/zotero-search-transient :which-key "zotero"))
 ;; 458d7b11 ends here
 
 ;; [[file:../gwp-scratch.note::95825713][95825713]]

@@ -14,6 +14,7 @@ Repeated invocations toggle between the two most recently open buffers."
   "," '(gwp::jump-to-previous-mark :which-key "Jump to previous mark")
   "`" '(gwp::switch-to-previous-buffer :which-key "Switch to previous buffer")
   "u" '(universal-argument :which-key "Universal argument")
+  "Q" '(unbury-buffer :which-key "recover old buffer")
   )
 ;; 4cf8c86c ends here
 

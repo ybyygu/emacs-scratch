@@ -100,6 +100,12 @@
   (interactive)
   (rust-edit--cargo-compile "update"))
 
+;;;###autoload
+(defun rust-edit-cargo-run ()
+  "Execute `cargo run` command"
+  (interactive)
+  (rust-edit--cargo-compile "run"))
+
 ;; 方便编译窗口操作
 (with-eval-after-load 'compile
   (define-key compilation-mode-map (kbd "o") 'compile-goto-error))
@@ -108,6 +114,7 @@
   "rust development tools"
   ["cargo"
    ("b" "cargo watch build" rust-edit-cargo-watch)
+   ("r" "cargo run" rust-edit-cargo-run)
    ("d" "cargo doc" rust-edit-cargo-doc-open)
    ("u" "cargo update" rust-edit-cargo-update)
    ]
