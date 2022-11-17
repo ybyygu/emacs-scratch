@@ -86,7 +86,7 @@
 (defun rust-edit-cargo-doc-open ()
   "Execute `cargo doc --open` command"
   (interactive)
-  (rust-edit--cargo-compile "doc --open --no-deps"))
+  (rust-edit--cargo-compile "doc --open --no-deps --document-private-items"))
 
 ;;;###autoload
 (defun rust-edit-cargo-watch ()

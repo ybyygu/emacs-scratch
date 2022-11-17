@@ -172,6 +172,7 @@
   :custom (dabbrev-abbrev-char-regexp "[A-Za-z-_]")
   :bind (
          :map meow-insert-state-keymap
+         ("C-x TAB TAB" . completion-at-point)
          ("C-x TAB d" . cape-dabbrev)
          ("C-x TAB h" . cape-history)
          ("C-x TAB f" . cape-file)

@@ -160,7 +160,10 @@ If two universal prefix arguments are used, then prompt for command to use."
  "ld" '(tab-close :which-key "close tab")
  "lr" '(tab-rename :which-key "rename tab")
  "ln" '(tab-next :which-key "next tab")
+ "lf" '(tab-detach :which-key "detach tab")
+ "lu" '(tab-undo :which-key "undo closed tab")
  "lp" '(tab-previous :which-key "prev tab")
+ "l." '(tab-bar-mode :which-key "toggle tab bar")
  "l TAB" '(tab-switch :which-key "switch tab")
 )
 ;; 773bd9bb ends here

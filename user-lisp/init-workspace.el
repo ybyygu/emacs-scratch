@@ -286,6 +286,41 @@ command."
     (add-to-list 'meow-mode-state-list '(vterm-mode . insert))))
 ;; 3413b84e ends here
 
+;; [[file:../gwp-scratch.note::7edef0cf][7edef0cf]]
+(require 'tab-bar)
+(require 'embark)
+(defun gwp::bookmark-jump-other-tab (bookmark)
+  "Jump to BOOKMARK in another tab."
+  (interactive
+   (list (bookmark-completing-read "Jump to bookmark (in another tab)"
+                                   bookmark-current-bookmark)))
+  (tab-new)
+  (bookmark-jump bookmark)
+  (tab-rename bookmark))
+
+(bind-key "t" #'gwp::bookmark-jump-other-tab embark-bookmark-map)
+
+(use-package tab-bar
+  :ensure nil
+  :custom
+  ;; 不显示 tab-bar 上的 "x" 按钮
+  (tab-bar-close-button-show nil)
+  (tab-bar-new-button-show nil)
+  ;; (tab-bar-show nil)
+  :config
+  ;; 不显示tab-bar
+  ;; 改进 tab-bar 显示样式
+  (set-face-attribute 'tab-bar nil :inherit 'mode-line)
+  (set-face-attribute 'tab-bar-tab nil
+                      :weight 'bold
+                      :slant 'italic
+                      :underline t
+                      :foreground "#aaee77")
+  (set-face-attribute 'tab-bar-tab-inactive nil
+                      ;; :slant 'italic
+                      :foreground "#afafaf"))
+;; 7edef0cf ends here
+
 ;; [[file:../gwp-scratch.note::f95a72e3][f95a72e3]]
 (unbind-key "C-x C-p")
 ;; f95a72e3 ends here

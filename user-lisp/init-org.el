@@ -1337,7 +1337,7 @@ DESC. FORMATs understood are 'odt','latex and 'html."
    ("h" "toggle heading" org-toggle-heading)
    (":" "toggle (:)" org-toggle-fixed-width)
    ;; 可用 C-c C-x C-l
-   ("L" "toggle latex preview" org-latex-preview :transient t)
+   ("L" "toggle latex preview" org-latex-preview)
    ;; 可用 C-c C-x v
    ("I" "toggle inline images" org-toggle-inline-images)
    ("c" "toggle checkbox" gwp::org-toggle-checkbox)
