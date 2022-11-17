@@ -4,7 +4,8 @@
 
 ;; [[file:../gwp-scratch.note::f1b9d1b9][f1b9d1b9]]
 (use-package eaf
-  :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
+  ;; :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
+  :ensure nil
   :after org
   :config
   ;; (require 'eaf-file-manager)
