@@ -106,6 +106,18 @@
   ;; (consult-preview-key '(:debounce 1 any))
   ;; preview manually
   (consult-preview-key (kbd "M-."))
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+  :config
+  ;; 仅搜索当前目录, 而非项目所在目录
+  (defun +consult-ripgrep ()
+    (interactive)
+    (consult-ripgrep default-directory))
+
+  (with-eval-after-load 'org
+    (define-key org-mode-map [remap org-goto] #'consult-org-heading))
+
+  ;; consult-ripgrep
   :bind (
          ([remap apropos-command] . consult-apropos) ; SPC-h-a
          ;; avy-goto-line 更好用
@@ -120,7 +132,7 @@
          ([remap imenu] . consult-imenu)
          ([remap list-registers] . consult-register)
          ([remap point-to-register] . consult-register-store)
-         ([remap gwp::rg] . consult-ripgrep)
+         ([remap gwp::rg] . +consult-ripgrep)
          ([remap gwp::git-grep] . consult-git-grep)
          ([remap gwp::mark-ring] . consult-mark)
          ;; Minibuffer history
@@ -128,11 +140,6 @@
          ("M-s" . consult-history)                 ;; orig. next-matching-history-element
          ("M-r" . consult-history)                 ;; orig. previous-matching-history-element
          )
-  ;; The :init configuration is always executed (Not lazy)
-  :init
-  :config
-  (with-eval-after-load 'org
-    (define-key org-mode-map [remap org-goto] #'consult-org-heading))
   )
 
 ;; (use-package consult-notes

@@ -165,6 +165,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "lp" '(tab-previous :which-key "prev tab")
  "l." '(tab-bar-mode :which-key "toggle tab bar")
  "l TAB" '(tab-switch :which-key "switch tab")
+ "l SPC" '(tab-next :which-key "next tab")
 )
 ;; 773bd9bb ends here
 
