@@ -58,6 +58,8 @@
 ;; (general-define-key :prefix-map 'gwp::open-map)
 
 (general-define-key :prefix-map 'gwp::magit-map)
+
+(general-define-key :prefix-map 'gwp::buffer-map)
 ;; edaec1b8 ends here
 
 ;; [[file:../gwp-scratch.note::afede203][afede203]]

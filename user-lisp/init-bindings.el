@@ -27,17 +27,17 @@ Repeated invocations toggle between the two most recently open buffers."
           unless (member file active-files) return (find-file file))))
 
 (gwp::leader-def
- "b" '(:ignore t :which-key "buffer")
- "bb" '(switch-to-buffer :which-key "switch buffer")
- "bd" '(kill-current-buffer :which-key "kill buffer")
- "bk" '(kill-current-buffer :which-key "kill buffer")
- "br" '(revert-buffer :which-key "revert buffer")
- "bn" '(next-buffer :which-key "next buffer")
- "bu" '(gwp::find-last-killed-file :which-key "reopen killed file")
- "bp" '(previous-buffer :which-key "previous buffer")
- "bm" '(bookmark-set :which-key "set bookmark")
- "bR" '(crux-rename-buffer-and-file :which-key "rename buffer file")
- )
+  "b" '(:keymap gwp::buffer-map :which-key "buffer" :package emacs))
+
+(bind-keys :map gwp::buffer-map
+           ("d" . kill-current-buffer)
+           ("k" . kill-current-buffer)
+           ("r" . revert-buffer)
+           ("n" . next-buffer)
+           ("p" . previous-buffer)
+           ("u" . gwp::find-last-killed-file)
+           ("K" . project-kill-buffers)
+           ("R" . crux-rename-buffer-and-file))
 ;; 33105bcf ends here
 
 ;; [[file:../gwp-scratch.note::f220a2a2][f220a2a2]]
@@ -159,6 +159,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "lt" '(tab-new :which-key "new tab")
  "ld" '(tab-close :which-key "close tab")
  "lr" '(tab-rename :which-key "rename tab")
+ "lb" '(project-switch-to-buffer :which-key "project buffer")
  "ln" '(tab-next :which-key "next tab")
  "lf" '(tab-detach :which-key "detach tab")
  "lu" '(tab-undo :which-key "undo closed tab")

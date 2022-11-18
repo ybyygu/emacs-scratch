@@ -278,6 +278,14 @@ command."
 ;;              ("v" . gwp::tmux-open-vertical)))
 ;; 90e483a3 ends here
 
+;; [[file:../gwp-scratch.note::c93aeaa5][c93aeaa5]]
+(use-package cbm
+  :commands (gwp::recent-dirs)
+  :bind
+  (:map gwp::buffer-map
+        ("b" . cbm-switch-buffer)))
+;; c93aeaa5 ends here
+
 ;; [[file:../gwp-scratch.note::3413b84e][3413b84e]]
 (unless init-no-x-flag
   (use-package vterm
