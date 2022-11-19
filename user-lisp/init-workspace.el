@@ -279,11 +279,28 @@ command."
 ;; 90e483a3 ends here
 
 ;; [[file:../gwp-scratch.note::c93aeaa5][c93aeaa5]]
-(use-package cbm
-  :commands (gwp::recent-dirs)
-  :bind
-  (:map gwp::buffer-map
-        ("b" . cbm-switch-buffer)))
+(defun +same-major-mode-buffer-list ()
+  "返回与当前 buffer major-mode 一致的 buffer list"
+  (let* ((buffers (buffer-list))
+         (buffers (delq (current-buffer) buffers))
+         (mode major-mode))
+    (cl-loop for buf in buffers
+             if (eq (with-current-buffer buf major-mode) mode)
+             collect buf)))
+
+;;;###autoload
+(defun gwp::switch-buffer-dwim ()
+  "Switch to buffer, filtered by `major-mode'."
+  (interactive)
+
+  (require 'consult)
+  (let* ((buffers (+same-major-mode-buffer-list))
+         (candidates (mapcar #'list (mapcar #'buffer-name buffers))))
+    (switch-to-buffer
+     (consult--read candidates :prompt (format "Similar buffer for %s: " major-mode)
+		   :category 'buffer))))
+
+(bind-key "b" #'gwp::switch-buffer-dwim gwp::buffer-map)
 ;; c93aeaa5 ends here
 
 ;; [[file:../gwp-scratch.note::3413b84e][3413b84e]]
@@ -307,7 +324,8 @@ command."
   (tab-rename bookmark))
 
 (bind-key "t" #'gwp::bookmark-jump-other-tab embark-bookmark-map)
-(bind-key "t" #'gwp::bookmark-jump-other-tab embark-file-map)
+(bind-key "t" #'find-file-other-tab embark-file-map)
+(bind-key "t" #'switch-to-buffer-other-tab embark-buffer-map)
 
 (use-package tab-bar
   :ensure nil
