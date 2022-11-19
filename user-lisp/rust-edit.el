@@ -57,14 +57,6 @@
 ;; [[file:../gwp-scratch.note::524a7643][524a7643]]
 (require 'rust-cargo)
 
-;;;###autoload
-(defun rust-edit-cargo-watch ()
-  "Compile using `cargo watch`"
-  (interactive)
-  ;; 编译时随新内容自动滚动更新
-  (let ((compilation-scroll-output t))
-    (rust--compile "env RUSTFLAGS=-Awarnings cargo watch -x d")))
-
 ;; taken from cargo.el
 ;;
 ;; workaround cargo issue: https://github.com/rust-lang/cargo/issues/5895
@@ -106,19 +98,59 @@
   (interactive)
   (rust-edit--cargo-compile "run"))
 
+;;;###autoload
+(defun rust-edit-cargo-build (prefix)
+  "Execute `cargo watch -x d`. When call with prefix, will ask user
+for cargo command to execute"
+  (interactive "P")
+
+  (if prefix                            ; C-u
+      (let* ((args (read-string "cargo command: ")))
+        (rust-edit--cargo-compile args))
+    (rust-edit--cargo-compile "watch -x d")))
+
 ;; 方便编译窗口操作
 (with-eval-after-load 'compile
   (define-key compilation-mode-map (kbd "o") 'compile-goto-error))
 
+;; cargo run
+(defun rust-edit-cargo-run (&optional args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (if args
+      (rust-edit--cargo-compile (format "run %s" args))
+    (rust-edit--cargo-compile "run")))
+
+(define-infix-argument rust-edit-cargo-transient-run:--example ()
+  :description "Only the specified example"
+  :class 'transient-option
+  :shortarg "-e"
+  :argument "--example=")
+
+(define-infix-argument rust-edit-cargo-transient-run:--bin ()
+  :description "Name of the bin target to run"
+  :class 'transient-option
+  :shortarg "-b"
+  :argument "--bin=")
+
+(define-transient-command rust-edit-cargo-transient-run ()
+  "Test Transient Title"
+  ["Arguments"
+   ("-o" "Run without accessing the network" "--offline")
+   (rust-edit-cargo-transient-run:--example)
+   (rust-edit-cargo-transient-run:--bin)
+   ]
+  ["Actions"
+   ("r" "cargo run" rust-edit-cargo-run)])
+
 (transient-define-prefix rust-edit-cargo-transient ()
   "rust development tools"
   ["cargo"
-   ("b" "cargo watch build" rust-edit-cargo-watch)
-   ("r" "cargo run" rust-edit-cargo-run)
+   ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-build)
+   ("r" "cargo run" rust-edit-cargo-transient-run)
    ("d" "cargo doc" rust-edit-cargo-doc-open)
    ("u" "cargo update" rust-edit-cargo-update)
-   ]
-  )
+   ("z" "recompile" recompile)])
 ;; 524a7643 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
