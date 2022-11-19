@@ -21,10 +21,10 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; [[file:../gwp-scratch.note::33105bcf][33105bcf]]
 (defun gwp::find-last-killed-file ()
   (interactive)
-  (let ((active-files (cl-loop for buf  in (buffer-list)
-                            when (buffer-file-name buf) collect it)))
+  (let ((active-files (cl-loop for buf in (buffer-list)
+                               when (buffer-file-name buf) collect it)))
     (cl-loop for file in recentf-list
-          unless (member file active-files) return (find-file file))))
+             unless (member file active-files) return (find-file file))))
 
 (gwp::leader-def
   "b" '(:keymap gwp::buffer-map :which-key "buffer" :package emacs))

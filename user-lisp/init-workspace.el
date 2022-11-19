@@ -295,10 +295,12 @@ command."
 
   (require 'consult)
   (let* ((buffers (+same-major-mode-buffer-list))
-         (candidates (mapcar #'list (mapcar #'buffer-name buffers))))
+         (candidates (mapcar #'list (mapcar #'buffer-name buffers)))
+         ;; 保留原 buffer list 中的次序
+         (vertico-sort-function nil))
     (switch-to-buffer
      (consult--read candidates :prompt (format "Similar buffer for %s: " major-mode)
-		   :category 'buffer))))
+		    :category 'buffer))))
 
 (bind-key "b" #'gwp::switch-buffer-dwim gwp::buffer-map)
 ;; c93aeaa5 ends here
