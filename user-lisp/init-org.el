@@ -288,11 +288,13 @@ If on a:
 ;; (advice-add #'find-file-other-tab :around #'eaf--find-file-advisor)
 (defun gwp--zotero-open-attachments (x)
   "completion for zotero attachments."
+  (require 'consult)
+
   (let* ((candidates (zotero-get-selected-item-attachment-paths x))
-	 (attach (completing-read "Open attachment: " candidates nil t)))
-    (org-open-file attach)
-    ;; (find-file-other-tab attach)
-    ))
+	 ;; (attach (completing-read "Open attachment: " candidates nil t)))
+         ;; 可应用 file 类型的 consult 目标
+	 (attach (consult--read candidates :prompt "Open attachment: " :category 'file)))
+    (org-open-file attach)))
 
 (defun gwp--zotero-insert-link (x)
   (let ((uri (zotero-get-selected-item-link x)))

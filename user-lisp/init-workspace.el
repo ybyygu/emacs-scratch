@@ -307,6 +307,7 @@ command."
   (tab-rename bookmark))
 
 (bind-key "t" #'gwp::bookmark-jump-other-tab embark-bookmark-map)
+(bind-key "t" #'gwp::bookmark-jump-other-tab embark-file-map)
 
 (use-package tab-bar
   :ensure nil
