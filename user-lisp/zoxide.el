@@ -30,11 +30,13 @@
 (defun gwp::recent-dirs ()
   "Present a list of recently used directories and open the selected one in dired"
   (interactive)
+  (require 'consult)
+
   (let* ((recent-dirs (delete-dups
 		       (append (gwp::zoxide-recent-directories) (gwp::dired-recent-directories))))
 	 ;; do not sort candidates
 	 (vertico-sort-function nil)
-	 (default-directory (completing-read "Directory: " recent-dirs nil t)))
+	 (default-directory (consult--read recent-dirs :prompt "Directory: " :category 'file)))
     (gwp::zoxide-add-directory default-directory)
     (find-file (expand-file-name default-directory))))
 ;; 8597bcb8 ends here
