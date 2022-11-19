@@ -832,7 +832,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   ;; 默认延时为 3600 秒
   (midnight-delay-set 'midnight-delay 7200)
 
-  (add-hook 'midnight #'gwp::update-notes-cache))
+  (add-hook 'midnight-hook #'gwp::update-notes-cache))
 ;; da4e0834 ends here
 
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
