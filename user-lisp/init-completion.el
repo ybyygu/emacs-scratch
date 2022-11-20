@@ -3,7 +3,7 @@
 ;; 290a045b ends here
 
 ;; [[file:../gwp-scratch.note::7db2aa5a][7db2aa5a]]
-(defun gwp::yas-insert-snippet (&rest args)
+(defun gwp::yas-insert-snippet ()
   (interactive)
   (require 'yasnippet)
   (cond
@@ -13,13 +13,26 @@
    (t
     (yas-insert-snippet))))
 
+(defun gwp::yas-expand ()
+  (interactive)
+  (require 'yasnippet)
+  (cond
+   ((not yas-global-mode)
+    (yas-global-mode)
+    (yas-expand))
+   (t
+    (yas-expand))))
+
 (use-package yasnippet
   :unless init-no-x-flag
+  ;; :init
+  ;; (add-hook 'prog-mode-hook #'yas-minor-mode)
   :commands
   (yas-expand yas-minor-mode)
   :bind
   (:map meow-insert-state-keymap
-        ("C-." . gwp::yas-insert-snippet))
+        ("C-." . gwp::yas-insert-snippet)
+        ("C-x i" . gwp::yas-expand))
   :config
   ;; 不用TAB, 因为要避免 org 中与 tab 键冲突
   (unbind-key "TAB" yas-minor-mode-map)
