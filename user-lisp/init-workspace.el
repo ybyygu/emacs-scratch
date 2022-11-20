@@ -5,6 +5,14 @@
 ;; [[file:../gwp-scratch.note::36ca6867][36ca6867]]
 (require 'esh-mode)
 
+;; https://help-gnu-emacs.gnu.narkive.com/mS0mAjLx/does-eshell-have-something-similar-to-bash-s-yank-last-arg
+;;;###autoload
+(defun +eshell-insert-last-word (n)
+  (interactive "p")
+  (insert (car (reverse
+                (split-string
+                 (eshell-previous-input-string (- n 1)))))))
+
 ;; credit: http://www.howardism.org/Technical/Emacs/eshell-fun.html
 (defun gwp::open-eshell-here ()
   (interactive)
@@ -57,7 +65,29 @@ Otherwise delete one character."
   (interactive)
   (insert "scp hpc44:.lpwd/"))
 
+(defun +find-most-recent-file-name ()
+  (let* ((files (mapcar #'car
+                        (sort (directory-files-and-attributes default-directory nil nil t)
+                              #'(lambda (x y) (time-less-p (nth 6 y) (nth 6 x))))))
+         (file nil))
+    (while files
+      (setq file (car files))
+      (setq files (cdr files))
+      (if (not (or (string= file ".") (string= file "..")))
+          ;; ignore "." or ".."
+          (setq files nil)))
+    file))
+
+;; 仿 zsh, 插入最新修改的文件名
+(defun gwp::eshell-insert-most-recent-file-name ()
+  (interactive)
+  (let ((file (+find-most-recent-file-name)))
+    (when file
+      (insert file))))
+
 (bind-keys :map eshell-mode-map
+           ("M-." . +eshell-insert-last-word)
+           ("C-x m" . gwp::eshell-insert-most-recent-file-name)
            ("C-c t" . gwp::eshell-insert-scp))
 
 (defun gwp::open-in-x-terminal (the-directory)

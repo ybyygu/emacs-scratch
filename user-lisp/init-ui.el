@@ -412,16 +412,16 @@ Call a second time to restore the original window configuration."
 ;; f07dc327 ends here
 
 ;; [[file:../gwp-scratch.note::aaa39215][aaa39215]]
-(add-to-list 'display-buffer-alist
-             '("\\*compilation\\*"
-               display-buffer-in-previous-window))
+;; 2022-11-20: 默认的就很好, 加上反而添乱
+;; (add-to-list 'display-buffer-alist
+;;              '("\\*compilation\\*"
+;;                display-buffer-in-previous-window))
+;; (add-to-list 'display-buffer-alist '("*Apropos*" display-buffer-same-window))
+;; (add-to-list 'display-buffer-alist '("*Warning*" display-buffer-at-bottom))
 
 (add-to-list 'display-buffer-alist
              '("^*Async Shell Command*" . (display-buffer-no-window))
              '("^*Shell Command Output*" . (display-buffer-no-window)))
-
-;; (add-to-list 'display-buffer-alist '("*Apropos*" display-buffer-same-window))
-;; (add-to-list 'display-buffer-alist '("*Warning*" display-buffer-at-bottom))
 
 (use-package simple
   :ensure nil
