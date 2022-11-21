@@ -75,12 +75,6 @@
       (compile (format "cargo.sh \"%s\" %s" old-directory args)))))
 
 ;;;###autoload
-(defun rust-edit-cargo-doc-open ()
-  "Execute `cargo doc --open` command"
-  (interactive)
-  (rust-edit--cargo-compile "doc --open --no-deps --document-private-items"))
-
-;;;###autoload
 (defun rust-edit-cargo-watch ()
   "Execute `cargo watch -x d` command"
   (interactive)
@@ -112,8 +106,15 @@ for cargo command to execute"
 ;; 方便编译窗口操作
 (with-eval-after-load 'compile
   (define-key compilation-mode-map (kbd "o") 'compile-goto-error))
+;; 524a7643 ends here
 
-;; cargo run
+;; [[file:../gwp-scratch.note::*cargo run][cargo run:1]]
+;; (transient-define-argument rust-edit-cargo-transient-run:--bin ()
+;;   :description "Name of the bin target to run"
+;;   :class 'transient-option
+;;   :shortarg "-b"
+;;   :argument "--bin=")
+
 (defun rust-edit-cargo-run (&optional args)
   (interactive
    (flatten-list (transient-args transient-current-command)))
@@ -121,37 +122,56 @@ for cargo command to execute"
       (rust-edit--cargo-compile (format "run %s" args))
     (rust-edit--cargo-compile "run")))
 
-(define-infix-argument rust-edit-cargo-transient-run:--example ()
-  :description "Only the specified example"
-  :class 'transient-option
-  :shortarg "-e"
-  :argument "--example=")
-
-(define-infix-argument rust-edit-cargo-transient-run:--bin ()
-  :description "Name of the bin target to run"
-  :class 'transient-option
-  :shortarg "-b"
-  :argument "--bin=")
-
-(define-transient-command rust-edit-cargo-transient-run ()
-  "Test Transient Title"
+(transient-define-prefix rust-edit-cargo-transient-run ()
+  "cargo run transient"
+  :value '("--offline")
   ["Arguments"
    ("-o" "Run without accessing the network" "--offline")
-   (rust-edit-cargo-transient-run:--example)
-   (rust-edit-cargo-transient-run:--bin)
+   ("-e" "Only the specified example" "--example=")
+   ("-b" "Name of the bin target to run" "--bin=")
    ]
   ["Actions"
    ("r" "cargo run" rust-edit-cargo-run)])
+;; cargo run:1 ends here
 
+;; [[file:../gwp-scratch.note::a1bf4d12][a1bf4d12]]
+(defun rust-edit-cargo-doc (&rest args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (if args
+      (rust-edit--cargo-compile (format "doc %s" (mapconcat #'identity args " ")))
+    (rust-edit--cargo-compile "doc")))
+
+;; (defun rust-edit-cargo-doc (&rest args)
+;;   (interactive
+;;    (list (transient-args 'simple-transient)))
+;;   (message "%s" args)
+;;   ;; (apply #'start-process "command" "*command*" "command" (cons input-file args))
+;;   )
+
+(transient-define-prefix rust-edit-cargo-transient-doc ()
+  "cargo doc transient"
+  ;; 设置默认参数
+  :value '("--open" "--document-private-items" "--no-deps")
+  ["Documentation Options"
+   ("-o" "open the docs" "--open")
+   ("-n" "ignore dependencies" "--no-deps")
+   ("-p" "Include non-public items" "--document-private-items")]
+  ["Actions"
+   ("d" "cargo doc" rust-edit-cargo-doc)]
+  )
+;; a1bf4d12 ends here
+
+;; [[file:../gwp-scratch.note::c8344883][c8344883]]
 (transient-define-prefix rust-edit-cargo-transient ()
   "rust development tools"
   ["cargo"
    ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-build)
    ("r" "cargo run" rust-edit-cargo-transient-run)
-   ("d" "cargo doc" rust-edit-cargo-doc-open)
+   ("d" "cargo doc" rust-edit-cargo-transient-doc)
    ("u" "cargo update" rust-edit-cargo-update)
    ("z" "recompile" recompile)])
-;; 524a7643 ends here
+;; c8344883 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'rust-edit)
