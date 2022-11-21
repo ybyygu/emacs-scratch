@@ -227,6 +227,10 @@
   )
 ;; 985a2495 ends here
 
+;; [[file:../gwp-scratch.note::e2126f7c][e2126f7c]]
+(unless init-no-x-flag (use-package ess))
+;; e2126f7c ends here
+
 ;; [[file:../gwp-scratch.note::a9baf9f2][a9baf9f2]]
 (setq python-indent-guess-indent-offset-verbose nil)
 ;; a9baf9f2 ends here
