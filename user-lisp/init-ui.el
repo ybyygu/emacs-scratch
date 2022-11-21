@@ -476,6 +476,9 @@ Assumes that the frame is only split into two."
  "f" #'tear-off-window        ; 类似于firefox中的标签变窗口 (float, move to new frame)
  "F" #'follow-mode            ; 同步滚动窗口, 可用于双窗口内容对比等
  )
+
+;; minibuffer 窗口下切换很方便
+(bind-key "M-o" 'ace-window)
 ;; 44d5ec48 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
