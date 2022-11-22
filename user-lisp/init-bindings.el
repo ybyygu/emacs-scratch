@@ -120,7 +120,7 @@ If two universal prefix arguments are used, then prompt for command to use."
 ;; [[file:../gwp-scratch.note::826282dd][826282dd]]
 (transient-define-prefix gwp::open-transient ()
   ["core"
-   ("f" "new frame" make-frame)
+   ("f" "new frame" make-frame-command)
    ("e" "eshell" gwp::open-eshell-here)
    ]
   ["tmux" :if-not display-graphic-p
@@ -164,6 +164,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "lf" '(tab-detach :which-key "detach tab")
  "lu" '(tab-undo :which-key "undo closed tab")
  "lp" '(tab-previous :which-key "prev tab")
+ "lj" '(dired-jump-other-tab :which-key "dired other tab")
  "l." '(tab-bar-mode :which-key "toggle tab bar")
  "l TAB" '(tab-switch :which-key "switch tab")
  "l SPC" '(tab-next :which-key "next tab")

@@ -163,6 +163,7 @@
      ]
     ["Edit"
      ("c" "create tags file" citre-create-tags-file)
+     ("u" "update tags file" citre-update-tags-file)
      ]
     )
   :bind
