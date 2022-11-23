@@ -164,11 +164,18 @@ If two universal prefix arguments are used, then prompt for command to use."
  "lf" '(tab-detach :which-key "detach tab")
  "lu" '(tab-undo :which-key "undo closed tab")
  "lp" '(tab-previous :which-key "prev tab")
- "lj" '(dired-jump-other-tab :which-key "dired other tab")
+ "lj" '(+dired-jump-other-tab :which-key "dired other tab")
  "l." '(tab-bar-mode :which-key "toggle tab bar")
  "l TAB" '(tab-switch :which-key "switch tab")
+ "l <backspace>" '(tab-previous :which-key "prev tab")
  "l SPC" '(tab-next :which-key "next tab")
 )
+
+;;;###autoload
+(defun +dired-jump-other-tab ()
+  (interactive)
+  (other-tab-prefix)
+  (call-interactively #'dired-jump))
 ;; 773bd9bb ends here
 
 ;; [[file:../gwp-scratch.note::e724170b][e724170b]]
