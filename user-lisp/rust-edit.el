@@ -71,7 +71,8 @@
                     (file-name-directory rust-buffer-project))
                default-directory)))
     ;; 编译时随新内容自动滚动更新
-    (let ((compilation-scroll-output 'first-error))
+    (let ((compilation-scroll-output 'first-error)
+          (old-directory (shell-quote-argument old-directory)))
       (compile (format "cargo.sh \"%s\" %s" old-directory args)))))
 
 ;;;###autoload
@@ -93,15 +94,15 @@
   (rust-edit--cargo-compile "run"))
 
 ;;;###autoload
-(defun rust-edit-cargo-build (prefix)
+(defun rust-edit-cargo-watch-build (prefix)
   "Execute `cargo watch -x d`. When call with prefix, will ask user
-for cargo command to execute"
+for cargo watch -x `any-cmd` command to execute"
   (interactive "P")
 
   (if prefix                            ; C-u
       (let* ((args (read-string "cargo command: ")))
-        (rust-edit--cargo-compile args))
-    (rust-edit--cargo-compile "watch -x d")))
+        (rust-edit--cargo-compile (format "watch -x check -x \"%s\"" args)))
+    (rust-edit--cargo-compile "watch -x check -x d")))
 
 ;; 方便编译窗口操作
 (with-eval-after-load 'compile
@@ -166,7 +167,7 @@ for cargo command to execute"
 (transient-define-prefix rust-edit-cargo-transient ()
   "rust development tools"
   ["cargo"
-   ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-build)
+   ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
    ("r" "cargo run" rust-edit-cargo-transient-run)
    ("d" "cargo doc" rust-edit-cargo-transient-doc)
    ("u" "cargo update" rust-edit-cargo-update)
