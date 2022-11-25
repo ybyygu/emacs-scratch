@@ -157,7 +157,8 @@ for cargo watch -x `any-cmd` command to execute"
   ["Documentation Options"
    ("-o" "open the docs" "--open")
    ("-n" "ignore dependencies" "--no-deps")
-   ("-p" "Include non-public items" "--document-private-items")]
+   ("-p" "Include non-public items" "--document-private-items")
+   ("-f" "features to activate" "--features=")]
   ["Actions"
    ("d" "cargo doc" rust-edit-cargo-doc)]
   )
