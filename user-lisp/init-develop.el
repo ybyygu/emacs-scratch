@@ -58,7 +58,6 @@
   :bind
   (:map gwp::magit-map
         ;; ("j" . magit-next-line)
-        ;; ("k" . magit-previous-line)
         ("g" . magit-status)
         ("s" . magit-status)
         ("x" . magit-checkout)
@@ -85,7 +84,7 @@
   :config
   ;; 2022-11-01: 会影响 magit 响应速度, 现禁用
   ;; (magit-todos-mode)
-  )
+  (bind-key "t" #'magit-todos-list gwp::magit-map))
 ;; 8970c514 ends here
 
 ;; [[file:../gwp-scratch.note::275df196][275df196]]
