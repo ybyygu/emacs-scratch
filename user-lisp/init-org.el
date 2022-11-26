@@ -1032,7 +1032,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (advice-add 'org-export--dispatch-ui :around #'noncog/no-delete-windows)
 (with-eval-after-load "org-capture"
   ;; prevent from hiding other windows
-  (advice-add 'org-capture-place-template :around 'noncog-no-delete-windows))
+  (advice-add 'org-capture-place-template :around 'noncog/no-delete-windows))
 
 ;; 在下面新开窗口显示
 (add-to-list 'display-buffer-alist
