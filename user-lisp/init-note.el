@@ -105,7 +105,7 @@
   (let* ((rg-command (format "ripgrep -l --color never -e '^\\s*:ID:\\s+%s' /home/ybyygu/.cache/notes" id))
          (output (shell-command-to-string rg-command))
          (file (car (split-string output "[\r\n]+" t))))
-    ;; (message "%s" rg-command)
+    ;; (message "xxx %s" file)
     file))
 
 (el-patch-feature org-id)
@@ -169,7 +169,7 @@
          (output (shell-command-to-string rg-command))
          (collection (split-string output "[\r\n]+" t))
          result)
-    ;; (message "shell output:\n%s\nshell output ends here" output)
+    ;; (message "shell output:\n%s" result)
     (dolist (file collection result) (push file result))
     result))
 

@@ -346,6 +346,7 @@ command."
 ;; [[file:../gwp-scratch.note::7edef0cf][7edef0cf]]
 (require 'tab-bar)
 (require 'embark)
+
 (defun gwp::bookmark-jump-other-tab (bookmark)
   "Jump to BOOKMARK in another tab."
   (interactive
@@ -365,6 +366,8 @@ command."
   ;; 不显示 tab-bar 上的 "x" 按钮
   (tab-bar-close-button-show nil)
   (tab-bar-new-button-show nil)
+  ;; 显示编号, 方便切换
+  (tab-bar-tab-hints t)
   ;; (tab-bar-show nil)
   :config
   ;; 不显示tab-bar
