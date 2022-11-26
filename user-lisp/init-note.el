@@ -82,6 +82,14 @@
     (user-error "not in dired buffer")))
 ;; 7f3b3bee ends here
 
+;; [[file:../gwp-scratch.note::6c8dad94][6c8dad94]]
+;;;###autoload
+(defun gwp::dired::locate-file-at-point ()
+  "dired buffer 中, 用 locate 找到与当前文件同名的所有文件"
+  (interactive)
+  (locate (file-name-nondirectory (dired-get-file-for-visit))))
+;; 6c8dad94 ends here
+
 ;; [[file:../gwp-scratch.note::ac1d0086][ac1d0086]]
 ;; (use-package org-id
 ;;   :custom
@@ -250,7 +258,7 @@
   "n" #'(gwp::org-note::dired-annotate-file-at-point :which-key "PDF 批注")
   "R" #'(gwp::org-note::dired-annotate-pdf-in-READ :which-key "置入待读(READ)")
   "T" #'(gwp::dired::symbol-link-move-back :which-key "取回软链源文件")
-  )
+  "L" #'(gwp::dired::locate-file-at-point :which-key "locate 同名文件"))
 
 (require 'org)
 
