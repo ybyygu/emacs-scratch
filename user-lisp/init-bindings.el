@@ -86,6 +86,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "ff" '(find-file :which-key "find files")
  "fr" '(recentf-open-files :which-key "recent files")
  "fs" '(write-file :which-key "save file as")
+ "fl" '(consult-locate :which-key "locate file")
  "fj" '(dired-jump :which-key "jump to dired buffer")
  "fJ" '(dired-jump-other-window :which-key "jump to dired buffer (other window)")
  "fb" '(bookmark-jump :which-key "open bookmarks")

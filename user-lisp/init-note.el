@@ -45,7 +45,7 @@
 ;;;###autoload
 (defun gwp::org-note::annotate-pdf-in-READ (file)
   "将 file (PDF) 放至READ 目录下"
-  (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ")))
+  (let* ((read-dir (read-directory-name "分类目录: " "~/Boox/READ/")))
     (gwp::org-note::to-read-file-in-READ file read-dir)))
 
 ;;;###autoload
