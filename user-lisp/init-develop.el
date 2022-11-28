@@ -148,31 +148,6 @@
   )
 ;; f2289888 ends here
 
-;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]
-(use-package citre
-  :requires transient
-  :commands (citre-jump citre-jump-back citre-peak citre-create-tags-file)
-  :init
-  ;; This is needed in `:init' block for lazy load to work.
-  (require 'citre-config)
-  :config
-  (transient-define-prefix gwp::citre-transient ()
-    "citre tags"
-    ["Jump:"
-     ("j" "jump" citre-jump)
-     ("b" "jump back" citre-jump-back)
-     ("p" "peek" citre-peak)
-     ]
-    ["Edit"
-     ("c" "create tags file" citre-create-tags-file)
-     ("u" "update tags file" citre-update-tags-file)
-     ]
-    )
-  :bind
-  (:map gwp::develop-map
-        ("j" . gwp::citre-transient)))
-;; f8651bde ends here
-
 ;; [[file:../gwp-scratch.note::0deb729c][0deb729c]]
 ;; symbol-overlay
 ;;;  a highlight-symbol replacement.
@@ -237,6 +212,70 @@
 ;; [[file:../gwp-scratch.note::a9baf9f2][a9baf9f2]]
 (setq python-indent-guess-indent-offset-verbose nil)
 ;; a9baf9f2 ends here
+
+;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]
+(use-package citre
+  :requires transient
+  :commands (citre-jump citre-jump-back citre-peak citre-create-tags-file)
+  :init
+  ;; This is needed in `:init' block for lazy load to work.
+  (require 'citre-config)
+  :config
+  (transient-define-prefix gwp::citre-transient ()
+    "citre tags"
+    ["Jump:"
+     ("j" "jump" citre-jump)
+     ("b" "jump back" citre-jump-back)
+     ("p" "peek" citre-peak)
+     ]
+    ["Edit"
+     ("c" "create tags file" citre-create-tags-file)
+     ("u" "update tags file" citre-update-tags-file)
+     ]
+    )
+  :bind
+  (:map gwp::develop-map
+        ("j" . gwp::citre-transient)))
+;; f8651bde ends here
+
+;; [[file:../gwp-scratch.note::ef2dbcae][ef2dbcae]]
+;; 用于显示格式化的 doc
+(use-package markdown-mode)
+
+(use-package eglot
+  :hook
+  (rust-mode . eglot-ensure)
+  ;; (emacs-lisp-mode . eglot-ensure)
+  :custom
+  (eldoc-idle-delay 2)
+  ;; (eglot-autoshutdown t)
+  (eglot-confirm-server-initiated-edits nil)
+  :config
+  (add-hook 'eglot-managed-mode-hook '+eglot-prepare))
+
+(defun +eglot-prepare ()
+  ;; 不要自动弹出 eldoc 窗口, 需要时可调 M-x eldoc
+  (eldoc-mode -1)
+  ;; 禁用基于 tags 的citre, 避免冲突
+  (citre-mode -1)
+  ;; 禁用语法检查标记
+  (flymake-mode -1)
+  )
+
+(require 'transient)
+(transient-define-prefix lsp-transient ()
+  "lsp-bridge tools"
+  ["常用"
+   ("r" "重命名" eglot-rename)
+   ("j" "跳转到定义位置" xref-find-definitions)
+   ("b" "返回跳转之前的位" xref-pop-marker-stack)
+   ("r" "查看代码引用" xref-find-references)
+   ("d" "查看光标处的文档" eldoc)
+   ("i" "跳转到接口实现位置" eglot-find-implementation)
+   ]
+  )
+(bind-key "l" #'lsp-transient gwp::develop-map)
+;; ef2dbcae ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
