@@ -1295,6 +1295,14 @@ DESC. FORMATs understood are 'odt','latex and 'html."
 (bind-key "C-c C-," 'org-edit-special org-mode-map)
 (bind-key "C-c C-," 'org-edit-src-exit org-src-mode-map)
 
+;; 方便 rust 编辑
+(require 'conf-mode)
+(bind-key "C-c C-," #'gwp::org-babel-tangle-jump-to-org prog-mode-map)
+(bind-key "C-c C-," #'gwp::org-babel-tangle-jump-to-org conf-toml-mode-map)
+(bind-key "C-c C-M-," #'org-babel-detangle prog-mode-map)
+(bind-key "C-c C-M-," #'org-babel-detangle conf-toml-mode-map)
+(bind-key "C-c C-M-," #'gwp::org-babel-tangle-jump-to-file org-mode-map)
+
 ;; 文件按 C-c C-< 或 C-c C-> 调整 heading level
 (unbind-key "C-c <" 'org-mode-map)
 (unbind-key "C-c >" 'org-mode-map)
