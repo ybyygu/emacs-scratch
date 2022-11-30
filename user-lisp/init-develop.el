@@ -238,44 +238,29 @@
         ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
 
-;; [[file:../gwp-scratch.note::ef2dbcae][ef2dbcae]]
-;; 用于显示格式化的 doc
-(use-package markdown-mode)
+;; [[file:../gwp-scratch.note::2bcc4ab2][2bcc4ab2]]
+(unless init-no-x-flag
+  (require 'yasnippet)
+  ;; (yas-global-mode 1)
 
-(use-package eglot
-  :hook
-  (rust-mode . eglot-ensure)
-  ;; (emacs-lisp-mode . eglot-ensure)
-  :custom
-  (eldoc-idle-delay 2)
-  ;; (eglot-autoshutdown t)
-  (eglot-confirm-server-initiated-edits nil)
-  :config
-  (add-hook 'eglot-managed-mode-hook '+eglot-prepare))
+  (require 'lsp-bridge)
+  ;; (global-lsp-bridge-mode)
+  (require 'transient)
 
-(defun +eglot-prepare ()
-  ;; 不要自动弹出 eldoc 窗口, 需要时可调 M-x eldoc
-  (eldoc-mode -1)
-  ;; 禁用基于 tags 的citre, 避免冲突
-  (citre-mode -1)
-  ;; 禁用语法检查标记
-  (flymake-mode -1)
+  (transient-define-prefix lsp-bridge-transient ()
+    "lsp-bridge tools"
+    ["常用"
+     ("r" "重命名" lsp-bridge-rename)
+     ("j" "跳转到定义位置" lsp-bridge-find-def)
+     ("b" "返回跳转之前的位" lsp-bridge-find-def-return)
+     ("r" "查看代码引用" lsp-bridge-find-references)
+     ("d" "查看光标处的文档" lsp-bridge-popup-documentation)
+     ("i" "跳转到接口实现位置" lsp-bridge-find-impl)
+     ]
+    )
+  (bind-key "l" #'lsp-bridge-transient gwp::develop-map)
   )
-
-(require 'transient)
-(transient-define-prefix lsp-transient ()
-  "lsp-bridge tools"
-  ["常用"
-   ("r" "重命名" eglot-rename)
-   ("j" "跳转到定义位置" xref-find-definitions)
-   ("b" "返回跳转之前的位" xref-pop-marker-stack)
-   ("r" "查看代码引用" xref-find-references)
-   ("d" "查看光标处的文档" eldoc)
-   ("i" "跳转到接口实现位置" eglot-find-implementation)
-   ]
-  )
-(bind-key "l" #'lsp-transient gwp::develop-map)
-;; ef2dbcae ends here
+;; 2bcc4ab2 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
