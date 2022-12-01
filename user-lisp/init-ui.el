@@ -373,23 +373,16 @@ Call a second time to restore the original window configuration."
  "`"       #'sanityinc/split-window)
 ;; 9a32eb12 ends here
 
-;; [[file:../gwp-scratch.note::abf44a6d][abf44a6d]]
-(use-package golden-ratio
+;; [[file:../gwp-scratch.note::d1fdc39d][d1fdc39d]]
+(use-package zoom
   :custom
-  (golden-ratio-wide-adjust-factor 1.2)
+  (zoom-size '(0.75 . 0.618))
   :config
-  ;;;###autoload
-  (defun gwp::toggle-golden-ratio ()
-    (interactive)
-    ;; 切换前先放大当前窗口
-    (unless golden-ratio-mode
-      (call-interactively #'golden-ratio))
-    (call-interactively #'golden-ratio-mode))
   (general-define-key
-   :prefix-map 'gwp::window-map
-   "z"       #'golden-ratio-toggle-widescreen
-   "g"       #'golden-ratio))
-;; abf44a6d ends here
+  :prefix-map 'gwp::window-map
+  "g"       #'zoom
+  ))
+;; d1fdc39d ends here
 
 ;; [[file:../gwp-scratch.note::1429fad5][1429fad5]]
 (setq split-width-threshold 200)        ; default is 160

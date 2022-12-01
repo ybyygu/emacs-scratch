@@ -100,8 +100,7 @@
       (org-open-at-point)))
    (t                                   ; the default behavior
     (let ((org-link-frame-setup (quote ((file . find-file-other-window)))))
-      (org-open-at-point)
-      (golden-ratio)))))
+      (org-open-at-point)))))
 
 ;; 注释代码时, 在org code block下特殊处理. 不然光标会跳开很远.
 (defun gwp/comment-or-uncomment-dwim ()
