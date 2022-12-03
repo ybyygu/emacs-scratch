@@ -374,14 +374,18 @@ Call a second time to restore the original window configuration."
 ;; 9a32eb12 ends here
 
 ;; [[file:../gwp-scratch.note::d1fdc39d][d1fdc39d]]
+(defun zoom--size-callback ()
+  (cond ((> (frame-pixel-width) 3000) '(0.80 . 0.618))
+        (t                            '(0.75 . 0.618))))
+
 (use-package zoom
   :custom
-  (zoom-size '(0.75 . 0.618))
+  (zoom-size #'zoom--size-callback)
   :config
   (general-define-key
-  :prefix-map 'gwp::window-map
-  "g"       #'zoom
-  ))
+   :prefix-map 'gwp::window-map
+   "g"       #'zoom
+   ))
 ;; d1fdc39d ends here
 
 ;; [[file:../gwp-scratch.note::1429fad5][1429fad5]]

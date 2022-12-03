@@ -164,6 +164,7 @@
    '("U" . meow-pop-selection)             ; 撤销前一步选择
    '("v" . meow-cancel-selection)          ; 仿 vi
    '("V" . meow-block)                     ; 逐级扩选, 按 U 回退, 可替代 expand-region
+   '("T" . meow-to-block)                  ; 向前选择括号对所在区域, 可重复操作, 按 U 回退
    '("G" . meow-grab)                      ; 相当于 vi 中的 visual mode
    '("C-v" . meow-grab)                    ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
@@ -184,7 +185,6 @@
    ;; TODO
    ;; "F"
    ;; "W"
-   ;; "T"
    ;; "Y"
    ;; "["
    ;; "|"

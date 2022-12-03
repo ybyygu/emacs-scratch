@@ -230,10 +230,11 @@ If on a:
 ;; 可用父节点定义的 attach 目录
 (setq org-attach-use-inheritance t)
 
+;;;###autoload
 (defun gwp::org-attach-auto-directory ()
   "为当前 headline 设置 DIR 属性 (基于 ID)"
-
   (interactive)
+
   (let* ((attach-dir (org-attach-dir-from-id (org-id-new)))
          (current-dir (file-name-directory (or default-directory
                                                buffer-file-name)))
