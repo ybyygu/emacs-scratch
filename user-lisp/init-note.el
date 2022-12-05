@@ -190,6 +190,7 @@
       (error
        (message "%s" (error-message-string err))
        (setq source-buffers nil)))
+
     (org-ql-search source-buffers
       query
       :buffer display-buffer

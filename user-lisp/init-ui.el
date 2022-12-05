@@ -375,8 +375,8 @@ Call a second time to restore the original window configuration."
 
 ;; [[file:../gwp-scratch.note::d1fdc39d][d1fdc39d]]
 (defun zoom--size-callback ()
-  (cond ((> (frame-pixel-width) 3000) '(0.80 . 0.618))
-        (t                            '(0.75 . 0.618))))
+  (cond ((> (frame-pixel-width) 3000) '(0.75 . 0.618))
+        (t                            '(0.70 . 0.618))))
 
 (use-package zoom
   :custom
@@ -407,6 +407,16 @@ Call a second time to restore the original window configuration."
  "a" #'gwp/adjust-window-size/body ; adjust
  )
 ;; f07dc327 ends here
+
+;; [[file:../gwp-scratch.note::9bf8b3fe][9bf8b3fe]]
+(defun gwp::window-quit-other ()
+  "Quit other window without changing focus."
+  (interactive)
+  (let ((original-window (selected-window)))
+    (other-window 1)
+    (quit-window)
+    (select-window original-window)))
+;; 9bf8b3fe ends here
 
 ;; [[file:../gwp-scratch.note::aaa39215][aaa39215]]
 ;; 2022-11-20: 默认的就很好, 加上反而添乱
@@ -463,7 +473,7 @@ Assumes that the frame is only split into two."
  "l" #'windmove-right
  "L" #'gwp::toggle-frame-split
  "d" #'delete-window
- "q" #'delete-window
+ "q" #'gwp::window-quit-other
  "=" #'balance-windows
  "u" #'winner-undo            ; 撤销窗口变动
  "w" #'ace-window             ; 替代 SPC-w-w

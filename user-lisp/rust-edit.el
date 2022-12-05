@@ -140,7 +140,7 @@ for cargo watch -x `any-cmd` command to execute"
   (interactive
    (flatten-list (transient-args transient-current-command)))
   (if args
-      (rust-edit--cargo-compile (format "doc %s" (mapconcat #'identity args " ")))
+      (rust-edit--cargo-compile (format "doc --offline %s" (mapconcat #'identity args " ")))
     (rust-edit--cargo-compile "doc")))
 
 ;; (defun rust-edit-cargo-doc (&rest args)
