@@ -171,7 +171,7 @@
    ;; 2022-11-16: q 更容易误按
    ;; '("q" . meow-quit)               ; 退出window 或 buffer
    '("q" . quit-window)                ; 退出window 或 buffer
-   '("F" . zoom)                       ; 将窗口调至最适大小
+   ;; '("F" . zoom)                       ; 将窗口调至最适大小
    '("Q" . unbury-buffer)              ; 还原退出的 buffer
    ;; '("`" . meow-last-buffer)        ; 快速切换 buffer, 其它模式下可按 SPC-`
    '(";" . meow-comment)            ; 相当于 M-;
