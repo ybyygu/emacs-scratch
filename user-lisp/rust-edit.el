@@ -153,7 +153,7 @@ for cargo watch -x `any-cmd` command to execute"
 (transient-define-prefix rust-edit-cargo-transient-doc ()
   "cargo doc transient"
   ;; 设置默认参数
-  :value '("--open" "--document-private-items" "--no-deps")
+  :value '("--open" "--no-deps" "--features=adhoc")
   ["Documentation Options"
    ("-o" "open the docs" "--open")
    ("-n" "ignore dependencies" "--no-deps")
@@ -164,6 +164,15 @@ for cargo watch -x `any-cmd` command to execute"
   )
 ;; a1bf4d12 ends here
 
+;; [[file:../gwp-scratch.note::692939e0][692939e0]]
+(defun rust-edit-cargo-publish (prefix)
+  (interactive "P")
+
+  (if prefix
+      (rust-edit--cargo-compile (format "publish"))
+    (rust-edit--cargo-compile "publish --dry-run --allow-dirty")))
+;; 692939e0 ends here
+
 ;; [[file:../gwp-scratch.note::c8344883][c8344883]]
 (transient-define-prefix rust-edit-cargo-transient ()
   "rust development tools"
@@ -172,6 +181,7 @@ for cargo watch -x `any-cmd` command to execute"
    ("r" "cargo run" rust-edit-cargo-transient-run)
    ("d" "cargo doc" rust-edit-cargo-transient-doc)
    ("u" "cargo update" rust-edit-cargo-update)
+   ("p" "cargo publish (C-u for action)" rust-edit-cargo-publish)
    ("z" "recompile" recompile)])
 ;; c8344883 ends here
 
