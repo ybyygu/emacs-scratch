@@ -209,6 +209,10 @@
 (unless init-no-x-flag (use-package ess))
 ;; e2126f7c ends here
 
+;; [[file:../gwp-scratch.note::*jinja2][jinja2:1]]
+(use-package jinja2-mode)
+;; jinja2:1 ends here
+
 ;; [[file:../gwp-scratch.note::a9baf9f2][a9baf9f2]]
 (setq python-indent-guess-indent-offset-verbose nil)
 ;; a9baf9f2 ends here
@@ -237,30 +241,6 @@
   (:map gwp::develop-map
         ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
-
-;; [[file:../gwp-scratch.note::2bcc4ab2][2bcc4ab2]]
-(unless init-no-x-flag
-  (require 'yasnippet)
-  ;; (yas-global-mode 1)
-
-  (require 'lsp-bridge)
-  ;; (global-lsp-bridge-mode)
-  (require 'transient)
-
-  (transient-define-prefix lsp-bridge-transient ()
-    "lsp-bridge tools"
-    ["常用"
-     ("r" "重命名" lsp-bridge-rename)
-     ("j" "跳转到定义位置" lsp-bridge-find-def)
-     ("b" "返回跳转之前的位" lsp-bridge-find-def-return)
-     ("r" "查看代码引用" lsp-bridge-find-references)
-     ("d" "查看光标处的文档" lsp-bridge-popup-documentation)
-     ("i" "跳转到接口实现位置" lsp-bridge-find-impl)
-     ]
-    )
-  (bind-key "l" #'lsp-bridge-transient gwp::develop-map)
-  )
-;; 2bcc4ab2 ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
