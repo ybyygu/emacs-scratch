@@ -152,6 +152,13 @@ for cargo watch -x `any-cmd` command to execute"
       (rust-edit--cargo-compile (format "doc --offline %s" (mapconcat #'identity args " ")))
     (rust-edit--cargo-compile "doc")))
 
+(defun rust-edit-cargo-doc-in-tmux (&rest args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (if args
+      (+tmux/run (format "cargo doc %s" (mapconcat #'identity args " ")))
+    (+tmux/run "cargo doc")))
+
 ;; (defun rust-edit-cargo-doc (&rest args)
 ;;   (interactive
 ;;    (list (transient-args 'simple-transient)))
@@ -165,11 +172,12 @@ for cargo watch -x `any-cmd` command to execute"
   :value '("--open" "--no-deps" "--features=adhoc")
   ["Documentation Options"
    ("-o" "open the docs" "--open")
+   ("-O" "offline mode" "--offline")
    ("-n" "ignore dependencies" "--no-deps")
    ("-p" "Include non-public items" "--document-private-items")
    ("-f" "features to activate" "--features=")]
   ["Actions"
-   ("d" "cargo doc" rust-edit-cargo-doc)]
+   ("d" "cargo doc in tmux" rust-edit-cargo-doc-in-tmux)]
   )
 ;; a1bf4d12 ends here
 
@@ -187,8 +195,8 @@ for cargo watch -x `any-cmd` command to execute"
   "rust development tools"
   ["cargo"
    ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
-   ("r" "cargo run" rust-edit-cargo-transient-run)
-   ("d" "cargo doc" rust-edit-cargo-transient-doc)
+   ("r" "cargo run ..." rust-edit-cargo-transient-run)
+   ("d" "cargo doc ..." rust-edit-cargo-transient-doc)
    ("u" "cargo update" rust-edit-cargo-update)
    ("p" "cargo publish (C-u for action)" rust-edit-cargo-publish)
    ("z" "recompile" recompile)])
