@@ -116,12 +116,19 @@ for cargo watch -x `any-cmd` command to execute"
 ;;   :shortarg "-b"
 ;;   :argument "--bin=")
 
-(defun rust-edit-cargo-run (&optional args)
+(defun rust-edit-cargo-run (&rest args)
   (interactive
    (flatten-list (transient-args transient-current-command)))
   (if args
-      (rust-edit--cargo-compile (format "run %s" args))
+      (rust-edit--cargo-compile (format "run %s" (mapconcat #'identity args " ")))
     (rust-edit--cargo-compile "run")))
+
+(defun rust-edit-cargo-run-in-tmux (&rest args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (if args
+      (+tmux/run (format "cargo run %s" (mapconcat #'identity args " ")))
+    (+tmux/run "cargo run")))
 
 (transient-define-prefix rust-edit-cargo-transient-run ()
   "cargo run transient"
@@ -132,7 +139,9 @@ for cargo watch -x `any-cmd` command to execute"
    ("-b" "Name of the bin target to run" "--bin=")
    ]
   ["Actions"
-   ("r" "cargo run" rust-edit-cargo-run)])
+   ("r" "cargo run" rust-edit-cargo-run)
+   ("R" "cargo run in tmux" rust-edit-cargo-run-in-tmux)
+   ])
 ;; cargo run:1 ends here
 
 ;; [[file:../gwp-scratch.note::a1bf4d12][a1bf4d12]]
