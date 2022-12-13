@@ -159,13 +159,6 @@ for cargo watch -x `any-cmd` command to execute"
       (+tmux/run (format "cargo doc %s" (mapconcat #'identity args " ")))
     (+tmux/run "cargo doc")))
 
-;; (defun rust-edit-cargo-doc (&rest args)
-;;   (interactive
-;;    (list (transient-args 'simple-transient)))
-;;   (message "%s" args)
-;;   ;; (apply #'start-process "command" "*command*" "command" (cons input-file args))
-;;   )
-
 (transient-define-prefix rust-edit-cargo-transient-doc ()
   "cargo doc transient"
   ;; 设置默认参数
@@ -180,6 +173,26 @@ for cargo watch -x `any-cmd` command to execute"
    ("d" "cargo doc in tmux" rust-edit-cargo-doc-in-tmux)]
   )
 ;; a1bf4d12 ends here
+
+;; [[file:../gwp-scratch.note::03be78f9][03be78f9]]
+(defun rust-edit-rustup-in-tmux (args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (+tmux/run (format "rustup %s" args)))
+
+(transient-define-prefix rust-edit-rustup-transient ()
+  "使用 rustup 打开本地文档"
+  :incompatible '(("doc --std" "doc --rust-by-example" "update"))
+  :value '("doc --std")
+  ["Documentation Options"
+   ("-s" "open the std docs" "doc --std")
+   ("-e" "A collection of runnable examples" "doc --rust-by-example")]
+  ["System"
+   ("-u" "update toolchain" "update")]
+  ["Actions"
+   ("r" "rustup (in tmux)" rust-edit-rustup-in-tmux)]
+  )
+;; 03be78f9 ends here
 
 ;; [[file:../gwp-scratch.note::692939e0][692939e0]]
 (defun rust-edit-cargo-publish (prefix)
@@ -196,6 +209,7 @@ for cargo watch -x `any-cmd` command to execute"
   ["cargo"
    ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
    ("r" "cargo run ..." rust-edit-cargo-transient-run)
+   ("R" "rustup ..." rust-edit-rustup-transient)
    ("d" "cargo doc ..." rust-edit-cargo-transient-doc)
    ("u" "cargo update" rust-edit-cargo-update)
    ("p" "cargo publish (C-u for action)" rust-edit-cargo-publish)
