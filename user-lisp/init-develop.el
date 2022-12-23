@@ -22,10 +22,18 @@
 ;;;###autoload
 (defun gwp::find-file-from-clipboard ()
   "打开 clipboard 中复制的文件路径"
+  ;;   --> trajectory-analysis/src/part.rs:25:26
+  ;; (setq xx "  --> trajectory-analysis/src/part.rs:25:26")
+  ;; (string-match "\\([^/:]+:[0-9]+\\)" xx)
+  ;; (match-string 1 xx)
   (interactive)
   (require 'find-file-in-project)
-  (let ((path (simpleclip-get-contents)))
-    (ffip-find-files path nil)))
+  (let* ((str (gui-get-primary-selection))
+         (path (progn (string-match "\\([^/:]+:[0-9]+\\)" str)
+                      (match-string 1 str))))
+    (message "find file: %s" path)
+    (if path
+        (ffip-find-files path nil))))
 ;; 81cb1ab5 ends here
 
 ;; [[file:../gwp-scratch.note::8970c514][8970c514]]

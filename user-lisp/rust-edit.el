@@ -109,13 +109,35 @@ for cargo watch -x `any-cmd` command to execute"
   (define-key compilation-mode-map (kbd "o") 'compile-goto-error))
 ;; 524a7643 ends here
 
-;; [[file:../gwp-scratch.note::*cargo run][cargo run:1]]
-;; (transient-define-argument rust-edit-cargo-transient-run:--bin ()
-;;   :description "Name of the bin target to run"
-;;   :class 'transient-option
-;;   :shortarg "-b"
-;;   :argument "--bin=")
+;; [[file:../gwp-scratch.note::8e3d9a91][8e3d9a91]]
+;; (defun rust-edit-cargo-build-in-tmux (&rest args)
+;;   (interactive
+;;    (flatten-list (transient-args transient-current-command)))
+;;   (if args
+;;       (+tmux/run (format "cargo watch -x c %s" (mapconcat #'identity args " ")))
+;;     (+tmux/run "cargo watch -x c -x d")))
 
+;; (transient-define-prefix rust-edit-cargo-transient-build ()
+;;   "cargo build transient"
+;;   :value '("--offline")
+;;   ["Arguments"
+;;    ("-o" "Run without accessing the network" "--offline")
+;;    ("-t" "Test name" "--example=")
+;;    ("-b" "Name of the bin target to run" "--bin=")
+;;    ]
+;;   ["Actions"
+;;    ("r" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
+;;    ("R" "cargo run in tmux" rust-edit-cargo-build-in-tmux)
+;;    ])
+
+(defun rust-edit--run-in-tmux (cmds)
+  "在 tmux 中当前目录下运行命令"
+  (+tmux "new-window")
+  (+tmux/cd-to-here)
+  (+tmux/run cmds))
+;; 8e3d9a91 ends here
+
+;; [[file:../gwp-scratch.note::da4b2928][da4b2928]]
 (defun rust-edit-cargo-run (&rest args)
   (interactive
    (flatten-list (transient-args transient-current-command)))
@@ -127,8 +149,8 @@ for cargo watch -x `any-cmd` command to execute"
   (interactive
    (flatten-list (transient-args transient-current-command)))
   (if args
-      (+tmux/run (format "cargo run %s" (mapconcat #'identity args " ")))
-    (+tmux/run "cargo run")))
+      (rust-edit--run-in-tmux (format "cargo run %s" (mapconcat #'identity args " ")))
+    (rust-edit--run-in-tmux "cargo run")))
 
 (transient-define-prefix rust-edit-cargo-transient-run ()
   "cargo run transient"
@@ -142,7 +164,7 @@ for cargo watch -x `any-cmd` command to execute"
    ("r" "cargo run" rust-edit-cargo-run)
    ("R" "cargo run in tmux" rust-edit-cargo-run-in-tmux)
    ])
-;; cargo run:1 ends here
+;; da4b2928 ends here
 
 ;; [[file:../gwp-scratch.note::a1bf4d12][a1bf4d12]]
 (defun rust-edit-cargo-doc (&rest args)
@@ -156,8 +178,8 @@ for cargo watch -x `any-cmd` command to execute"
   (interactive
    (flatten-list (transient-args transient-current-command)))
   (if args
-      (+tmux/run (format "cargo doc %s" (mapconcat #'identity args " ")))
-    (+tmux/run "cargo doc")))
+      (rust-edit--run-in-tmux (format "cargo doc %s" (mapconcat #'identity args " ")))
+    (rust-edit--run-in-tmux "cargo doc")))
 
 (transient-define-prefix rust-edit-cargo-transient-doc ()
   "cargo doc transient"
@@ -178,7 +200,7 @@ for cargo watch -x `any-cmd` command to execute"
 (defun rust-edit-rustup-in-tmux (args)
   (interactive
    (flatten-list (transient-args transient-current-command)))
-  (+tmux/run (format "rustup %s" args)))
+  (rust-edit--run-in-tmux (format "rustup %s" args)))
 
 (transient-define-prefix rust-edit-rustup-transient ()
   "使用 rustup 打开本地文档"
