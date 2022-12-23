@@ -139,6 +139,30 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
     (dired-do-kill-lines)))
 ;; 8903fab8 ends here
 
+;; [[file:../gwp-scratch.note::763d8c1a][763d8c1a]]
+;;;###autoload
+(defun gwp::dired-sbfiles-decode ()
+  "将 clipboard 中的内容解码为文件, 置于当前目录下"
+  (interactive)
+  (let ((default-directory (file-name-directory (dired-get-file-for-visit)))
+        (cmd "wl-paste|sbfiles d"))
+    (call-process "bash" nil nil nil "-c" cmd)
+    (dired-do-redisplay)))
+
+;;;###autoload
+(defun gwp::dired-sbfiles-encode ()
+  "将 dired 中的文件解码, 将置入 clipboard"
+  (interactive)
+  (let* ((files (dired-get-marked-files nil nil))
+         (command "sbfiles e "))
+    (dolist (file files)
+      (setq command (concat command (shell-quote-argument file) " ")))
+    (setq command (concat command "| wl-copy"))
+    (message "%s" command)
+    (call-process "bash" nil nil nil "-c" command)
+    (dired-do-redisplay)))
+;; 763d8c1a ends here
+
 ;; [[file:../gwp-scratch.note::5a48a92b][5a48a92b]]
 (with-eval-after-load 'dired
   (setq dired-recursive-deletes 'top)
@@ -161,6 +185,8 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
   "t" '(dired-hide-details-mode :which-key "hide details")
   "r" '(revert-buffer-quick :which-key "revert buffer")
   "s" '(prot-dired-limit-regexp :which-key "filter")
+  "c" '(gwp::dired-sbfiles-encode :which-key "copy files using sbfiles")
+  "p" '(gwp::dired-sbfiles-decode :which-key "paste files using sbfiles")
   "!" '(dired-do-async-shell-command :which-key "Async shell command")
   "f" '(gwp::dired-fd :which-key "fd files"))
 ;; 5a48a92b ends here
