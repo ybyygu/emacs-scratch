@@ -223,6 +223,12 @@
 
 ;; [[file:../gwp-scratch.note::a9baf9f2][a9baf9f2]]
 (setq python-indent-guess-indent-offset-verbose nil)
+
+(use-package python
+  :ensure nil
+  :config
+  (unbind-key "C-c C-f" python-mode-map)
+  )
 ;; a9baf9f2 ends here
 
 ;; [[file:../gwp-scratch.note::f8651bde][f8651bde]]
