@@ -130,6 +130,14 @@
   :keymaps 'rust-mode-map
   "e" #'rust-edit-transient
   "b" #'rust-edit-cargo-transient)
+
+
+;; via https://github.com/twlz0ne/separedit.el
+(use-package separedit
+  :custom
+  (separedit-default-mode 'markdown-mode)
+  :config
+  (define-key prog-mode-map (kbd "C-c C-;") #'separedit-dwim))
 ;; a267f2ee ends here
 
 ;; [[file:../gwp-scratch.note::f2289888][f2289888]]
