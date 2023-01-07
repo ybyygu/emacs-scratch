@@ -488,6 +488,24 @@ Assumes that the frame is only split into two."
 (bind-key "M-o" 'ace-window)
 ;; 44d5ec48 ends here
 
+;; [[file:../gwp-scratch.note::3d54f645][3d54f645]]
+;; 不支持中文, 弃
+;; (use-package qrencode)
+
+(defun qrencode-region (start end)
+  "Show a QR code of the region.
+A simple way to transfer text to the phone..."
+  (interactive "r")
+  (let ((buf (get-buffer-create "*QR*"))
+	(inhibit-read-only t))
+    (with-current-buffer buf
+      (erase-buffer))
+    (let ((coding-system-for-read 'raw-text))
+      (shell-command-on-region start end "qrencode -o -" buf))
+    (switch-to-buffer buf)
+    (image-mode)))
+;; 3d54f645 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-ui)
 ;; provide:1 ends here
