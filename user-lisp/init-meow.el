@@ -150,7 +150,7 @@
    '("n" . meow-search)            ; 向选区方向搜索, 可按 o 键改变当前选区方向
    '("N" . meow-pop-search)        ; 恢复上一次搜索
    '("f" . meow-find)              ; 含搜索字符
-   '("t" . meow-till)              ; 不含搜索字符
+   '("T" . meow-till)              ; 不含搜索字符
    '("m" . point-to-register)
    ;; 常规选择
    '("%" . gwp::match-paren)
@@ -164,7 +164,7 @@
    '("U" . meow-pop-selection)             ; 撤销前一步选择
    '("v" . meow-cancel-selection)          ; 仿 vi
    '("V" . meow-block)                     ; 逐级扩选, 按 U 回退, 可替代 expand-region
-   '("T" . meow-to-block)                  ; 向前选择括号对所在区域, 可重复操作, 按 U 回退
+   '("t" . meow-to-block)                  ; 向前选择括号对所在区域, 可重复操作, 按 U 回退
    '("G" . meow-grab)                      ; 相当于 vi 中的 visual mode
    '("C-v" . meow-grab)                    ; 也可按 Alt-mouse 来选择
    ;; 特殊功能
