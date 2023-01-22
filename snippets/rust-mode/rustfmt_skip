@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: #[rustfmt::skip]
+# key: #fmt-skip
+# --
+#[rustfmt::skip]

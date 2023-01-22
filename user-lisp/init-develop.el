@@ -118,7 +118,9 @@
   (sp-local-pair 'rust-mode "{" nil :post-handlers '(:add ("||\n[i]" "RET")))
   ;; Rust closure中使用
   (sp-with-modes '(rust-mode)
-    (sp-local-pair "|" "|"))
+    (sp-local-pair "|" "|")
+    ;; (sp-local-pair "<" ">")
+    )
   (bind-keys :map rust-mode-map
              ("M-n" . rust-end-of-defun)
              ("M-p" . rust-beginning-of-defun)))

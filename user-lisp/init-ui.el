@@ -293,7 +293,9 @@
 ;; 34bcfc6f ends here
 
 ;; [[file:../gwp-scratch.note::a207c706][a207c706]]
-(use-package burly)
+(use-package burly
+  :custom
+  (burly-bookmark-prefix ""))
 
 (general-define-key
  :prefix-map 'gwp::window-map
