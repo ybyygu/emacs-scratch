@@ -56,7 +56,7 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun spacemacs/open-in-external-app (file-path)
   "Open `file-path' in external application."
   (let ((process-connection-type nil))
-    (start-process "" nil "xdg-open" file-path)))
+    (start-process "xdg-open" "*xdg-open*" "xdg-open" file-path)))
 
 (defun spacemacs/open-file-or-directory-in-external-app (arg)
   "Open current file in external application.
@@ -240,6 +240,7 @@ If two universal prefix arguments are used, then prompt for command to use."
  "tw" '(visual-line-mode :which-key "soft line wrapping")
  "tl" '(gwp::toggle-line-numbers :which-key "display line numbers")
  "tg" '(zoom-mode :which-key "auto zoom window")
+ "tm" '(disable-mouse-mode :which-key "disable mouse")
  )
 ;; 703c9a6f ends here
 

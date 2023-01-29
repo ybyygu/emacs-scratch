@@ -165,6 +165,41 @@
         ("C-c C-j" . avy-isearch)))
 ;; 4c0b6f58 ends here
 
+;; [[file:../gwp-scratch.note::7628d03d][7628d03d]]
+;; https://endlessparentheses.com/disable-mouse-only-inside-emacs.html
+(define-minor-mode disable-mouse-mode
+  "A minor-mode that disables all mouse keybinds."
+  :global t
+  :lighter " 🐭"
+  :keymap (make-sparse-keymap)
+
+  (dolist (type '(mouse
+                  down-mouse
+                  drag-mouse
+                  double-mouse
+                  triple-mouse))
+    (dolist (prefix '("" C- M- S- M-S- C-M- C-S- C-M-S-))
+      ;; Yes, I actually HAD to go up to 7 here.
+      (dotimes (n 3)
+        (let ((k (format "%s%s-%s" prefix type n)))
+          (define-key disable-mouse-mode-map
+            (vector (intern k)) #'ignore))))))
+
+(defun turn-off-disable-mouse-mode ()
+  (disable-mouse-mode -1))
+
+(defun turn-on-disable-mouse-mode ()
+  (disable-mouse-mode 1))
+
+;; 在insert状态下禁用鼠标, 避免误碰触控板
+;; (add-hook! 'evil-insert-state-entry-hook #'turn-on-disable-mouse-mode)
+;; (add-hook! 'evil-insert-state-exit-hook #'turn-off-disable-mouse-mode)
+;; (map! :leader
+;;       (:prefix-map ("t" . "toggle")
+;;        :desc "禁用鼠标" "m" #'disable-mouse-mode
+;;        ))
+;; 7628d03d ends here
+
 ;; [[file:../gwp-scratch.note::6cb02a16][6cb02a16]]
 (gwp::goto-leader-def
   ;; :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
