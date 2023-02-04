@@ -116,11 +116,11 @@
   ;; rust 回车后自动格式化 {|}
   ;; https://emacs.stackexchange.com/questions/2837/automatically-formatting-brackets
   (sp-local-pair 'rust-mode "{" nil :post-handlers '(:add ("||\n[i]" "RET")))
-  ;; Rust closure中使用
-  (sp-with-modes '(rust-mode)
-    (sp-local-pair "|" "|")
-    ;; (sp-local-pair "<" ">")
-    )
+  ;; 解决 smartparents-rust 设置中带来的问题, 去除多余的设置
+  (sp-local-pair 'rust-mode "<" nil :actions :rem)
+  (sp-local-pair 'rust-mode "<" ">")
+  ;; Rust closure中使用, 字符串中不成对
+  (sp-local-pair 'rust-mode "|" "|" :unless '(sp-in-string-p sp-in-comment-p))
   (bind-keys :map rust-mode-map
              ("M-n" . rust-end-of-defun)
              ("M-p" . rust-beginning-of-defun)))
