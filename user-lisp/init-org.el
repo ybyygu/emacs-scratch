@@ -1076,6 +1076,11 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
               (and path (image-type-from-file-name path)))
           ))))
 
+(defun gwp::org-format-src-block ()
+  (interactive)
+  (org-babel-do-key-sequence-in-edit-buffer ""))
+
+
 (transient-define-prefix gwp::org-menu-at-point ()
   "Show relevant menu for thing at point"
   ["src block" :if org-in-src-block-p
@@ -1084,6 +1089,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("p" "prev" org-previous-block :transient t)
    ("b" "tangle dwim" gwp::org-babel-tangle-dwim)
    ("." "mark" org-babel-mark-block)
+   ("f" "format" gwp::org-format-src-block)
    ]
   ["latex" :if gwp::org-in-latext-env-p
    ("RET" "toggle inline display" org-latex-preview)
