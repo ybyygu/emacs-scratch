@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: string::new();
+# key: str_new
+# --
+String::new();

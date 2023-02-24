@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: impl Iterator<Item={ ... }>
+# key: impl_iter
+# --
+impl Iterator<Item = ${1:Type}>

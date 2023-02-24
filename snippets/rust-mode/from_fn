@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: std::iter::from_fn { ... }
+# --
+std::iter::from_fn(move || {
+    $0
+})

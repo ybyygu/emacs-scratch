@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: #[test] fn test_name() -> Result<()> { .. }
+# key: #test_ok
+# --
+#[test]
+fn ${1:test_name}() -> Result<()> {
+   $0
+   Ok(())
+}

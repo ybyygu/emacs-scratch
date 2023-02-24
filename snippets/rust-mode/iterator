@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+# name: Iterator<Item={ ... }>
+# --
+Iterator<Item = ${1:Type}>
