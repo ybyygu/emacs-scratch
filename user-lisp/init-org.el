@@ -939,7 +939,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
                             (org-agenda-skip-function '(org-agenda-skip-entry-if 'scheduled))
                             (org-agenda-overriding-header "\nASAP\n------------------")
                             (org-agenda-sorting-strategy '(priority-down category-keep timestamp-up))
-                            (org-agenda-max-entries 20)
+                            (org-agenda-max-entries 40)
                             (org-agenda-prefix-format "%-12c ")
                             (org-agenda-compact-blocks t)))
                 (tags-todo "TODO={READ}"

@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+# name: #![deny(clippy::all)]
+# --
+#![deny(clippy::all)]
