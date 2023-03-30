@@ -845,7 +845,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
         ("r" "Research Memo" entry (file+headline "~/Notes/research.note" "Memo")
          "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
         ("p" "Paper" entry (file+headline "~/Notes/research.note" "Literature")
-         "* TODO %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
+         "* READ %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
         ("j" "Life Journal" entry (file+headline "~/Notes/life.note" "Journals")
          "* %u %? %(org-get-x-clipboard 'CLIPBOARD)\n  %i\n" :prepend t)
         ("N" "Note from protocol" entry (file "~/Notes/refile.note")
