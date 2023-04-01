@@ -213,6 +213,17 @@
 ;; [[file:../gwp-scratch.note::3d5eeec1][3d5eeec1]]
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
+
+;; 自动突出显示当前窗口
+(add-hook 'after-init-hook (lambda ()
+                             (when (fboundp 'auto-dim-other-buffers-mode)
+                               (auto-dim-other-buffers-mode t))))
+
+(use-package auto-dim-other-buffers
+  :custom-face
+  (auto-dim-other-buffers-face ((t (:background "#37474f"))))
+  ;; (auto-dim-other-buffers-hide-face ((t (:foreground "white" :background "green"))))
+  )
 ;; 3d5eeec1 ends here
 
 ;; [[file:../gwp-scratch.note::2b13453c][2b13453c]]
