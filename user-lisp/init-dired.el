@@ -82,10 +82,10 @@
 (use-package dired-x
   :ensure nil
   :config
-  (add-to-list 'dired-guess-shell-alist-user '("\\.gjf\\'" "agui"))
-  (add-to-list 'dired-guess-shell-alist-user '("\\.com\\'" "agui"))
-  (add-to-list 'dired-guess-shell-alist-user '("\\.xyz\\'" "jmol"))
-  (add-to-list 'dired-guess-shell-alist-user '("\\.cif\\'" "jmol"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.gjf\\'" "spdkit-view"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.com\\'" "spdkit-view"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.xyz\\'" "spdkit-view"))
+  (add-to-list 'dired-guess-shell-alist-user '("\\.cif\\'" "spdkit-view"))
   )
 ;; ef983ce4 ends here
 
