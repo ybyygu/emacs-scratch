@@ -216,6 +216,8 @@ If two universal prefix arguments are used, then prompt for command to use."
 (bind-key "V" 'apropos-value help-map)
 ;; default: describe-key-briefly
 (bind-key "c" 'describe-char help-map)
+;; 容易误按
+(unbind-key "h" help-map)
 
 ;;;###autoload
 (defun gwp::help-show-major-mode-bindings ()
