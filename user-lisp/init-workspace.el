@@ -91,8 +91,12 @@ Otherwise delete one character."
            ("C-c t" . gwp::eshell-insert-scp))
 
 (defun gwp::open-in-x-terminal (the-directory)
-  (let ((process-connection-type nil))
-    (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux")))
+  (let ((process-connection-type nil)
+        (command (executable-find "wezterm")))
+    (if command
+        ;; (start-process "" nil "wezterm" "start" (concat "--cwd=" the-directory) "tmux")
+        (start-process "" nil "wezterm" "start" (concat "--cwd=" the-directory))
+      (start-process "" nil "alacritty" (concat "--working-directory=" the-directory) "-e" "tmux"))))
 
 ;;;###autoload
 (defun gwp::open-terminal-here ()
