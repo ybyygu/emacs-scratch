@@ -9,11 +9,11 @@
   :after org
   :config
   ;; (require 'eaf-file-manager)
-  (require 'eaf-browser)
-  (require 'eaf-image-viewer)
+  ;; (require 'eaf-browser)
+  ;; (require 'eaf-image-viewer)
   (require 'eaf-pdf-viewer)
-  (require 'eaf-demo)
-  (require 'eaf-org)
+  ;; (require 'eaf-demo)
+  ;; (require 'eaf-org)
   ;; (require 'eaf-interleave)
   ;; (require 'eaf-terminal)
   ;; (require 'eaf-evil)
