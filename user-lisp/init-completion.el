@@ -128,7 +128,9 @@
     (consult-ripgrep default-directory))
 
   (with-eval-after-load 'org
-    (define-key org-mode-map [remap org-goto] #'consult-org-heading))
+    (define-key org-mode-map [remap org-goto] #'consult-org-heading)
+    ;; 2023-10-13: 保证 consult 跳转后 org 展开内容
+    (add-hook 'consult-after-jump-hook 'org-mark-jump-unhide))
 
   ;; consult-ripgrep
   :bind (
