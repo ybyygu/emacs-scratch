@@ -471,6 +471,12 @@ If on a:
 (setq org-src-window-setup 'current-window)
 ;; 99465500 ends here
 
+;; [[file:../gwp-scratch.note::4f91e413][4f91e413]]
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((python . t)))
+;; 4f91e413 ends here
+
 ;; [[file:../gwp-scratch.note::c2ffdd20][c2ffdd20]]
 ;; Add convenience lang alias for markdown blocks
 (add-to-list 'org-src-lang-modes '("toml" . conf-toml))

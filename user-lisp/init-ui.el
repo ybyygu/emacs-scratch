@@ -196,6 +196,7 @@
    ;; 在输入且有码上屏的状态下, 可用TAB临时切换英文.
    ;; (map! :map rime-active-mode-map :after ivy [tab] 'rime-inline-ascii)
    :map rime-active-mode-map
+   ("C-`" . 'rime-send-keybinding)
    ([tab] . rime-inline-ascii)
    ))
 ;; 5a1d21e9 ends here
