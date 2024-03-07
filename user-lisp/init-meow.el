@@ -280,6 +280,8 @@
   (meow-expand-hint-remove-delay 5.0)
   ;; 默认在 org 中不显示扩选指示字符
   (meow-expand-exclude-mode-list nil)
+  ;; 修正 clipboard 行为
+  (meow-use-clipboard t)
   ;; 选择文字区域时光标位置与 vim 及其它软件一致
   ;; 2022-03-19: 会出一些怪问题, 禁用
   ;; (meow-cursor-type-normal 'hbar)
