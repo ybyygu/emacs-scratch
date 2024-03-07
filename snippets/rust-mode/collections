@@ -1,4 +1,4 @@
 # -*- mode: snippet -*-
 # name: std::collections
 # --
-std::collections::${0:HashMap}
+std::collections::${1:HashMap}$0

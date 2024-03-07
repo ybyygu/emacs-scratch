@@ -167,6 +167,7 @@ Restore the buffer with \\<dired-mode-map>`\\[revert-buffer]'."
 (with-eval-after-load 'dired
   (setq dired-recursive-deletes 'top)
   (define-key dired-mode-map [mouse-2] 'dired-find-file)
+  (define-key dired-mode-map (kbd "r") 'revert-buffer)
   (define-key dired-mode-map (kbd "j") 'dired-next-line)
   (define-key dired-mode-map (kbd "k") 'dired-previous-line)
   (define-key dired-mode-map (kbd "h") 'dired-up-directory)
