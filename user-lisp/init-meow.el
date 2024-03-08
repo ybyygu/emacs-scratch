@@ -183,6 +183,7 @@
    '("z" . repeat)                  ; 重复上一个命令; 默认为 C-x z
    '("`" . gwp::avy-meow-find)      ; 使用 avy 来跳转到搜索项
    '("Z" . repeat-complex-command)  ; 重复上一个需要 minibuffer 输入的命令
+   '("F" . avy-goto-char-timer)
    ;; TODO
    ;; "F"
    ;; "W"
