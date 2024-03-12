@@ -1396,6 +1396,8 @@ DESC. FORMATs understood are 'odt','latex and 'html."
  "M-j" #'org-metadown
  "M-p" #'org-backward-element
  "M-n" #'org-forward-element
+ ;; 容易误按, 默认为 xref-find-definition, org-mode 下没什么用
+ "M-." #'org-forward-element
  )
 ;; dfee4224 ends here
 
