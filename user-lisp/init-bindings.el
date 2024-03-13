@@ -113,6 +113,7 @@ If two universal prefix arguments are used, then prompt for command to use."
   "j" '(:ignore t :which-key "jump")
   "ja" '(gwp::avy-transient :which-key "jump using avy")
   "jl" '(avy-goto-line :which-key "avy goto line")
+  "jj" '(avy-goto-char-timer :which-key "find chars using avy") ; 很有用, 可检索多个字符. C-u 调用时, 作用同avy-goto-line.
   "jo" '(gwp::org-babel-tangle-jump-to-org :which-key "jump to org src file")
   "jm" '(gwp::hydra-mark-ring-pop/body :which-key "emacs mark ring")
   "jc" '(gwp::hydra-last-change/body :which-key "last changed positions")

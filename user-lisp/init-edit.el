@@ -86,9 +86,11 @@
 
 ;; [[file:../gwp-scratch.note::c84fab18][c84fab18]]
 (use-package avy
-  :config
-  :after init-bindings
-  (setq avy-all-windows t))
+  :custom
+  ;; change how many seconds to wait for char timeout
+  (avy-timeout-seconds 0.8)
+  (avy-all-windows 'all-frames)
+  )
 ;; c84fab18 ends here
 
 ;; [[file:../gwp-scratch.note::02dde369][02dde369]]
