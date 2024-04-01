@@ -192,7 +192,7 @@
           ))
   :bind
   ;; 这里需要与fcitx配合: 去掉GTK_IM_MODULE, XMODIFIERS等FCITX输入法设置变量.
-  (("C-SPC" . gwp::rime-toggle-input)
+  (("C-M-SPC" . gwp::rime-toggle-input)
    ;; 在输入且有码上屏的状态下, 可用TAB临时切换英文.
    ;; (map! :map rime-active-mode-map :after ivy [tab] 'rime-inline-ascii)
    :map rime-active-mode-map

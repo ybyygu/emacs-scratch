@@ -118,7 +118,8 @@
   ;; preview delayed
   ;; (consult-preview-key '(:debounce 1 any))
   ;; preview manually
-  (consult-preview-key (kbd "M-."))
+  ;; (consult-preview-key (kbd "M-."))
+  (consult-preview-key "M-.")
   ;; The :init configuration is always executed (Not lazy)
   :init
   :config
