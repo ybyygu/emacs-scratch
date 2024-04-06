@@ -212,18 +212,14 @@ If on a:
  browse-url-generic-program "xdg-open")
 ;; 7330d8ac ends here
 
-;; [[file:../gwp-scratch.note::*latex preview][latex preview:1]]
-(setq org-format-latex-options (plist-put org-format-latex-options :scale 2.5))
-;; latex preview:1 ends here
-
-;; [[file:../gwp-scratch.note::*toggle][toggle:1]]
+;; [[file:../gwp-scratch.note::0f2116cf][0f2116cf]]
 (defun gwp::org-toggle-checkbox ()
   (interactive)
   (unless (org-at-item-p)
     (call-interactively #'org-toggle-item))
   (let ((current-prefix-arg '(4)))     ; C-u
     (call-interactively #'org-toggle-checkbox)))
-;; toggle:1 ends here
+;; 0f2116cf ends here
 
 ;; [[file:../gwp-scratch.note::994db730][994db730]]
 (require 'org-attach)
