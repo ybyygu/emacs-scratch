@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::6efb7ce7][6efb7ce7]]
 ;; -*- lexical-binding: t; -*-
-;; 6efb7ce7 ends here
 
 ;; [[file:../gwp-scratch.note::2ad3390b][2ad3390b]]
 (use-package org-noter

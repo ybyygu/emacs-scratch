@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::*docs][docs:1]]
 ;; -*- lexical-binding: t; -*-
-;; docs:1 ends here
 
 ;; [[file:../gwp-scratch.note::98635e62][98635e62]]
 (fset 'yes-or-no-p 'y-or-n-p)

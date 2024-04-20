@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::e59d26a0][e59d26a0]]
 ;;; -*- lexical-binding: t -*-
-;; e59d26a0 ends here
 
 ;; [[file:../gwp-scratch.note::c18cdaa7][c18cdaa7]]
 (use-package fd-dired)

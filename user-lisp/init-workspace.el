@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::902df907][902df907]]
 ;; -*- lexical-binding: t; -*-
-;; 902df907 ends here
 
 ;; [[file:../gwp-scratch.note::36ca6867][36ca6867]]
 (require 'esh-mode)

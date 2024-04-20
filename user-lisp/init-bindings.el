@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::a4d73c60][a4d73c60]]
 ;; -*- lexical-binding: t; -*-
-;; a4d73c60 ends here
 
 ;; [[file:../gwp-scratch.note::4cf8c86c][4cf8c86c]]
 (defun gwp::switch-to-previous-buffer ()

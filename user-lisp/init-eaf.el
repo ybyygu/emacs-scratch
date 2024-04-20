@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::*docs][docs:1]]
 ;; -*- lexical-binding: t; -*-
-;; docs:1 ends here
 
 ;; [[file:../gwp-scratch.note::f1b9d1b9][f1b9d1b9]]
 (use-package eaf

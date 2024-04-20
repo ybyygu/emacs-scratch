@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::290a045b][290a045b]]
 ;; -*- lexical-binding: t; -*-
-;; 290a045b ends here
 
 ;; [[file:../gwp-scratch.note::7db2aa5a][7db2aa5a]]
 (defun gwp::yas-insert-snippet ()

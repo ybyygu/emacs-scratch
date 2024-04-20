@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::9e836961][9e836961]]
 ;; -*- lexical-binding: t; -*-
-;; 9e836961 ends here
 
 ;; [[file:../gwp-scratch.note::b76494d2][b76494d2]]
 (gwp::text-edit-def

@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::b0fdf59c][b0fdf59c]]
 ;; -*- lexical-binding: t; -*-
-;; b0fdf59c ends here
 
 ;; [[file:../gwp-scratch.note::2f79944b][2f79944b]]
 (setq inhibit-startup-message t)

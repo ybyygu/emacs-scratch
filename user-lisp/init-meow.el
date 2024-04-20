@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::1d60bcbf][1d60bcbf]]
 ;; -*- lexical-binding: t; -*-
-;; 1d60bcbf ends here
 
 ;; [[file:../gwp-scratch.note::4e63ecbf][4e63ecbf]]
 (require 'meow)

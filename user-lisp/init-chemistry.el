@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::8564684d][8564684d]]
 ;; -*- lexical-binding: t; -*-
-;; 8564684d ends here
 
 ;; [[file:../gwp-scratch.note::1d042864][1d042864]]
 (require 'cp2k-mode)

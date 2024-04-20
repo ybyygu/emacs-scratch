@@ -1,6 +1,4 @@
-;; [[file:../gwp-scratch.note::4cd1adaf][4cd1adaf]]
 ;; -*- lexical-binding: t; -*-
-;; 4cd1adaf ends here
 
 ;; [[file:../gwp-scratch.note::6c574db8][6c574db8]]
 ;; 本地使用时不生成 backup~ 文件, 但在服务器端有必要.
@@ -29,6 +27,7 @@
 (setq bookmark-file-coding-system 'utf-8)
 (setq magit-git-output-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8-auto)
 ;; 0a9921e5 ends here
 
 ;; [[file:../gwp-scratch.note::3eff5fa2][3eff5fa2]]
