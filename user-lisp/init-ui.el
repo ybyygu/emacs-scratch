@@ -201,6 +201,12 @@
    ))
 ;; 5a1d21e9 ends here
 
+;; [[file:../gwp-scratch.note::5ac1b892][5ac1b892]]
+;; Wayland pgtk stuff
+(defun fix-input () "." (pgtk-use-im-context nil))
+(add-hook 'emacs-startup-hook 'fix-input)
+;; 5ac1b892 ends here
+
 ;; [[file:../gwp-scratch.note::6ca20167][6ca20167]]
 (use-package hl-line
   :ensure nil
