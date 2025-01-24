@@ -466,6 +466,24 @@
   (server-start))
 ;; 41f7e044 ends here
 
+;; [[file:../gwp-scratch.note::be6d7c1f][be6d7c1f]]
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+;; be6d7c1f ends here
+
 ;; [[file:../gwp-scratch.note::7b0203a1][7b0203a1]]
 (provide 'init-core)
 ;; 7b0203a1 ends here
