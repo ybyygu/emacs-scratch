@@ -264,6 +264,19 @@
         ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
 
+;; [[file:../gwp-scratch.note::ca5c2058][ca5c2058]]
+(use-package aider
+  :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
+  :config
+  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
+  (setq aider-args '("--model" "openrouter/deepseek/deepseek-chat"))
+  ;; Optional: Set a key binding for the transient menu
+  ;; (global-set-key (kbd "C-c a") 'aider-transient-menu)
+  :bind
+  (:map gwp::develop-map
+        ("a" . aider-transient-menu)))
+;; ca5c2058 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here
