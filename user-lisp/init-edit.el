@@ -213,13 +213,6 @@
   )
 ;; 6cb02a16 ends here
 
-;; [[file:../gwp-scratch.note::dfa96ecd][dfa96ecd]]
-(use-package keyfreq
-  :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1))
-;; dfa96ecd ends here
-
 ;; [[file:../gwp-scratch.note::382df7e2][382df7e2]]
 (provide 'init-edit)
 ;; 382df7e2 ends here
