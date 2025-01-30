@@ -268,14 +268,97 @@
 (use-package aider
   :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
   :config
-  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
-  (setq aider-args '("--model" "openrouter/deepseek/deepseek-chat"))
+  ;; ;; Search available model by command 'aider --list-models openrouter/ | grep openrouter/'
+  (setq aider-args '("--no-auto-commits"
+                     "--model" "deepseek/deepseek-r1-distill-qwen-32b"))
   ;; Optional: Set a key binding for the transient menu
-  ;; (global-set-key (kbd "C-c a") 'aider-transient-menu)
+  (setenv "OPENROUTER_API_KEY" (with-temp-buffer
+                               (insert-file-contents "~/Install/configs/openrouter/key.txt")
+                               (string-trim (buffer-string))))
   :bind
   (:map gwp::develop-map
         ("a" . aider-transient-menu)))
 ;; ca5c2058 ends here
+
+;; [[file:../gwp-scratch.note::0ce7e90e][0ce7e90e]]
+(use-package gptel
+  :ensure t
+  :custom
+  (gptel-default-mode 'org-mode)
+  (gptel-temperature 0.6) ; 控制生成文本的随机性
+  (gptel-log-level 'debug); gptel-log buffer
+  :bind
+  (:map gwp::develop-map
+        ("gr" . gptel-rewrite)
+        ("gs" . gptel-send)
+        ("gm" . gptel-menu)
+        )
+  :config
+  ;; 使用 org heading 上下文
+  (setq gptel-org-branching-context t)
+  (setq gptel-use-curl t)
+
+  (setq
+   ;; gptel-model 'deepseek-r1-distill-qwen-7b
+   gptel-backend
+   (gptel-make-openai "lm-studio"
+     :stream t
+     :protocol "http"
+     :host "localhost:1234"
+     :endpoint "/v1/chat/completions"
+     :models '(
+               qwen2.5-7b-instruct-1m
+               deepseek-r1-distill-qwen-14b-uncensored
+               )))
+
+  ;; ;; Register Ollama backend
+  ;; (setq
+  ;;  gptel-model 'deepseek-r1:7b
+  ;;  gptel-backend
+  ;;  (gptel-make-ollama "Ollama"
+  ;;                    :host "localhost:11434"
+  ;;                    :stream t
+  ;;                    :models '(deepseek-r1:7b)))
+
+  ;; 如果有对应的环境变量, 设置为默认的 AI 模型
+  (setenv "OPENROUTER_API_KEY" (with-temp-buffer
+                               (insert-file-contents "~/Install/configs/llms/openrouter-key.txt")
+                               (string-trim (buffer-string))))
+
+  ;; 如果有对应的环境变量, 设置为默认的 AI 模型
+  (setenv "QWEN_API_KEY" (with-temp-buffer
+                               (insert-file-contents "~/Install/configs/llms/qwen-key.txt")
+                               (string-trim (buffer-string))))
+
+
+  ;; https://qwenlm.github.io/zh/blog/qwen2.5-max/
+  (when-let ((key (getenv "QWEN_API_KEY")))
+    (setq gptel-model "qwen-max-latest"
+          gptel-backend
+          (gptel-make-openai "aliyun"
+            :protocol "https"
+            :host "dashscope.aliyuncs.com"
+            :endpoint "/compatible-mode/v1/chat/completions"
+            :stream t
+            :key key
+            :models '(
+                      qwen-max-latest
+                      deepseek-v3
+                      deepseek-r1
+                      ))))
+
+  (when-let ((key (getenv "OPENROUTER_API_KEY")))
+    (setq gptel-backend
+          (gptel-make-openai "OpenRouter"
+            :host "openrouter.ai"
+            :endpoint "/api/v1/chat/completions"
+            :stream t
+            :key key
+            :models '(
+                      deepseek/deepseek-r1:free
+                      deepseek/deepseek-r1-distill-qwen-32b
+                      )))))
+;; 0ce7e90e ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
