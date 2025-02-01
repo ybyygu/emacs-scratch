@@ -285,79 +285,88 @@
   :ensure t
   :custom
   (gptel-default-mode 'org-mode)
-  (gptel-temperature 0.6) ; 控制生成文本的随机性
-  (gptel-log-level 'debug); gptel-log buffer
+  (gptel-temperature 0.6)                    ; 控制生成文本的随机性 (0.0-2.0)
+  (gptel-log-level 'debug)                   ; 调试日志级别
   :bind
   (:map gwp::develop-map
-        ("gr" . gptel-rewrite)
-        ("gs" . gptel-send)
-        ("gm" . gptel-menu)
-        )
+        ("gr" . gptel-rewrite)              ; 重写区域
+        ("gs" . gptel-send)                 ; 发送消息
+        ("gm" . gptel-menu))                ; 打开菜单
+
   :config
-  ;; 使用 org heading 上下文
-  (setq gptel-org-branching-context t)
-  (setq gptel-use-curl t)
+  ;; org-mode 相关设置
+  (setq gptel-org-branching-context t)      ; 使用 org heading 上下文
+  (setq gptel-use-curl t)                   ; 使用 curl 而不是 url-retrieve
 
-  (setq
-   ;; gptel-model 'deepseek-r1-distill-qwen-7b
-   gptel-backend
-   (gptel-make-openai "lm-studio"
-     :stream t
-     :protocol "http"
-     :host "localhost:1234"
-     :endpoint "/v1/chat/completions"
-     :models '(
-               qwen2.5-7b-instruct-1m
-               deepseek-r1-distill-qwen-14b-uncensored
-               )))
+  ;; 本地 LLM 服务器配置 (LM Studio)
+  (setq gptel-backend
+        (gptel-make-openai "lm-studio"
+          :stream t
+          :protocol "http"
+          :host "localhost:1234"
+          :endpoint "/v1/chat/completions"
+          :models '(qwen2.5-7b-instruct-1m
+                   deepseek-r1-distill-qwen-14b-uncensored)))
 
-  ;; ;; Register Ollama backend
-  ;; (setq
-  ;;  gptel-model 'deepseek-r1:7b
-  ;;  gptel-backend
-  ;;  (gptel-make-ollama "Ollama"
-  ;;                    :host "localhost:11434"
-  ;;                    :stream t
-  ;;                    :models '(deepseek-r1:7b)))
+  ;; API Keys 配置函数
+  (defun gptel--read-api-key (file)
+    "从文件中安全地读取 API key"
+    (condition-case err
+        (with-temp-buffer
+          (insert-file-contents file)
+          (string-trim (buffer-string)))
+      (file-error
+       (message "无法读取 API key 文件 %s: %s" file (error-message-string err))
+       nil)))
 
-  ;; 如果有对应的环境变量, 设置为默认的 AI 模型
-  (setenv "OPENROUTER_API_KEY" (with-temp-buffer
-                               (insert-file-contents "~/Install/configs/llms/openrouter-key.txt")
-                               (string-trim (buffer-string))))
+  ;; 设置 API Keys
+  (let ((openrouter-key (gptel--read-api-key "~/Install/configs/llms/openrouter-key.txt"))
+        (qwen-key (gptel--read-api-key "~/Install/configs/llms/qwen-key.txt")))
 
-  ;; 如果有对应的环境变量, 设置为默认的 AI 模型
-  (setenv "QWEN_API_KEY" (with-temp-buffer
-                               (insert-file-contents "~/Install/configs/llms/qwen-key.txt")
-                               (string-trim (buffer-string))))
+    ;; 配置通义千问
+    (when qwen-key
+      (setenv "QWEN_API_KEY" qwen-key)
+      (setq gptel-backend
+            (gptel-make-openai "aliyun"
+              :protocol "https"
+              :host "dashscope.aliyuncs.com"
+              :endpoint "/compatible-mode/v1/chat/completions"
+              :stream t
+              :key qwen-key
+              :models '(qwen-max-latest      ; 通义千问 Max
+                       deepseek-v3           ; DeepSeek V3
+                       deepseek-r1))))       ; DeepSeek R1
 
+    ;; 配置 OpenRouter
+    (when openrouter-key
+      (setenv "OPENROUTER_API_KEY" openrouter-key)
+      (setq gptel-backend
+            (gptel-make-openai "OpenRouter"
+              :host "openrouter.ai"
+              :endpoint "/api/v1/chat/completions"
+              :stream t
+              :key openrouter-key
+              :models '(deepseek/deepseek-r1:free
+                        deepseek/deepseek-r1-distill-qwen-32b)))))
+  ;; 提示词
+  (setq gptel-directives
+   '((default . "To assist:  Be terse.  Do not offer unprompted advice or clarifications. Speak in specific,
+ topic relevant terminology. Do NOT hedge or qualify. Do not waffle. Speak
+ directly and be willing to make creative guesses. Explain your reasoning. if you
+ don’t know, say you don’t know.
 
-  ;; https://qwenlm.github.io/zh/blog/qwen2.5-max/
-  (when-let ((key (getenv "QWEN_API_KEY")))
-    (setq gptel-model "qwen-max-latest"
-          gptel-backend
-          (gptel-make-openai "aliyun"
-            :protocol "https"
-            :host "dashscope.aliyuncs.com"
-            :endpoint "/compatible-mode/v1/chat/completions"
-            :stream t
-            :key key
-            :models '(
-                      qwen-max-latest
-                      deepseek-v3
-                      deepseek-r1
-                      ))))
+ Remain neutral on all topics. Be willing to reference less reputable sources for
+ ideas.
 
-  (when-let ((key (getenv "OPENROUTER_API_KEY")))
-    (setq gptel-backend
-          (gptel-make-openai "OpenRouter"
-            :host "openrouter.ai"
-            :endpoint "/api/v1/chat/completions"
-            :stream t
-            :key key
-            :models '(
-                      deepseek/deepseek-r1:free
-                      deepseek/deepseek-r1-distill-qwen-32b
-                      )))))
+ Never apologize.  Ask questions when unsure.")
+     (editor . "Act as an expert editor with several years of experience. Please provide a bullet point list of errors in spelling, punctuation, and grammar. Provide some general thoughts on style and structure. Then, ask for any elaborations or ask me to get you to suggest further useful prompts.")
+     (rewrite . "You are a writing expert. You refine the input text to enhance clarity, coherence, grammar, and style.")
+     (rewrite-en . "You are an academic writing expert. You refine the input text in academic and scientific language using common words for the best clarity, coherence, and ease of understanding in English.")
+     (programmer . "You are a careful programmer.  Provide code and only code as output without any additional text, prompt or note.")
+     (cmdline . "You are a command line helper.  Generate command line commands that do what is requested, without any additional description or explanation.  Generate ONLY the command, I will edit it myself before running.")
+     (emacser . "You are an Emacs maven. Reply only with the most appropriate built-in Emacs command for the task I specify.  Do NOT generate any additional description or explanation.")
+     (explain . "Explain what this code does to a novice programmer.")))
+  )
 ;; 0ce7e90e ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
