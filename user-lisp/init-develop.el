@@ -267,18 +267,45 @@
 ;; [[file:../gwp-scratch.note::ca5c2058][ca5c2058]]
 (use-package aider
   :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
+  :custom
+  (aider-program "~/.local/bin/run-aider.sh")
+  ;; aider 参数直接在 shell 脚本中设置. 别受 aider.el 默认值的影响
+  (aider-args nil)
   :config
   ;; ;; Search available model by command 'aider --list-models openrouter/ | grep openrouter/'
-  (setq aider-args '("--no-auto-commits"
-                     "--model" "deepseek/deepseek-r1-distill-qwen-32b"))
+  ;; (setq aider-args '("--no-auto-commits"
+  ;;                    "--model" "openai/deepseek-ai/DeepSeek-R1"))
   ;; Optional: Set a key binding for the transient menu
-  (setenv "OPENROUTER_API_KEY" (with-temp-buffer
-                               (insert-file-contents "~/Install/configs/openrouter/key.txt")
-                               (string-trim (buffer-string))))
+  ;; (setenv "OPENROUTER_API_KEY" (with-temp-buffer
+  ;;                              (insert-file-contents "~/Install/configs/llms/openrouter-key.txt")
+  ;;                              (string-trim (buffer-string))))
   :bind
   (:map gwp::develop-map
         ("a" . aider-transient-menu)))
 ;; ca5c2058 ends here
+
+;; [[file:../gwp-scratch.note::42777d2f][42777d2f]]
+(defun gwp::convert-think-block-to-text ()
+  "将 DeepSeek-R1 思考链文字(以 <think>foo</think> 标记)转化为 org-mode 的 text 代码块"
+  (interactive)
+  (save-excursion
+    (let* ((origin-pos (point))
+           (start (when (re-search-backward "^<think>" nil t)
+                    (line-beginning-position)))
+           content-start end content)
+      ;; AI: 当找不到 think 块时给出提示
+      (unless start
+        (user-error "请先将光标置于 think 代码块内再执行操作"))
+      (forward-char 7)                ; 跳过 <think>
+      (setq content-start (point))
+      (when (re-search-forward "^</think>" nil t)
+        (setq end (line-end-position))
+        (unless (and (>= origin-pos start) (<= origin-pos end))
+          (user-error "请先将光标置于 think 代码块内再执行操作"))
+        (setq content (buffer-substring content-start (match-beginning 0)))
+        (delete-region start end)
+        (insert "#+begin_src text\n" content "\n#+end_src")))))
+;; 42777d2f ends here
 
 ;; [[file:../gwp-scratch.note::0ce7e90e][0ce7e90e]]
 (use-package gptel
@@ -287,86 +314,63 @@
   (gptel-default-mode 'org-mode)
   (gptel-temperature 0.6)                    ; 控制生成文本的随机性 (0.0-2.0)
   (gptel-log-level 'debug)                   ; 调试日志级别
+  ;; (gptel-org-branching-context t)         ; 使用 org heading 上下文; 2025-02-02 显示 WARNING, 先禁用吧
+  (gptel-use-curl t)                         ; 使用 curl 而不是 url-retrieve
   :bind
   (:map gwp::develop-map
-        ("gr" . gptel-rewrite)              ; 重写区域
-        ("gs" . gptel-send)                 ; 发送消息
-        ("gm" . gptel-menu))                ; 打开菜单
-
+        ("gr" . gptel-rewrite)
+        ("g RET" . gptel-send)
+        ("gm" . gptel-menu)
+        ("gg" . gptel)
+        ("gw" . gwp::convert-think-block-to-text))
   :config
-  ;; org-mode 相关设置
-  (setq gptel-org-branching-context t)      ; 使用 org heading 上下文
-  (setq gptel-use-curl t)                   ; 使用 curl 而不是 url-retrieve
-
-  ;; 本地 LLM 服务器配置 (LM Studio)
-  (setq gptel-backend
-        (gptel-make-openai "lm-studio"
-          :stream t
-          :protocol "http"
-          :host "localhost:1234"
-          :endpoint "/v1/chat/completions"
-          :models '(qwen2.5-7b-instruct-1m
-                   deepseek-r1-distill-qwen-14b-uncensored)))
-
-  ;; API Keys 配置函数
-  (defun gptel--read-api-key (file)
-    "从文件中安全地读取 API key"
-    (condition-case err
+  ;; 自定义安全读取 API Key 函数
+  (defun my/gptel-read-api-key (file)
+    "安全地从文件中读取 API key"
+    (if (file-exists-p file)
         (with-temp-buffer
           (insert-file-contents file)
           (string-trim (buffer-string)))
-      (file-error
-       (message "无法读取 API key 文件 %s: %s" file (error-message-string err))
-       nil)))
+      (warn "API key 文件不存在: %s" file)
+      nil))
 
-  ;; 设置 API Keys
-  (let ((openrouter-key (gptel--read-api-key "~/Install/configs/llms/openrouter-key.txt"))
-        (qwen-key (gptel--read-api-key "~/Install/configs/llms/qwen-key.txt")))
+  ;; 结构化后端配置
+  (setq gptel-backends
+    (cl-loop for (name key-file . config) in
+             `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
+                :protocol "https" :host "api.siliconflow.cn"
+                :models (deepseek-ai/DeepSeek-V3 deepseek-ai/DeepSeek-R1))
+               ("LM Studio" nil  ; 本地无需 key
+                :protocol "http" :host "localhost:1234"
+                :models (qwen2.5-7b-instruct-1m deepseek-r1-distill-qwen-14b-uncensored))
+               ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
+                :protocol "https" :host "dashscope.aliyuncs.com"
+                :endpoint "/compatible-mode/v1/chat/completions"
+                :models (qwen-max-latest deepseek-ai/DeepSeek-V3 deepseek-ai/DeepSeek-R1))
+               ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
+                :host "openrouter.ai"
+                :endpoint "/api/v1/chat/completions"
+                :models (deepseek/deepseek-r1:free deepseek/deepseek-r1-distill-qwen-32b)))
+             when (or (null key-file) (file-exists-p key-file))
+             collect
+             (let ((key (when key-file (my/gptel-read-api-key key-file))))
+               (apply #'gptel-make-openai name
+                      :stream t
+                      :key key
+                      (append config '(:endpoint "/v1/chat/completions"))))))
 
-    ;; 配置通义千问
-    (when qwen-key
-      (setenv "QWEN_API_KEY" qwen-key)
-      (setq gptel-backend
-            (gptel-make-openai "aliyun"
-              :protocol "https"
-              :host "dashscope.aliyuncs.com"
-              :endpoint "/compatible-mode/v1/chat/completions"
-              :stream t
-              :key qwen-key
-              :models '(qwen-max-latest      ; 通义千问 Max
-                       deepseek-v3           ; DeepSeek V3
-                       deepseek-r1))))       ; DeepSeek R1
+  ;; 设置默认后端（需在 backend 定义之后）
+  (setq gptel-backend (gptel-get-backend "SiliconFlow")
+        gptel-model 'deepseek-ai/DeepSeek-V3)
 
-    ;; 配置 OpenRouter
-    (when openrouter-key
-      (setenv "OPENROUTER_API_KEY" openrouter-key)
-      (setq gptel-backend
-            (gptel-make-openai "OpenRouter"
-              :host "openrouter.ai"
-              :endpoint "/api/v1/chat/completions"
-              :stream t
-              :key openrouter-key
-              :models '(deepseek/deepseek-r1:free
-                        deepseek/deepseek-r1-distill-qwen-32b)))))
-  ;; 提示词
+  ;; 提示词模板
   (setq gptel-directives
-   '((default . "To assist:  Be terse.  Do not offer unprompted advice or clarifications. Speak in specific,
- topic relevant terminology. Do NOT hedge or qualify. Do not waffle. Speak
- directly and be willing to make creative guesses. Explain your reasoning. if you
- don’t know, say you don’t know.
-
- Remain neutral on all topics. Be willing to reference less reputable sources for
- ideas.
-
- Never apologize.  Ask questions when unsure.")
-     (editor . "Act as an expert editor with several years of experience. Please provide a bullet point list of errors in spelling, punctuation, and grammar. Provide some general thoughts on style and structure. Then, ask for any elaborations or ask me to get you to suggest further useful prompts.")
-     (rewrite . "You are a writing expert. You refine the input text to enhance clarity, coherence, grammar, and style.")
-     (rewrite-en . "You are an academic writing expert. You refine the input text in academic and scientific language using common words for the best clarity, coherence, and ease of understanding in English.")
-     (programmer . "You are a careful programmer.  Provide code and only code as output without any additional text, prompt or note.")
-     (cmdline . "You are a command line helper.  Generate command line commands that do what is requested, without any additional description or explanation.  Generate ONLY the command, I will edit it myself before running.")
-     (emacser . "You are an Emacs maven. Reply only with the most appropriate built-in Emacs command for the task I specify.  Do NOT generate any additional description or explanation.")
-     (explain . "Explain what this code does to a novice programmer.")))
-  )
+        `((default . ,(concat "To assist: Be terse. Use specific terminology. "
+                              "Explain your reasoning when unsure. Remain neutral."))
+          (editor . "Act as an expert editor. List errors and provide structural feedback.")
+          (rewrite . "Refine text for clarity, coherence, grammar and style.")
+          (programmer . "Provide code ONLY without any additional text.")
+          (emacser . "Recommend the most appropriate built-in Emacs command."))))
 ;; 0ce7e90e ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
