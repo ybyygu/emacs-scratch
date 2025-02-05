@@ -309,6 +309,7 @@
 
 ;; [[file:../gwp-scratch.note::0ce7e90e][0ce7e90e]]
 (use-package gptel
+  :straight t
   :ensure t
   :custom
   (gptel-default-mode 'org-mode)
@@ -335,6 +336,7 @@
       nil))
 
   ;; 结构化后端配置
+  ;; openai compatible models
   (setq gptel-backends
     (cl-loop for (name key-file . config) in
              `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
@@ -358,6 +360,13 @@
                       :stream t
                       :key key
                       (append config '(:endpoint "/v1/chat/completions"))))))
+
+  ;; gemini models
+  (let ((key (my/gptel-read-api-key "~/Install/configs/llms/google-key.txt")))
+    (gptel-make-gemini "Gemini"
+      :stream t
+      :key key
+      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash-thinking-exp)))
 
   ;; 设置默认后端（需在 backend 定义之后）
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
