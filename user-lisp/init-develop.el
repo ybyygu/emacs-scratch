@@ -378,7 +378,7 @@
                               "Explain your reasoning when unsure. Remain neutral."))
           (summarize . "你是在呆在 Emacs 中的 LLM. 请总结下面的文章，给出总结、摘要、观点三个部分内容, 以 org-mode 格式呈现.")
           (editor . "Act as an expert editor. List errors and provide structural feedback.")
-          (rewrite . "Refine text for clarity, coherence, grammar and style.")
+          (rewrite . "请改进错漏, 优化文本, 注意保持文字风格不变; 注意, 请用原文语言输出.")
           (programmer . "Provide code ONLY without any additional text.")
           (emacser . "Recommend the most appropriate built-in Emacs command."))))
 ;; 0ce7e90e ends here
