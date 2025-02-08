@@ -309,7 +309,6 @@
 
 ;; [[file:../gwp-scratch.note::0ce7e90e][0ce7e90e]]
 (use-package gptel
-  :straight t
   :ensure t
   :custom
   (gptel-default-mode 'org-mode)
@@ -348,7 +347,7 @@
                ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
                 :protocol "https" :host "dashscope.aliyuncs.com"
                 :endpoint "/compatible-mode/v1/chat/completions"
-                :models (qwen-max-latest deepseek-ai/DeepSeek-V3 deepseek-ai/DeepSeek-R1))
+                :models (qwen-max-latest deepseek-v3 deepseek-r1))
                ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
                 :host "openrouter.ai"
                 :endpoint "/api/v1/chat/completions"
@@ -374,13 +373,14 @@
 
   ;; 提示词模板
   (setq gptel-directives
-        `((default . ,(concat "To assist: Be terse. Use specific terminology. "
-                              "Explain your reasoning when unsure. Remain neutral."))
+        `((default . ,(concat "You are a helpful agent living in emacs org-mode. "
+                              "I am using org-indent-mode, please answer accordingly."))
           (summarize . "你是在呆在 Emacs 中的 LLM. 请总结下面的文章，给出总结、摘要、观点三个部分内容, 以 org-mode 格式呈现.")
           (editor . "Act as an expert editor. List errors and provide structural feedback.")
           (rewrite . "请改进错漏, 优化文本, 注意保持文字风格不变; 注意, 请用原文语言输出.")
           (programmer . "Provide code ONLY without any additional text.")
-          (emacser . "Recommend the most appropriate built-in Emacs command."))))
+          (emacser . "Recommend the most appropriate built-in Emacs command.")))
+  )
 ;; 0ce7e90e ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
