@@ -237,6 +237,40 @@ If on a:
     attach-dir))
 ;; 994db730 ends here
 
+;; [[file:../gwp-scratch.note::877840e9][877840e9]]
+(defun gwp::delete-attachment-at-point ()
+  "使用 org-attach API 安全删除附件及关联内容"
+  (interactive)
+  ;; (require 'org-attach)
+  (let ((elem (org-element-context)))
+    ;; 前置条件检测
+    (unless (and (eq (org-element-type elem) 'link)
+                 (string= (org-element-property :type elem) "attachment"))
+      (user-error "光标未指向附件链接"))
+
+    (let ((filename (org-element-property :path elem))
+          (parent (org-element-property :parent elem)))
+      ;; 使用 org-attach 的安全删除机制
+      (when (yes-or-no-p (format "永久删除附件 [%s] 及关联内容? " filename))
+        ;; 阶段 1: 通过官方API删除文件
+        (condition-case err
+            (org-attach-delete-one filename)
+          (error (user-error "文件删除失败: %s" (error-message-string err))))
+
+        ;; 阶段 2: 清理关联内容
+        (save-excursion
+          ;; 精准匹配图片描述块
+          (when (and (memq (org-element-type parent) '(paragraph verse-block))
+                     (yes-or-no-p "同时删除关联的内容区块吗?"))
+            (delete-region (org-element-property :begin parent)
+                           (org-element-property :end parent)))
+          ;; 删除链接元素本身
+          (delete-region (org-element-property :begin elem)
+                         (org-element-property :end elem)))
+
+        (message "成功删除附件 [%s]" filename)))))
+;; 877840e9 ends here
+
 ;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
 (org-link-set-parameters "zotero" :follow #'gwp/org-zotero-open :export #'gwp/org-zotero-export)
 
@@ -1102,6 +1136,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("p" "prev" org-previous-link :transient t)
    ("." "mark" gwp::org-mark-link)
    ("o" "open" gwp::org-open-at-point-dwim)
+   ("d" "delete" gwp::delete-attachment-at-point)
    ]
   ["heading" :if org-at-heading-p
    ("i" "insert memo" gwp::new-memo-time-stamp)

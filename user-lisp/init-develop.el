@@ -313,7 +313,7 @@
   :custom
   (gptel-default-mode 'org-mode)
   (gptel-temperature 0.6)                    ; 控制生成文本的随机性 (0.0-2.0)
-  (gptel-log-level 'debug)                   ; 调试日志级别
+  (gptel-log-level 'info)                    ; 调试日志级别
   ;; (gptel-org-branching-context t)         ; 使用 org heading 上下文; 2025-02-02 显示 WARNING, 先禁用吧
   (gptel-use-curl t)                         ; 使用 curl 而不是 url-retrieve
   :bind
@@ -340,7 +340,7 @@
     (cl-loop for (name key-file . config) in
              `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
                 :protocol "https" :host "api.siliconflow.cn"
-                :models (deepseek-ai/DeepSeek-V3 deepseek-ai/DeepSeek-R1))
+                :models (Pro/deepseek-ai/DeepSeek-V3 Pro/deepseek-ai/DeepSeek-R1))
                ("LM Studio" nil  ; 本地无需 key
                 :protocol "http" :host "localhost:1234"
                 :models (qwen2.5-7b-instruct-1m deepseek-r1-distill-qwen-14b-uncensored))
@@ -348,6 +348,10 @@
                 :protocol "https" :host "dashscope.aliyuncs.com"
                 :endpoint "/compatible-mode/v1/chat/completions"
                 :models (qwen-max-latest deepseek-v3 deepseek-r1))
+               ("DeepSeek" "~/Install/configs/llms/deepseek-key.txt"
+                :protocol "https" :host "api.deepseek.com"
+                :endpoint "/chat/completions"
+                :models (deepseek-chat deepseek-reasoner))
                ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
                 :host "openrouter.ai"
                 :endpoint "/api/v1/chat/completions"
