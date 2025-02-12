@@ -1076,6 +1076,21 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
                ))
 ;; 3516de82 ends here
 
+;; [[file:../gwp-scratch.note::*flomo 集成][flomo 集成:1]]
+(defun gwp::send-selection-to-flomo ()
+  "Send the selected text to flomo using the post-to-flomo.sh script."
+  (interactive)
+  ;; 检查是否有选中的文本
+  (if (use-region-p)
+      (let* ((selected-text (buffer-substring-no-properties (region-beginning) (region-end)))
+             (command (format "post-to-flomo.sh %s" (shell-quote-argument selected-text))))
+        ;; 调用外部脚本
+        (message "Sending to flomo: %s" selected-text)
+        (shell-command command)
+        (message "Content sent to flomo!"))
+    (message "No text selected. Please select some text first.")))
+;; flomo 集成:1 ends here
+
 ;; [[file:../gwp-scratch.note::e13e8c0f][e13e8c0f]]
 (defun gwp::org-in-latext-env-p ()
   "Return whether point is latex environment."
@@ -1113,7 +1128,6 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (defun gwp::org-format-src-block ()
   (interactive)
   (org-babel-do-key-sequence-in-edit-buffer ""))
-
 
 (transient-define-prefix gwp::org-menu-at-point ()
   "Show relevant menu for thing at point"

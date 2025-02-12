@@ -375,16 +375,17 @@
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
         gptel-model 'deepseek-ai/DeepSeek-V3)
 
-  ;; 提示词模板
-  (setq gptel-directives
-        `((default . ,(concat "You are a helpful agent living in emacs org-mode. "
-                              "I am using org-indent-mode, please answer accordingly."))
-          (summarize . "你是在呆在 Emacs 中的 LLM. 请总结下面的文章，给出总结、摘要、观点三个部分内容, 以 org-mode 格式呈现.")
-          (editor . "Act as an expert editor. List errors and provide structural feedback.")
-          (rewrite . "请改进错漏, 优化文本, 注意保持文字风格不变; 注意, 请用原文语言输出.")
-          (programmer . "Provide code ONLY without any additional text.")
-          (emacser . "Recommend the most appropriate built-in Emacs command.")))
-  )
+  (defun gwp::gptel-build-directives (promptdir)
+    "从 PROMPTDIR 构建 (key . content) 形式的指令列表"
+    (mapcar
+     (lambda (file)
+       (cons (intern (file-name-base file))  ; 文件名转为符号作为key
+             (with-temp-buffer
+               (insert-file-contents file)   ; 完整原始内容作为value
+               (buffer-string))))
+     (directory-files promptdir t "\\.md\\'"))) ; 获取所有.md扩展名文件
+
+  (setq gptel-directives (gwp::gptel-build-directives "~/Install/configs/llms/prompts")))
 ;; 0ce7e90e ends here
 
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
