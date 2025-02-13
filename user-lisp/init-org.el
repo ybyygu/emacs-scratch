@@ -64,7 +64,7 @@
   :ensure t
   :hook (org-mode . valign-mode)
   :config
-  (setq valign-fancy-bar t
+  (setq valign-fancy-bar nil
         valign-max-table-size 500000))
 ;; 1480f386 ends here
 
@@ -127,8 +127,7 @@
   "o"      #'(gwp::org-open-at-point-dwim :which-key "open at point"))
 ;; 2f61258f ends here
 
-;; [[file:../gwp-scratch.note::fbbec921][fbbec921]]
-;; 取自doom org moudle
+;; [[file:../gwp-scratch.note::aecfc258][aecfc258]]
 (defun gwp::org-dwim-at-point (&optional arg)
   "Do-what-I-mean at point.
 
@@ -189,6 +188,9 @@ If on a:
              (let ((current-prefix-arg '(16)))     ; C-u C-u
                (call-interactively #'gwp::org-open-at-point-dwim)))))
 
+        ((or `table-row `table-cell)
+         (valign-table))
+
         ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
          (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
            (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
@@ -208,7 +210,7 @@ If on a:
   "RET"    #'gwp::org-dwim-at-point
   [return] #'gwp::org-dwim-at-point
   )
-;; fbbec921 ends here
+;; aecfc258 ends here
 
 ;; [[file:../gwp-scratch.note::7330d8ac][7330d8ac]]
 ;; (setq browse-url-browser-function 'browse-url-firefox)
