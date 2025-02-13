@@ -373,7 +373,7 @@
 
   ;; 设置默认后端（需在 backend 定义之后）
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
-        gptel-model 'deepseek-ai/DeepSeek-V3)
+        gptel-model 'deepseek-ai/DeepSeek-R1)
 
   (defun gwp::gptel-build-directives (promptdir)
     "从 PROMPTDIR 构建 (key . content) 形式的指令列表"

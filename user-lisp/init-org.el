@@ -59,11 +59,14 @@
   )
 ;; 0c698627 ends here
 
-;; [[file:../gwp-scratch.note::e3b4fcdf][e3b4fcdf]]
+;; [[file:../gwp-scratch.note::1480f386][1480f386]]
 (use-package valign
   :ensure t
-  :hook (org-mode . valign-mode))
-;; e3b4fcdf ends here
+  :hook (org-mode . valign-mode)
+  :config
+  (setq valign-fancy-bar t
+        valign-max-table-size 500000))
+;; 1480f386 ends here
 
 ;; [[file:../gwp-scratch.note::10584ca0][10584ca0]]
 ;; 显示光标所在处的内容
