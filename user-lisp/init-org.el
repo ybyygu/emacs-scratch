@@ -221,6 +221,17 @@ If on a:
  browse-url-generic-program "xdg-open")
 ;; 7330d8ac ends here
 
+;; [[file:../gwp-scratch.note::00fabdec][00fabdec]]
+(defun gwp::org-delete-link-keep-text ()
+  "删除光标下的 org-mode 链接, 但保留链接文字."
+  (interactive)
+  (when (org-in-regexp org-link-bracket-re 1)
+    (let ((link (match-string-no-properties 1))
+          (description (match-string-no-properties 2)))
+      (delete-region (match-beginning 0) (match-end 0))
+      (insert (or description link)))))
+;; 00fabdec ends here
+
 ;; [[file:../gwp-scratch.note::0f2116cf][0f2116cf]]
 (defun gwp::org-toggle-checkbox ()
   (interactive)
