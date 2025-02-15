@@ -1072,9 +1072,28 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
 (setq org-crypt-disable-auto-save nil)
 ;; 6f58facc ends here
 
-;; [[file:../gwp-scratch.note::*protocol][protocol:1]]
-(require 'org-protocol)
-;; protocol:1 ends here
+;; [[file:../gwp-scratch.note::62105ccb][62105ccb]]
+(use-package org-protocol
+  :ensure org
+  :config
+  (add-to-list 'org-protocol-protocol-alist
+               '("org-find-file" :protocol "find-file" :function org-protocol-find-file :kill-client nil))
+
+  (defun org-protocol-find-file (fname)
+    "Process org-protocol://find-file?path= style URL."
+    (let* ((parsed (org-protocol-parse-parameters fname nil '(:path :anchor)))
+           (f (plist-get parsed :path))
+           (anchor (plist-get parsed :anchor))
+           (anchor-re (and anchor (concat "\\(-\\|\\*\\) " (regexp-quote anchor)))))
+      (find-file f)
+      (raise-frame)
+      (select-frame-set-input-focus (selected-frame))
+      ;; (unhighlight-regexp t)
+      ;; (highlight-regexp anchor-re)
+      (when anchor
+        (or (re-search-forward anchor-re nil t 1)
+            (re-search-backward anchor-re nil t 1))))))
+;; 62105ccb ends here
 
 ;; [[file:../gwp-scratch.note::3516de82][3516de82]]
 ;; credit: https://github.com/noncog/.dotfiles/blob/master/.config/cogmacs/init.el
@@ -1172,7 +1191,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("p" "prev" org-previous-link :transient t)
    ("." "mark" gwp::org-mark-link)
    ("o" "open" gwp::org-open-at-point-dwim)
-   ("d" "delete" gwp::delete-attachment-at-point)
+   ("d" "delete attachment" gwp::delete-attachment-at-point)
+   ("u" "unlink" gwp::org-delete-link-keep-text)
    ]
   ["heading" :if org-at-heading-p
    ("i" "insert memo" gwp::new-memo-time-stamp)
