@@ -62,10 +62,9 @@
 ;; [[file:../gwp-scratch.note::1480f386][1480f386]]
 (use-package valign
   :ensure t
-  :hook (org-mode . valign-mode)
+  ;; :hook (org-mode . valign-mode)
   :config
-  (setq valign-fancy-bar nil
-        valign-max-table-size 500000))
+  (setq valign-fancy-bar nil))
 ;; 1480f386 ends here
 
 ;; [[file:../gwp-scratch.note::10584ca0][10584ca0]]
