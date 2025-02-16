@@ -277,18 +277,6 @@ If on a:
         (condition-case err
             (org-attach-delete-one filename)
           (error (user-error "文件删除失败: %s" (error-message-string err))))
-
-        ;; 阶段 2: 清理关联内容
-        (save-excursion
-          ;; 精准匹配图片描述块
-          (when (and (memq (org-element-type parent) '(paragraph verse-block))
-                     (yes-or-no-p "同时删除关联的内容区块吗?"))
-            (delete-region (org-element-property :begin parent)
-                           (org-element-property :end parent)))
-          ;; 删除链接元素本身
-          (delete-region (org-element-property :begin elem)
-                         (org-element-property :end elem)))
-
         (message "成功删除附件 [%s]" filename)))))
 ;; 877840e9 ends here
 
