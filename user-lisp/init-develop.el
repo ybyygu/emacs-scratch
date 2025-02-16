@@ -355,7 +355,7 @@
                ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
                 :host "openrouter.ai"
                 :endpoint "/api/v1/chat/completions"
-                :models (deepseek/deepseek-r1:free deepseek/deepseek-r1-distill-qwen-32b)))
+                :models (deepseek/deepseek-r1:free minimax/minimax-01 openai/o3-mini-high google/gemini-2.0-flash-001)))
              when (or (null key-file) (file-exists-p key-file))
              collect
              (let ((key (when key-file (my/gptel-read-api-key key-file))))
