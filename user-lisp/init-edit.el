@@ -213,6 +213,23 @@
   )
 ;; 6cb02a16 ends here
 
+;; [[file:../gwp-scratch.note::9e0bf95e][9e0bf95e]]
+(defun gwp::replace-chinese-punctuation ()
+  "Replace Chinese punctuation with English punctuation in the selected region."
+  (interactive)
+  (let* ((punctuation-map '(("，" . ", ") ("。" . ". ") ("；" . "; ")
+                            ("：" . ": ") ("！" . "! ") ("？" . "? ")
+                            ("“" . "\"") ("”" . "\"") ("‘" . "'")
+                            ("’" . "'") ("（" . "(") ("）" . ")")))
+         (regexp (regexp-opt (mapcar #'car punctuation-map) t))
+         (start (region-beginning))
+         (end (copy-marker (region-end) t))) ; 使用 marker 确保区域末尾动态更新
+    (save-excursion
+      (goto-char start)
+      (while (re-search-forward regexp end t)
+        (replace-match (cdr (assoc (match-string 0) punctuation-map)))))))
+;; 9e0bf95e ends here
+
 ;; [[file:../gwp-scratch.note::382df7e2][382df7e2]]
 (provide 'init-edit)
 ;; 382df7e2 ends here

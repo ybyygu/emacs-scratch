@@ -1217,9 +1217,13 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   ["zotero"  :if gwp::org-in-zotero-link-p
    ("RET" "zotero menu" gwp/zotero-search-transient)
    ]
+  ["edit"
+   ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
+   ]
   ["motion"
    ("g" "goto" consult-org-heading)
-   ])
+   ]
+  )
 
 ;; org 跳转前后设置 mark, 方便跳回
 (advice-add #'consult-org-heading :before #'org-mark-ring-push)
