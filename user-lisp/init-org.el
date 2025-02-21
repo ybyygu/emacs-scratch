@@ -27,6 +27,21 @@
   (setq org-catch-invisible-edits 'show-and-error))
 ;; e2f6b646 ends here
 
+;; [[file:../gwp-scratch.note::7700a49b][7700a49b]]
+(defun org-unfill-toggle ()
+  "Toggle filling/unfilling of the current region, or current paragraph if no
+region active."
+  (interactive)
+  (let (deactivate-mark
+        (fill-column
+         (if (eq last-command this-command)
+             (progn (setq this-command nil)
+                    most-positive-fixnum)
+           fill-column)))
+    (call-interactively 'org-fill-paragraph)))
+;; (bind-key [remap org-fill-paragraph] 'org-unfill-toggle)
+;; 7700a49b ends here
+
 ;; [[file:../gwp-scratch.note::0c698627][0c698627]]
 (use-package org
   :config
@@ -1104,20 +1119,26 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
                ))
 ;; 3516de82 ends here
 
-;; [[file:../gwp-scratch.note::*flomo 集成][flomo 集成:1]]
+;; [[file:../gwp-scratch.note::6630a9a4][6630a9a4]]
 (defun gwp::send-selection-to-flomo ()
   "Send the selected text to flomo using the post-to-flomo.sh script."
   (interactive)
   ;; 检查是否有选中的文本
   (if (use-region-p)
       (let* ((selected-text (buffer-substring-no-properties (region-beginning) (region-end)))
-             (command (format "post-to-flomo.sh %s" (shell-quote-argument selected-text))))
+             ;; 使用 fill-region 删除硬换行符号
+             (filled-text (with-temp-buffer
+                            (insert selected-text)
+                            (let ((fill-column most-positive-fixnum))
+                              (fill-region (point-min) (point-max)))
+                            (buffer-string)))
+             (command (format "post-to-flomo.sh %s" (shell-quote-argument filled-text))))
         ;; 调用外部脚本
-        (message "Sending to flomo: %s" selected-text)
+        (message "Sending to flomo: %s" filled-text)
         (shell-command command)
         (message "Content sent to flomo!"))
     (message "No text selected. Please select some text first.")))
-;; flomo 集成:1 ends here
+;; 6630a9a4 ends here
 
 ;; [[file:../gwp-scratch.note::e13e8c0f][e13e8c0f]]
 (defun gwp::org-in-latext-env-p ()
@@ -1472,6 +1493,7 @@ DESC. FORMATs understood are 'odt','latex and 'html."
  "M-j" #'org-metadown
  "M-p" #'org-backward-element
  "M-n" #'org-forward-element
+ "M-q" #'org-unfill-toggle              ; 切换段落的硬换行
  ;; 容易误按, 默认为 xref-find-definition, org-mode 下没什么用
  "M-." #'org-forward-element
  )

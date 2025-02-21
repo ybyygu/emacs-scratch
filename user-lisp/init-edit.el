@@ -1,5 +1,24 @@
 ;; -*- lexical-binding: t; -*-
 
+;; [[file:../gwp-scratch.note::503f98ae][503f98ae]]
+(defun unfill-toggle ()
+  "Toggle filling/unfilling of the current region, or current paragraph if no
+region active."
+  (interactive)
+  (let (deactivate-mark
+        (fill-column
+         (if (eq last-command this-command)
+             (progn (setq this-command nil)
+                    most-positive-fixnum)
+           fill-column)))
+    (call-interactively 'fill-paragraph)))
+
+; 2025-02-22: 以下不管用
+;; (bind-key [remap fill-paragraph] 'unfill-toggle)
+(gwp::text-edit-def
+  "M-q" #'unfill-toggle)
+;; 503f98ae ends here
+
 ;; [[file:../gwp-scratch.note::b76494d2][b76494d2]]
 (gwp::text-edit-def
   "M-u" #'upcase-dwim
