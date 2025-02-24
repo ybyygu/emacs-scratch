@@ -1240,6 +1240,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ]
   ["edit"
    ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
+   ("SPC" "删除多余空格"  xah-remove-punctuation-trailing-redundant-space)
    ]
   ["motion"
    ("g" "goto" consult-org-heading)

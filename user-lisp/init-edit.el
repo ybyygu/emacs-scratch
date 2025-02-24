@@ -19,6 +19,47 @@ region active."
   "M-q" #'unfill-toggle)
 ;; 503f98ae ends here
 
+;; [[file:../gwp-scratch.note::a3f23a6a][a3f23a6a]]
+(use-package xah-replace-pairs
+  :straight t)
+
+(defun xah-remove-punctuation-trailing-redundant-space (Begin End)
+  "Remove redundant whitespace after punctuation.
+Works on current line or text selection.
+
+When called in emacs lisp code, the Begin End are cursor positions for region.
+
+See also `xah-convert-english-chinese-punctuation'.
+
+URL `http://xahlee.info/emacs/emacs/elisp_convert_chinese_punctuation.html'
+Version: 2015-08-22"
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (line-beginning-position) (line-end-position))))
+  (require 'xah-replace-pairs)
+  (xah-replace-regexp-pairs-region
+   Begin End
+   [
+    ;; clean up. Remove extra space.
+    [" +," ","]
+    [",  +" ", "]
+    ["?  +" "? "]
+    ["!  +" "! "]
+    ["\\.  +" ". "]
+
+    ;; fullwidth punctuations
+    ["， +" "，"]
+    ["。 +" "。"]
+    ["： +" "："]
+    ["？ +" "？"]
+    ["； +" "；"]
+    ["！ +" "！"]
+    ["、 +" "、"]
+    ]
+   t t))
+;; a3f23a6a ends here
+
 ;; [[file:../gwp-scratch.note::b76494d2][b76494d2]]
 (gwp::text-edit-def
   "M-u" #'upcase-dwim
