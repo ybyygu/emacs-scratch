@@ -806,6 +806,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
                                "--no-heading"
                                "--path-separator" "/"
                                "--line-number"
+                               "--ignore-case"
                                "--color" "never"
                                ".")))
     (if arg
