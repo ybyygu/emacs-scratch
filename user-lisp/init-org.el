@@ -1381,7 +1381,7 @@ DESC. FORMATs understood are 'odt','latex and 'html."
   :config
   (gwp::dwim-leader-def
     :keymaps 'org-mode-map
-    "g" 'org-goto                                ; goto
+    "g" 'consult-org-heading                     ; goto
     "t" 'org-todo                                ; todo
     "e" 'org-edit-special                        ; edit
     "a" 'org-attach                              ; attach
