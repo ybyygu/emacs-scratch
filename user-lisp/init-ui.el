@@ -26,8 +26,8 @@
 
 ;; [[file:../gwp-scratch.note::62b5d5bd][62b5d5bd]]
 (use-package doom-themes
-  ;; :init (load-theme 'doom-nova t)
-  :init (load-theme 'doom-material t)
+  :init (load-theme 'doom-nova t)
+  ;; :init (load-theme 'doom-material t)
   :config
   )
 
