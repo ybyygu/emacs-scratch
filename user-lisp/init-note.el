@@ -103,7 +103,6 @@
   (let* ((rg-command (format "ripgrep -l --color never -e '^\\s*:ID:\\s+%s' /home/ybyygu/.cache/notes" id))
          (output (shell-command-to-string rg-command))
          (file (car (split-string output "[\r\n]+" t))))
-    ;; (message "xxx %s" file)
     file))
 
 (el-patch-feature org-id)
@@ -129,6 +128,9 @@
   (org-sidebar-default-fns '(gwp::org-sidebar--backlinks org-sidebar--todo-items)) ; 使用反链视图
   (org-sidebar-tree-jump-fn 'org-sidebar-tree-jump-source)                         ; 跳至源文件对应的位置, 而不是 narrowed heding
   :config
+  ;; 2025-02-28: 升级到 emacs 30后, 得禁用以下设置, 不然会报错了
+  ;; org-ql-use-preamble: 提前生成一个正则表达式预处理模板（preamble），旨在加速某些查询（尤其是基于文本的正则匹配）
+  (setq org-ql-use-preamble nil)
   ;; 避免误按
   (;; map! :map org-sidebar-tree-map
    ;;      [mouse-1] nil
