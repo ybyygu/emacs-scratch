@@ -343,15 +343,40 @@ Add this function to the `after-save-hook'."
 ;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
- "d d" '(denote-silo-extras-create-note :which-key "denote")
- "d s" '(denote-search :which-key "denote search")
- "d f" '(consult-denote-find :which-key "denote find")
- "d g" '(consult-denote-grep :which-key "denote grep")
- "d r" '(denote-explore-random-note :which-key "denote random note")
- "d b" '(denote-backlinks :which-key "denote grep")
- "d l" '(denote-link-or-create :which-key "denote link")
- "d m" '(denote-menu-list-notes :which-key "denote menu")
- )
+ "d" '(gwp::denote-dispatch :which-key "denote"))
+
+(general-define-key
+ :prefix-map 'gwp::develop-map
+ "d" '(gwp::denote-dispatch :which-key "denote"))
+
+;; transient 按键, 方便记忆
+(require 'denote)
+(transient-define-prefix gwp::denote-dispatch ()
+  "Invoke a denote.el command from a list of available commands."
+  ["Create"
+   ("d" "New note" denote-silo-extras-create-note)
+   ("cr" "With region" denote-region)
+   ("cd" "With date" denote-date)
+   ("cn" "With subdirectory" denote-subdirectory)
+   ]
+  ["Update"
+   ("ur" "Rename file keywords" denote-rename-file-keywords)
+   ("ud" "Remove keyword" denote-keywords-remove)
+   ("uk" "Add keyword" denote-keywords-add)
+   ("ua" "Add front matter" denote-add-front-matter)
+   ]
+  ["Search/Find/List"
+   ("f" "Find notes" consult-denote-find)
+   ("s" "search notes using denote-search" denote-search)
+   ("m" "list notes" denote-menu-list-notes)
+   ("r" "random note" denote-explore-random-note)
+   ]
+  ["Link"
+   ("l" "Create link" denote-link-or-create)
+   ("L" "Find link" denote-find-link)
+   ("B" "Backlinks" denote-backlinks)
+   ("b" "Find backlink" denote-find-backlink)]
+  )
 ;; 8bff31e2 ends here
 
 ;; [[file:../gwp-scratch.note::8d4b377b][8d4b377b]]
