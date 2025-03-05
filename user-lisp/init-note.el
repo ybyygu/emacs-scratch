@@ -277,15 +277,29 @@
   :hook
   (dired-mode . denote-dired-mode)
   :custom
+  ;; 默认是 org. .note 与 mime 桌面系统配置更好一些
   (denote-file-type 'org)
   (denote-infer-keywords t)
   (denote-sort-keywords t)
   (denote-known-keywords '("fact" "thread" "question" "insight"))
   :config
   (setq denote-backlinks-show-context t)
-  (setq denote-directory "~/Workspace/Notes/")
+  (setq denote-directory "~/Workspace/Notes/"
+        denote-silo-extras-directories '(
+                                         "~/Workspace/Notes/areas"
+                                         "~/Workspace/Notes/resources"
+                                         ))
   (setq denote-prompts '(subdirectory title keywords))
-  )
+  ;; 在子目录选择时不显示 org-mode attachment 对应的 data 目录
+  (setq denote-excluded-directories-regexp "data\\|graphs")
+
+  ;; 默认用 .note, 而不是 .org
+  (let ((org-settings (alist-get 'org denote-file-types)))
+    (add-to-list 'denote-file-types
+                 `(org ,@(plist-put (copy-tree org-settings) :extension ".note"))))
+
+  ;; 修改 buffer 名称, 不然依原文字名是有些丑
+  (denote-rename-buffer-mode 1))
 
 ;; 可以更方便地搜索 denote 笔记, 充许逐层过滤
 (use-package denote-search)
@@ -321,10 +335,10 @@ Add this function to the `after-save-hook'."
 (add-hook 'after-save-hook #'my-denote-always-rename-on-save-based-on-front-matter)
 ;; b8e9b0ca ends here
 
-;; [[file:../gwp-scratch.note::*按键绑定][按键绑定:1]]
+;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
- "d d" '(denote-open-or-create :which-key "denote")
+ "d d" '(denote-silo-extras-create-note :which-key "denote")
  "d s" '(denote-search :which-key "denote search")
  "d f" '(consult-denote-find :which-key "denote find")
  "d g" '(consult-denote-grep :which-key "denote grep")
@@ -333,7 +347,7 @@ Add this function to the `after-save-hook'."
  "d l" '(denote-link-or-create :which-key "denote link")
  "d m" '(denote-menu-list-notes :which-key "denote menu")
  )
-;; 按键绑定:1 ends here
+;; 8bff31e2 ends here
 
 ;; [[file:../gwp-scratch.note::8d4b377b][8d4b377b]]
 (provide 'init-note)
