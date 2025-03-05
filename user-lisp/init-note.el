@@ -314,7 +314,12 @@
   )
 
 ;; 更方便地显示 denote 所有笔记
-(use-package denote-menu)
+(use-package denote-menu
+  :bind (:map denote-menu-mode-map
+              ("/ c" . denote-menu-clear-filters)
+              ("/ r" . denote-menu-filter)
+              ("/ k" . denote-menu-filter-by-keyword)
+              ("/ o" . denote-menu-filter-out-keyword)))
 
 (use-package denote-explore)
 ;; 7fbc6e78 ends here
