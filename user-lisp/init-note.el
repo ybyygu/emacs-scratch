@@ -271,6 +271,70 @@
   )
 ;; 8ae833e2 ends here
 
+;; [[file:../gwp-scratch.note::7fbc6e78][7fbc6e78]]
+(use-package denote
+  :ensure t
+  :hook
+  (dired-mode . denote-dired-mode)
+  :custom
+  (denote-file-type 'org)
+  (denote-infer-keywords t)
+  (denote-sort-keywords t)
+  (denote-known-keywords '("fact" "thread" "question" "insight"))
+  :config
+  (setq denote-backlinks-show-context t)
+  (setq denote-directory "~/Workspace/Notes/")
+  (setq denote-prompts '(subdirectory title keywords))
+  )
+
+;; 可以更方便地搜索 denote 笔记, 充许逐层过滤
+(use-package denote-search)
+
+(use-package consult-denote
+  :after (denote consult)
+  :init
+  (consult-denote-mode t)
+  :custom
+  (consult-denote-find-command 'consult-fd)
+  (consult-denote-grep-command 'consult-ripgrep)
+  )
+
+;; 更方便地显示 denote 所有笔记
+(use-package denote-menu)
+
+(use-package denote-explore)
+;; 7fbc6e78 ends here
+
+;; [[file:../gwp-scratch.note::b8e9b0ca][b8e9b0ca]]
+(defun my-denote-always-rename-on-save-based-on-front-matter ()
+  "Rename the current Denote file, if needed, upon saving the file.
+Rename the file based on its front matter, checking for changes in the
+title or keywords fields.
+
+Add this function to the `after-save-hook'."
+  (let ((denote-rename-confirmations nil)
+        (denote-save-buffers t)) ; to save again post-rename
+    (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
+      (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
+      (message "Buffer saved; Denote file renamed"))))
+
+(add-hook 'after-save-hook #'my-denote-always-rename-on-save-based-on-front-matter)
+;; b8e9b0ca ends here
+
+;; [[file:../gwp-scratch.note::*按键绑定][按键绑定:1]]
+(general-define-key
+ :prefix-map 'gwp::note-map
+ "d d" '(denote-open-or-create :which-key "denote")
+ "d s" '(denote-search :which-key "denote search")
+ "d f" '(consult-denote-find :which-key "denote find")
+ "d g" '(consult-denote-grep :which-key "denote grep")
+ "d r" '(denote-explore-random-note :which-key "denote random note")
+ "d b" '(denote-backlinks :which-key "denote grep")
+ "d l" '(denote-link-or-create :which-key "denote link")
+ "d m" '(denote-menu-list-notes :which-key "denote menu")
+ )
+;; 按键绑定:1 ends here
+
 ;; [[file:../gwp-scratch.note::8d4b377b][8d4b377b]]
 (provide 'init-note)
 ;; 8d4b377b ends here
