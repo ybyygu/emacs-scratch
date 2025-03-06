@@ -287,6 +287,7 @@
   (setq denote-directory "~/Workspace/Notes/"
         denote-silo-extras-directories '(
                                          "~/Workspace/Notes/areas"
+                                         "~/Workspace/Notes/projects"
                                          "~/Workspace/Notes/resources"
                                          ))
   (setq denote-prompts '(subdirectory title keywords))
