@@ -347,7 +347,7 @@
                ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
                 :protocol "https" :host "dashscope.aliyuncs.com"
                 :endpoint "/compatible-mode/v1/chat/completions"
-                :models (qwen-max-latest deepseek-v3 deepseek-r1))
+                :models (qwen-max-latest deepseek-v3 deepseek-r1 qwq-plus))
                ("DeepSeek" "~/Install/configs/llms/deepseek-key.txt"
                 :protocol "https" :host "api.deepseek.com"
                 :endpoint "/chat/completions"
