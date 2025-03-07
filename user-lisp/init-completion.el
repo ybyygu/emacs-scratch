@@ -274,6 +274,15 @@
   )
 ;; b0577e97 ends here
 
+;; [[file:../gwp-scratch.note::3aba56c3][3aba56c3]]
+(use-package pinyinlib
+  :ensure t
+  :config
+  (defun completion--regex-pinyin (str)
+    (orderless-regexp (pinyinlib-build-regexp-string str)))
+  (add-to-list 'orderless-matching-styles 'completion--regex-pinyin))
+;; 3aba56c3 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-completion)
 ;; provide:1 ends here
