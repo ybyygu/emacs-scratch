@@ -14,6 +14,7 @@ Repeated invocations toggle between the two most recently open buffers."
   "u" '(universal-argument :which-key "Universal argument")
   "a" '(zoom :which-key "zoom current window auto")
   "Q" '(unbury-buffer :which-key "recover old buffer")
+  ;; "Q" '(meow-last-buffer :which-key "recover last buffer")
   )
 ;; 4cf8c86c ends here
 
@@ -30,6 +31,7 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (bind-keys :map gwp::buffer-map
            ("d" . kill-current-buffer)
+           ("c" . scratch-buffer)
            ("k" . kill-current-buffer)
            ("r" . revert-buffer)
            ("n" . next-buffer)
@@ -38,6 +40,11 @@ Repeated invocations toggle between the two most recently open buffers."
            ("K" . project-kill-buffers)
            ("R" . crux-rename-buffer-and-file))
 ;; 33105bcf ends here
+
+;; [[file:../gwp-scratch.note::94556fef][94556fef]]
+(gwp::leader-def
+  "c" '(gwp::denote-dispatch :wk "denote"))
+;; 94556fef ends here
 
 ;; [[file:../gwp-scratch.note::f220a2a2][f220a2a2]]
 (gwp::leader-def

@@ -341,6 +341,37 @@ Add this function to the `after-save-hook'."
 (add-hook 'after-save-hook #'my-denote-always-rename-on-save-based-on-front-matter)
 ;; b8e9b0ca ends here
 
+;; [[file:../gwp-scratch.note::f40c9860][f40c9860]]
+;; 应用 el-patch 补丁
+(require 'el-patch)
+
+(use-package denote
+  :config/el-patch
+  (defun denote-org-extras-backlinks-for-heading ()
+    "Produce backlinks for the current heading.
+This otherwise has the same behaviour as `denote-backlinks'---refer to
+that for the details.
+
+Also see `denote-org-extras-link-to-heading'."
+    (interactive)
+    (when-let ((heading-id (denote-org-extras--get-file-id-and-heading-id buffer-file-name))
+               (heading-text (substring-no-properties (denote-link-ol-get-heading))))
+      (denote-link--prepare-backlinks heading-id ".*\\.note" (denote-org-extras--get-backlinks-buffer-name heading-text))))
+
+  :config
+  (defun gwp::denote-backlinks-dwim ()
+    "DWIM backlinks for Org headings.
+Use `denote-org-extras-backlinks-for-heading' if heading has CUSTOM_ID,
+otherwise use `denote-backlinks'."
+    (interactive)
+    (require 'denote-org-extras)
+    (if (and (derived-mode-p 'org-mode)
+             (org-entry-get (point) "CUSTOM_ID"))
+        (denote-org-extras-backlinks-for-heading)
+      (denote-backlinks)))
+  )
+;; f40c9860 ends here
+
 ;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
@@ -361,9 +392,7 @@ Add this function to the `after-save-hook'."
    ("cn" "With subdirectory" denote-subdirectory)
    ]
   ["Update"
-   ("ur" "Rename file keywords" denote-rename-file-keywords)
-   ("ud" "Remove keyword" denote-keywords-remove)
-   ("uk" "Add keyword" denote-keywords-add)
+   ("uk" "Rename file keywords" denote-rename-file-keywords)
    ("ua" "Add front matter" denote-add-front-matter)
    ]
   ["Search/Find/List"
@@ -375,8 +404,8 @@ Add this function to the `after-save-hook'."
   ["Link"
    ("l" "Create link" denote-link-or-create)
    ("L" "Find link" denote-find-link)
-   ("B" "Backlinks" denote-backlinks)
-   ("b" "Find backlink" denote-find-backlink)]
+   ("b" "Backlinks dwim" gwp::denote-backlinks-dwim)
+   ("B" "Find all backlink" denote-find-backlink)]
   )
 ;; 8bff31e2 ends here
 
