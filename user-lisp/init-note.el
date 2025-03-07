@@ -373,6 +373,7 @@ Add this function to the `after-save-hook'."
   ["Link"
    ("l" "Create link" denote-link-or-create)
    ("L" "Find link" denote-find-link)
+   ("id" "Insert org dblock links" denote-org-extras-dblock-insert-links)
    ("b" "Backlinks" denote-backlinks)
    ("B" "Find all backlink" denote-find-backlink)]
   )
