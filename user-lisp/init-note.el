@@ -361,6 +361,7 @@ Add this function to the `after-save-hook'."
    ("cn" "With subdirectory" denote-subdirectory)
    ]
   ["Update"
+   ("ut" "Rename file title" denote-rename-file-title)
    ("uk" "Rename file keywords" denote-rename-file-keywords)
    ("ua" "Add front matter" denote-add-front-matter)
    ]

@@ -296,49 +296,64 @@ If on a:
 ;; 877840e9 ends here
 
 ;; [[file:../gwp-scratch.note::bf8ff927][bf8ff927]]
-(defvar gwp--org-attach-cut-path nil
-  "存储当前剪切的附件目录路径。")
+;; 存储剪切的附件目录的绝对路径
+(defvar gwp::org-attach-cut-path nil
+  "存储被剪切的org heading附件目录的绝对路径。")
 
 (defun gwp::org-attach-cut ()
-  "记录当前 heading 的附件目录路径。"
+  "剪切当前org heading的附件目录。
+将附件目录的绝对路径保存到gwp::org-attach-cut-path变量中。"
   (interactive)
-  (let ((attach-dir (org-attach-dir)))
-    (if attach-dir
-        (progn
-          (setq gwp--org-attach-cut-path attach-dir)
-          (message "剪切附件目录: %s" attach-dir))
-      (message "当前无附件目录"))))
-
-(defun gwp::org-attach-paste (&optional force)
-  "移动附件目录到当前位置，FORCE 跳过覆盖确认"
-  (interactive "P")
-  (let ((old-path gwp--org-attach-cut-path)
-        (new-path (org-attach-dir)))
-    (cond
-     ((not (and old-path new-path))
-      (message "剪切路径或目标路径无效"))
-     ((equal old-path new-path)
-      (message "⚠️ 无法移动到自身位置"))
-     (t
-      ;; 确保目标父目录存在
-      (make-directory (file-name-directory new-path) t)
-      ;; 处理目标目录冲突
-      (when (file-directory-p new-path)
-        (if (or force (y-or-n-p "目标目录已存在，覆盖吗？"))
-            (delete-directory new-path t)
-          (user-error "操作取消")))
-      ;; 核心移动操作
-      (condition-case err
+  (unless (org-before-first-heading-p)
+    (let ((attach-dir (org-attach-dir)))
+      (if attach-dir
           (progn
-            (rename-file old-path new-path t)
-            ;; 清除原 heading 的附件属性
-            (with-current-buffer (marker-buffer org-entry-property-inherited-from)
-              (org-attach-delete))
-            (setq gwp--org-attach-cut-path nil)
-            (message "✅ 附件已移动到 %s" new-path))
-        (error
-         (message "❌ 移动失败: %s" err)
-         (setq gwp--org-attach-cut-path old-path)))))))
+            ;; 将路径转换为绝对路径
+            (setq gwp::org-attach-cut-path (expand-file-name attach-dir))
+            (message "已剪切附件目录: %s" gwp::org-attach-cut-path))
+        (message "当前heading没有附件目录")))))
+
+(defun gwp::org-attach-paste ()
+  "将之前剪切的附件目录中的文件移动到当前heading的附件目录。"
+  (interactive)
+  (unless (org-before-first-heading-p)
+    (if (and gwp::org-attach-cut-path
+             (file-exists-p gwp::org-attach-cut-path))
+        (let* ((new-attach-dir (or (org-attach-dir)
+                                  (gwp::org-attach-auto-directory)))
+               (new-attach-dir-abs (expand-file-name new-attach-dir))
+               (files (directory-files gwp::org-attach-cut-path t "[^.]")))
+
+          ;; 确保目标目录存在
+          (unless (file-exists-p new-attach-dir-abs)
+            (make-directory new-attach-dir-abs t))
+
+          ;; 移动所有文件到新目录
+          (dolist (file files)
+            (let ((new-file (expand-file-name
+                            (file-name-nondirectory file)
+                            new-attach-dir-abs)))
+              ;; 确保目标文件的父目录存在
+              (unless (file-exists-p (file-name-directory new-file))
+                (make-directory (file-name-directory new-file) t))
+              (rename-file file new-file t)))
+
+          ;; 递归删除旧的空目录
+          (gwp::delete-empty-dirs gwp::org-attach-cut-path)
+
+          ;; 重置剪切路径
+          (setq gwp::org-attach-cut-path nil)
+          (message "附件已移动到新位置: %s" new-attach-dir))
+      (message "没有可粘贴的附件目录"))))
+
+(defun gwp::delete-empty-dirs (dir)
+  "递归删除空目录。类似于'rmdir -p'的功能。"
+  (when (and dir (file-exists-p dir))
+    (condition-case nil
+        (progn
+          (delete-directory dir)
+          (gwp::delete-empty-dirs (file-name-directory (directory-file-name dir))))
+      (error nil))))
 ;; bf8ff927 ends here
 
 ;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
