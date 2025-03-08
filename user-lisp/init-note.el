@@ -289,6 +289,7 @@
                                          "~/Workspace/Notes/areas"
                                          "~/Workspace/Notes/projects"
                                          "~/Workspace/Notes/resources"
+                                         "~/Workspace/Notes/publish"
                                          ))
   (setq denote-prompts '(subdirectory title keywords))
   ;; 在子目录选择时不显示 org-mode attachment 对应的 data 目录

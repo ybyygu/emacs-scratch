@@ -356,6 +356,60 @@ If on a:
       (error nil))))
 ;; bf8ff927 ends here
 
+;; [[file:../gwp-scratch.note::6e81e548][6e81e548]]
+(defun gwp::org-archive-buffer-attachments (tar-file)
+  "收集当前 Org buffer 中的所有附件目录，并将它们打包成 TAR 文件。
+它会自动处理通过 :DIR: 属性指定的自定义附件目录和通过 :ID: 属性关联的附件"
+  (interactive "FSave attachment archive to: ")
+  (let ((attach-dirs '())         ;; 存储所有找到的附件目录
+        (org-file (buffer-file-name))  ;; 当前 Org 文件的路径
+        (org-dir (file-name-directory (buffer-file-name))))  ;; 当前 Org 文件所在目录
+
+    ;; 1. 收集所有节点的附件目录
+    ;; org-map-entries 会遍历文档中的每个标题节点
+    (org-map-entries
+     (lambda ()
+       ;; org-attach-dir 函数会检查当前节点的 :ID: 或 :DIR: 属性
+       ;; 并返回关联的附件目录路径
+       (let ((attach-dir (org-attach-dir)))
+         (when (and attach-dir (file-exists-p attach-dir))
+           ;; 只收集实际存在的目录
+           (push attach-dir attach-dirs)))))
+
+    ;; 2. 处理整个文件的默认附件目录
+    ;; 这一步很重要，因为有些附件可能与整个文件关联，而不是特定节点
+    (let ((default-attach-dir (org-attach-dir)))
+      (when (and default-attach-dir (file-exists-p default-attach-dir))
+        (push default-attach-dir attach-dirs)))
+
+    ;; 3. 去重处理
+    ;; 将所有路径转换为相对于当前 Org 文件所在目录的相对路径
+    (setq attach-dirs
+          (delete-dups
+           (mapcar (lambda (dir)
+                     (file-relative-name dir org-dir))  ;; 转换为相对路径
+                   attach-dirs)))
+
+    ;; 4. 检查是否找到附件目录
+    (if (null attach-dirs)
+        ;; 如果没有找到任何附件目录，提示用户并中止操作
+        (error "No attachment directories found.")
+
+      ;; 5. 创建 tar 归档
+      (let ((default-directory (file-name-directory tar-file)))
+        (shell-command
+         (format "tar -cf %s %s"
+                 ;; 只使用 tar 文件的名称部分，因为 default-directory 已设置
+                 (shell-quote-argument (file-name-nondirectory tar-file))
+                 ;; 将所有附件目录路径连接成一个字符串作为 tar 命令的参数
+                 (mapconcat 'shell-quote-argument attach-dirs " "))))
+
+      ;; 6. 创建成功，通知用户
+      (message "Created attachment archive at %s with %d attachment directories"
+               tar-file (length attach-dirs))))
+  tar-file)
+;; 6e81e548 ends here
+
 ;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
 (org-link-set-parameters "zotero" :follow #'gwp/org-zotero-open :export #'gwp/org-zotero-export)
 
