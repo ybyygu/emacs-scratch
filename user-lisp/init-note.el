@@ -295,6 +295,7 @@
   (setq denote-prompts '(subdirectory title keywords))
   ;; 在子目录选择时不显示 org-mode attachment 对应的 data 目录
   (setq denote-excluded-directories-regexp "data\\|graphs")
+  (setq denote-excluded-files-regexp "data\\|graphs")
 
   ;; 默认用 .note, 而不是 .org
   (let ((org-settings (alist-get 'org denote-file-types)))
@@ -369,7 +370,6 @@ Add this function to the `after-save-hook'."
   "Invoke a denote.el command from a list of available commands."
   ["Create"
    ("d" "New note" denote-silo-extras-create-note)
-   ("o" "Open or create" denote-silo-extras-open-or-create)
    ("cr" "With region" denote-region)
    ("cd" "With date" denote-date)
    ("cn" "New note in current directory" gwp::denote-new-note-in-currrent-directory)
@@ -380,7 +380,9 @@ Add this function to the `after-save-hook'."
    ("ua" "Add front matter" denote-add-front-matter)
    ]
   ["Search/Find/List"
-   ("f" "Find notes" consult-denote-find)
+   ("f" "Find or create note" denote-open-or-create) ; 这个更方便
+   ("F" "Find notes" consult-denote-find)            ; 有不少限制, 比如不支持拼音搜索. 但适合找更多的, 非 denote 管理的文件, 比如 data 目录下
+   ("o" "Open or create" denote-silo-extras-open-or-create) ; 过滤下 silo
    ("s" "search notes using denote-search" denote-search)
    ("m" "list notes" denote-menu-list-notes)
    ("r" "random note" denote-explore-random-note)
