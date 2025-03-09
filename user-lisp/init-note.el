@@ -281,6 +281,7 @@
   (denote-file-type 'org)
   (denote-infer-keywords t)
   (denote-sort-keywords t)
+  (denote-rename-confirmations '(add-front-matter)) ; 少一些确认项
   (denote-known-keywords '("fact" "thread" "question" "insight"))
   :config
   (setq denote-backlinks-show-context t)
@@ -342,6 +343,17 @@ Add this function to the `after-save-hook'."
 (add-hook 'after-save-hook #'my-denote-always-rename-on-save-based-on-front-matter)
 ;; b8e9b0ca ends here
 
+;; [[file:../gwp-scratch.note::63f83f7b][63f83f7b]]
+(use-package denote
+  :config
+  (defun gwp::denote-new-note-in-currrent-directory ()
+    "在当前目录下建立 denote 笔记"
+    (interactive)
+    (let ((denote-directory (expand-file-name default-directory))
+          (denote-prompts '(title keywords)))
+      (call-interactively 'denote))))
+;; 63f83f7b ends here
+
 ;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
@@ -357,9 +369,10 @@ Add this function to the `after-save-hook'."
   "Invoke a denote.el command from a list of available commands."
   ["Create"
    ("d" "New note" denote-silo-extras-create-note)
+   ("o" "Open or create" denote-silo-extras-open-or-create)
    ("cr" "With region" denote-region)
    ("cd" "With date" denote-date)
-   ("cn" "With subdirectory" denote-subdirectory)
+   ("cn" "New note in current directory" gwp::denote-new-note-in-currrent-directory)
    ]
   ["Update"
    ("ut" "Rename file title" denote-rename-file-title)
@@ -375,9 +388,10 @@ Add this function to the `after-save-hook'."
   ["Link"
    ("l" "Create link" denote-link-or-create)
    ("L" "Find link" denote-find-link)
+   ("ib" "Insert org dblock backlinks" denote-org-extras-dblock-insert-backlinks)
    ("id" "Insert org dblock links" denote-org-extras-dblock-insert-links)
-   ("b" "Backlinks" denote-backlinks)
-   ("B" "Find all backlink" denote-find-backlink)]
+   ("B" "Backlinks" denote-backlinks)
+   ("b" "Find all backlink" denote-find-backlink)]
   )
 ;; 8bff31e2 ends here
 
