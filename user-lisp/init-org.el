@@ -1513,6 +1513,20 @@ DESC. FORMATs understood are 'odt','latex and 'html."
     ))
 ;; 27b71342 ends here
 
+;; [[file:../gwp-scratch.note::e0c27982][e0c27982]]
+(use-package ob-mermaid
+  :ensure t
+  :config
+  (setq ob-mermaid-cli-path "/usr/bin/mmdc") ;
+  (add-to-list 'org-babel-load-languages '(mermaid . t))
+  (setq org-babel-default-header-args:mermaid
+        '((:background-color . "--scale=5")
+          (:pdf-fit t)))
+  ;; 不要插入 results 链接
+  ;; (add-to-list 'org-babel-default-header-args:mermaid '(:results . "none"))
+  )
+;; e0c27982 ends here
+
 ;; [[file:../gwp-scratch.note::dfee4224][dfee4224]]
 ;; org-insert-structure-template
 ;; 换到 org-edit-special 上更方便
