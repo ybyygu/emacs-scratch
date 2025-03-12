@@ -1321,11 +1321,11 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
   ["heading" :if org-at-heading-p
    ("i" "insert memo" gwp::new-memo-time-stamp)
    ("t" "toggle todo" org-todo)
-   ;; ("n" "next" org-next-visible-heading :transient t)
-   ;; ("p" "prev" org-previous-visible-heading :transient t)
    ("." "mark" org-mark-subtree)
    ("a" "attachments" org-attach)
    ("A" "archive" org-archive-subtree)
+   ("cc" "cut heading attachments" gwp::org-attach-cut)
+   ("cp" "paste heading attachments" gwp::org-attach-paste)
    ("mh" "make heading (before)" org-insert-heading)
    ("ml" "make heading (after)" org-insert-heading-after-current)
    ("mt" "make todo (before)" org-insert-todo-heading)]
