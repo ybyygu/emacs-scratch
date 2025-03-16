@@ -369,7 +369,7 @@
     (gptel-make-gemini "Gemini"
       :stream t
       :key key
-      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash-thinking-exp gemini-2.0-pro-exp-02-05)))
+      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash gemini-2.0-flash-thinking-exp gemini-2.0-pro-exp-02-05)))
 
   ;; 设置默认后端（需在 backend 定义之后）
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
