@@ -292,6 +292,9 @@
 ;; 885c9fa9 ends here
 
 ;; [[file:../gwp-scratch.note::6111daf1][6111daf1]]
+;; 默认换行列数太小
+(setq-default fill-column 120)
+
 ;; 安装并启用 visual-fill-column
 (use-package visual-fill-column
   :ensure t
@@ -301,9 +304,6 @@
     (if visual-line-mode
         (visual-fill-column-mode 1)
       (visual-fill-column-mode -1)))
-
-  (setq visual-fill-column-width 150
-        visual-fill-column-center-text nil)
   ;; 当启用 visual-line-mode 时自动激活 visual-fill-column-mode
   (add-hook 'visual-line-mode-hook #'auto-enable-visual-fill-column))
 ;; 6111daf1 ends here
