@@ -255,305 +255,30 @@ If on a:
     (call-interactively #'org-toggle-checkbox)))
 ;; 0f2116cf ends here
 
-;; [[file:../gwp-scratch.note::994db730][994db730]]
+;; [[file:../gwp-scratch.note::a27612ae][a27612ae]]
 (require 'org-attach)
+
 ;; 可用父节点定义的 attach 目录
 (setq org-attach-use-inheritance t)
+;; 自定义的 attach 相关命令
+(require 'org-attach-extra)
+;; 设置按键 (确保 gwp::local-leader-def 已定义)
+(with-eval-after-load 'org
+  (gwp::local-leader-def
+   :keymaps 'org-mode-map
+   "a" '(org-attach-extra-dispatch :which-key "org-attach-extra")))
+;; a27612ae ends here
 
-;;;###autoload
-(defun gwp::org-attach-auto-directory ()
-  "为当前 headline 设置 DIR 属性 (基于 ID)"
-  (interactive)
-
-  (let* ((attach-dir (org-attach-dir-from-id (org-id-new)))
-         (current-dir (file-name-directory (or default-directory
-                                               buffer-file-name)))
-         (attach-dir-relative (file-relative-name attach-dir current-dir)))
-    (org-entry-put nil "DIR" attach-dir-relative)
-    attach-dir))
-;; 994db730 ends here
-
-;; [[file:../gwp-scratch.note::877840e9][877840e9]]
-(defun gwp::delete-attachment-at-point ()
-  "使用 org-attach API 安全删除附件及关联内容"
-  (interactive)
-  ;; (require 'org-attach)
-  (let ((elem (org-element-context)))
-    ;; 前置条件检测
-    (unless (and (eq (org-element-type elem) 'link)
-                 (string= (org-element-property :type elem) "attachment"))
-      (user-error "光标未指向附件链接"))
-
-    (let ((filename (org-element-property :path elem))
-          (parent (org-element-property :parent elem)))
-      ;; 使用 org-attach 的安全删除机制
-      (when (yes-or-no-p (format "永久删除附件 [%s] 及关联内容? " filename))
-        ;; 阶段 1: 通过官方API删除文件
-        (condition-case err
-            (org-attach-delete-one filename)
-          (error (user-error "文件删除失败: %s" (error-message-string err))))
-        (message "成功删除附件 [%s]" filename)))))
-;; 877840e9 ends here
-
-;; [[file:../gwp-scratch.note::bf8ff927][bf8ff927]]
-;; 存储剪切的附件目录的绝对路径
-(defvar gwp::org-attach-cut-path nil
-  "存储被剪切的org heading附件目录的绝对路径。")
-
-(defun gwp::org-attach-cut ()
-  "剪切当前org heading的附件目录。
-将附件目录的绝对路径保存到gwp::org-attach-cut-path变量中。"
-  (interactive)
-  (unless (org-before-first-heading-p)
-    (let ((attach-dir (org-attach-dir)))
-      (if attach-dir
-          (progn
-            ;; 将路径转换为绝对路径
-            (setq gwp::org-attach-cut-path (expand-file-name attach-dir))
-            (message "已剪切附件目录: %s" gwp::org-attach-cut-path))
-        (message "当前heading没有附件目录")))))
-
-(defun gwp::org-attach-paste ()
-  "将之前剪切的附件目录中的文件移动到当前heading的附件目录。"
-  (interactive)
-  (unless (org-before-first-heading-p)
-    (if (and gwp::org-attach-cut-path
-             (file-exists-p gwp::org-attach-cut-path))
-        (let* ((new-attach-dir (or (org-attach-dir)
-                                  (gwp::org-attach-auto-directory)))
-               (new-attach-dir-abs (expand-file-name new-attach-dir))
-               (files (directory-files gwp::org-attach-cut-path t "[^.]")))
-
-          ;; 确保目标目录存在
-          (unless (file-exists-p new-attach-dir-abs)
-            (make-directory new-attach-dir-abs t))
-
-          ;; 移动所有文件到新目录
-          (dolist (file files)
-            (let ((new-file (expand-file-name
-                            (file-name-nondirectory file)
-                            new-attach-dir-abs)))
-              ;; 确保目标文件的父目录存在
-              (unless (file-exists-p (file-name-directory new-file))
-                (make-directory (file-name-directory new-file) t))
-              (rename-file file new-file t)))
-
-          ;; 递归删除旧的空目录
-          (gwp::delete-empty-dirs gwp::org-attach-cut-path)
-
-          ;; 重置剪切路径
-          (setq gwp::org-attach-cut-path nil)
-          (message "附件已移动到新位置: %s" new-attach-dir))
-      (message "没有可粘贴的附件目录"))))
-
-(defun gwp::delete-empty-dirs (dir)
-  "递归删除空目录。类似于'rmdir -p'的功能。"
-  (when (and dir (file-exists-p dir))
-    (condition-case nil
-        (progn
-          (delete-directory dir)
-          (gwp::delete-empty-dirs (file-name-directory (directory-file-name dir))))
-      (error nil))))
-;; bf8ff927 ends here
-
-;; [[file:../gwp-scratch.note::6e81e548][6e81e548]]
-(defun gwp::org-archive-buffer-attachments (tar-file)
-  "收集当前 Org buffer 中的所有附件目录，并将它们打包成 TAR 文件。
-它会自动处理通过 :DIR: 属性指定的自定义附件目录和通过 :ID: 属性关联的附件"
-  (interactive "FSave attachment archive to: ")
-  (let ((attach-dirs '())         ;; 存储所有找到的附件目录
-        (org-file (buffer-file-name))  ;; 当前 Org 文件的路径
-        (org-dir (file-name-directory (buffer-file-name))))  ;; 当前 Org 文件所在目录
-
-    ;; 1. 收集所有节点的附件目录
-    ;; org-map-entries 会遍历文档中的每个标题节点
-    (org-map-entries
-     (lambda ()
-       ;; org-attach-dir 函数会检查当前节点的 :ID: 或 :DIR: 属性
-       ;; 并返回关联的附件目录路径
-       (let ((attach-dir (org-attach-dir)))
-         (when (and attach-dir (file-exists-p attach-dir))
-           ;; 只收集实际存在的目录
-           (push attach-dir attach-dirs)))))
-
-    ;; 2. 处理整个文件的默认附件目录
-    ;; 这一步很重要，因为有些附件可能与整个文件关联，而不是特定节点
-    (let ((default-attach-dir (org-attach-dir)))
-      (when (and default-attach-dir (file-exists-p default-attach-dir))
-        (push default-attach-dir attach-dirs)))
-
-    ;; 3. 去重处理
-    ;; 将所有路径转换为相对于当前 Org 文件所在目录的相对路径
-    (setq attach-dirs
-          (delete-dups
-           (mapcar (lambda (dir)
-                     (file-relative-name dir org-dir))  ;; 转换为相对路径
-                   attach-dirs)))
-
-    ;; 4. 检查是否找到附件目录
-    (if (null attach-dirs)
-        ;; 如果没有找到任何附件目录，提示用户并中止操作
-        (error "No attachment directories found.")
-
-      ;; 5. 创建 tar 归档
-      (let ((default-directory (file-name-directory tar-file)))
-        (shell-command
-         (format "tar -cf %s %s"
-                 ;; 只使用 tar 文件的名称部分，因为 default-directory 已设置
-                 (shell-quote-argument (file-name-nondirectory tar-file))
-                 ;; 将所有附件目录路径连接成一个字符串作为 tar 命令的参数
-                 (mapconcat 'shell-quote-argument attach-dirs " "))))
-
-      ;; 6. 创建成功，通知用户
-      (message "Created attachment archive at %s with %d attachment directories"
-               tar-file (length attach-dirs))))
-  tar-file)
-;; 6e81e548 ends here
-
-;; [[file:../gwp-scratch.note::458d7b11][458d7b11]]
-(org-link-set-parameters "zotero" :follow #'gwp/org-zotero-open :export #'gwp/org-zotero-export)
-
-(defun gwp/org-zotero-open (path)
-  (setq url (format "zotero:%s" path))
-  (browse-url url))
-
-;; rust-modules
-(add-to-list 'load-path "/home/ybyygu/Workspace/Programming/emacs/rust-modules")
-(require 'zotero)
-
-(defun gwp/zotero-search-by-tag (name)
-  "Search Zotero entries by tag using ivy."
-  (interactive "sTag: ")
-
-  (let* ((candidates (zotero-search-items-by-tag name))
-	 (item (completing-read "Zotero entries: " candidates nil t)))
-    (gwp--zotero-open-attachments item)))
-
-(defun gwp/zotero-search-by-collection (name)
-  "Search Zotero entries by collection name using ivy."
-  (interactive "sCollection: ")
-
-  (let* ((candidates (zotero-search-items-by-collection name))
-	 (item (completing-read "zotero entries: " candidates nil t)))
-    (gwp--zotero-open-attachments item)))
-
-(defun gwp--zotero-show-related-items (x)
-  "show related items from selection"
-  (let* ((candidates (zotero-get-related-items x))
-	 (item (completing-read "Related: " candidates nil t)))
-    (gwp--zotero-open-attachments item)))
-
-(defun gwp--zotero-annotate-attachment (pdf-file)
-  "Annotate the attachment with org-noter."
-  (let ((annotation-file (expand-file-name (car org-noter-default-notes-file-names) (file-name-directory pdf-file))))
-    (progn
-      ;; create an empty annotation file if not exists
-      (unless (file-exists-p annotation-file) (write-region "" nil annotation-file))
-      (org-open-file pdf-file)
-      (org-noter))))
-
-;; (advice-add #'find-file-other-tab :around #'eaf--find-file-advisor)
-(defun gwp--zotero-open-attachments (x)
-  "completion for zotero attachments."
-  (require 'consult)
-
-  (let* ((candidates (zotero-get-selected-item-attachment-paths x))
-	 ;; (attach (completing-read "Open attachment: " candidates nil t)))
-         ;; 可应用 file 类型的 consult 目标
-	 (attach (consult--read candidates :prompt "Open attachment: " :category 'file)))
-    (org-open-file attach)))
-
-(defun gwp--zotero-insert-link (x)
-  (let ((uri (zotero-get-selected-item-link x)))
-    (if uri
-        (progn
-          (message "%s!" x)
-          (insert "[[" uri "][" "zotero-item" "]]"))
-      (error "No link extracted from: %s" x))))
-
-(defun gwp--zotero-open-link (x)
-  (let ((uri (zotero-get-selected-item-link x)))
-    (if uri
-        (progn
-          (message "%s!" x)
-          (org-link-open-from-string (format "[[%s]]" uri)))
-      (error "No link extracted from: %s" x))))
-
-(defun gwp/org-open-zotero-attachments-at-point (arg)
-  "Handle zotero attachments in org-mode"
-  (interactive "P")
-  (let ((ct (org-element-context)))
-    (if (eq 'link (org-element-type ct))
-        (let ((link (org-element-property :raw-link ct)))
-          (when link
-            (let ((key (zotero-get-item-key-from-link link)))
-              (if key
-                  (gwp--zotero-open-attachments key)
-                (error "Invalid zotero link!"))))))))
-
-(defun gwp/org-open-zotero-related-at-point (arg)
-  "Open related zotero items for zotero link at point"
-  (interactive "P")
-  (let ((ct (org-element-context)))
-    (if (eq 'link (org-element-type ct))
-        (let ((link (org-element-property :raw-link ct)))
-          (when link
-            (let ((key (zotero-get-item-key-from-link link)))
-              (if key
-                  (gwp--zotero-show-related-items key)
-                (error "Invalid zotero link!"))))))))
-
-(defun gwp/insert-new-zotero-item (arg)
-  "Create a new zotero item (report)"
-  (interactive "P")
-
-  (let ((uri (zotero-create-new-note)))
-    (if uri
-        (progn
-          (message "%s!" uri)
-          (insert "[[" uri "][" "zotero-note" "]]"))
-      (error "create zotero item failed!"))))
-
-(defun gwp::denote-zotero-find-org-heading ()
-  "搜索包含当前 zotero item ID 的 org 标题."
-  (interactive)
-  (let* ((link (thing-at-point 'url t))
-         (item-id (when link
-                    (and (string-match "items/\\([A-Z0-9]+\\)" link)
-                         (match-string 1 link)))))
-    (unless item-id
-      (user-error "未找到 zotero item ID"))
-    (consult-ripgrep (denote-directory) (format "^\\*+.*\\b%s\\b" item-id))))
-
-(defun gwp::denote-zotero-find-org-notes ()
-  "搜索包含当前 zotero item ID 的 denote 笔记."
-  (interactive)
-  (let* ((link (thing-at-point 'url t))
-         (item-id (when link
-                    (and (string-match "items/\\([A-Z0-9]+\\)" link)
-                         (match-string 1 link)))))
-    (unless item-id
-      (user-error "未找到 zotero item ID"))
-    (consult-ripgrep (denote-directory) (format "\\b%s\\b" item-id))))
-
-;; https://www.reddit.com/r/emacs/comments/f3o0v8/anyone_have_good_examples_for_transient/
-(require 'transient)
-(transient-define-prefix gwp/zotero-search-transient ()
-  "Search zotero database"
-  ["Search zotero items:"
-   ("t" "search by tag" gwp/zotero-search-by-tag)
-   ("c" "search by collection" gwp/zotero-search-by-collection)
-   ("s" "Find zotero org notes" gwp::denote-zotero-find-org-notes)
-   ("b" "Find zotero org heading" gwp::denote-zotero-find-org-heading)
-   ("o" "open attachments at point" gwp/org-open-zotero-attachments-at-point)
-   ("r" "open related items at point" gwp/org-open-zotero-related-at-point)
-   ]
-  )
-
-(gwp::local-leader-def
-  :keymaps 'org-mode-map
-  "z" '(gwp/zotero-search-transient :which-key "zotero"))
-;; 458d7b11 ends here
+;; [[file:../gwp-scratch.note::928d8213][928d8213]]
+(require 'emacs-zotero)
+(setq emacs-zotero-auto-setup-org-mode t)
+(emacs-zotero-setup)
+;; 设置按键 (确保 gwp::local-leader-def 已定义)
+(with-eval-after-load 'org
+  (gwp::local-leader-def
+   :keymaps 'org-mode-map
+   "z" '(emacs-zotero-menu :which-key "zotero")))
+;; 928d8213 ends here
 
 ;; [[file:../gwp-scratch.note::95825713][95825713]]
 (defun gwp::new-memo-time-stamp (arg)
@@ -1339,7 +1064,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("p" "prev" org-previous-link :transient t)
    ("." "mark" gwp::org-mark-link)
    ("o" "open" gwp::org-open-at-point-dwim)
-   ("d" "delete attachment" gwp::delete-attachment-at-point)
+   ("d" "delete attachment" org-attach-extra-delete-at-point)
    ("u" "unlink" gwp::org-delete-link-keep-text)
    ]
   ["heading" :if org-at-heading-p
@@ -1348,8 +1073,8 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("." "mark" org-mark-subtree)
    ("a" "attachments" org-attach)
    ("A" "archive" org-archive-subtree)
-   ("cc" "cut heading attachments" gwp::org-attach-cut)
-   ("cp" "paste heading attachments" gwp::org-attach-paste)
+   ("cc" "cut heading attachments" org-attach-extra-cut)
+   ("cp" "paste heading attachments" org-attach-extra-paste)
    ("mh" "make heading (before)" org-insert-heading)
    ("ml" "make heading (after)" org-insert-heading-after-current)
    ("mt" "make todo (before)" org-insert-todo-heading)]
@@ -1376,12 +1101,13 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ("td" "toggle debug" org-table-toggle-formula-debugger)
    ]
   ["zotero"  :if gwp::org-in-zotero-link-p
-   ("RET" "zotero menu" gwp/zotero-search-transient)
+   ("RET" "zotero menu" emacs-zotero-menu)
    ]
   ["edit"
    ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
    ("*" "清除加粗标记" gwp::remove-org-bold-marks-region)
-   ("SPC" "删除多余空格"  xah-remove-punctuation-trailing-redundant-space)
+   ;; ("SPC" "删除多余空格"  xah-remove-punctuation-trailing-redundant-space)
+   ("SPC" "删除多余空格"  gwp::format-chinese-paragraph)
    ]
   ["motion"
    ("g" "goto" consult-org-heading)
@@ -1573,12 +1299,6 @@ DESC. FORMATs understood are 'odt','latex and 'html."
 (unbind-key "C-c >" 'org-mode-map)
 (bind-key "C-c >" 'org-demote-subtree org-mode-map)
 (bind-key "C-c <" 'org-promote-subtree org-mode-map)
-
-(gwp::local-leader-def
-  :keymaps 'org-mode-map
-  "a"  #'(:ignore t :which-key "attach")
-  "aa" #'org-attach
-  "an" #'gwp::org-attach-auto-directory)
 
 (transient-define-prefix gwp::org-babel-transient ()
   ["babel"
