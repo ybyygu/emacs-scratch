@@ -525,6 +525,17 @@ If on a:
       (user-error "未找到 zotero item ID"))
     (consult-ripgrep (denote-directory) (format "^\\*+.*\\b%s\\b" item-id))))
 
+(defun gwp::denote-zotero-find-org-notes ()
+  "搜索包含当前 zotero item ID 的 denote 笔记."
+  (interactive)
+  (let* ((link (thing-at-point 'url t))
+         (item-id (when link
+                    (and (string-match "items/\\([A-Z0-9]+\\)" link)
+                         (match-string 1 link)))))
+    (unless item-id
+      (user-error "未找到 zotero item ID"))
+    (consult-ripgrep (denote-directory) (format "\\b%s\\b" item-id))))
+
 ;; https://www.reddit.com/r/emacs/comments/f3o0v8/anyone_have_good_examples_for_transient/
 (require 'transient)
 (transient-define-prefix gwp/zotero-search-transient ()
@@ -532,6 +543,7 @@ If on a:
   ["Search zotero items:"
    ("t" "search by tag" gwp/zotero-search-by-tag)
    ("c" "search by collection" gwp/zotero-search-by-collection)
+   ("s" "Find zotero org notes" gwp::denote-zotero-find-org-notes)
    ("b" "Find zotero org heading" gwp::denote-zotero-find-org-heading)
    ("o" "open attachments at point" gwp/org-open-zotero-attachments-at-point)
    ("r" "open related items at point" gwp/org-open-zotero-related-at-point)
@@ -1368,6 +1380,7 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ]
   ["edit"
    ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
+   ("*" "清除加粗标记" gwp::remove-org-bold-marks-region)
    ("SPC" "删除多余空格"  xah-remove-punctuation-trailing-redundant-space)
    ]
   ["motion"

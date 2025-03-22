@@ -288,6 +288,96 @@ Version: 2015-08-22"
       (goto-char start)
       (while (re-search-forward regexp end t)
         (replace-match (cdr (assoc (match-string 0) punctuation-map)))))))
+
+(defun gwp::remove-org-bold-marks-region ()
+  "删除当前区域或整个缓冲区中的 Org mode 加粗标记（**文字**）。"
+  (interactive)
+  (let ((start (if (region-active-p) (region-beginning) (point-min)))
+        (end (if (region-active-p) (region-end) (point-max))))
+    (save-excursion
+      (goto-char start)
+      (while (re-search-forward "\\*\\*\\([^*]+?\\)\\*\\*" end t)
+        (replace-match "\\1")))))
+
+(defun gwp::remove-chinese-spaces ()
+  "删除中文字符之间的空格，但保留中英文之间的空格。"
+  (interactive)
+  (let ((start (if (region-active-p) (region-beginning) (point-min)))
+        (end (if (region-active-p) (region-end) (point-max))))
+    (save-excursion
+      (goto-char start)
+      ;; 匹配中文字符后面的空格再跟中文字符的模式
+      ;; 中文Unicode范围是[\u4e00-\u9fff]，也可能包括其他CJK字符和标点
+      (while (re-search-forward "\\(\\cc\\) +\\(\\cc\\)" end t)
+        (replace-match "\\1\\2")))))
+
+(defun gwp::remove-punctuation-trailing-spaces ()
+  "删除标点符号后的多余空格。处理中英文标点符号。"
+  (interactive)
+  (let ((start (if (region-active-p) (region-beginning) (point-min)))
+        (end (if (region-active-p) (region-end) (point-max))))
+    (save-excursion
+      ;; 西文标点处理
+      (goto-char start)
+      (while (re-search-forward " +," end t)
+        (replace-match ","))
+      (goto-char start)
+      (while (re-search-forward ", +" end t)
+        (replace-match ", "))
+      (goto-char start)
+      (while (re-search-forward "\\? +" end t)
+        (replace-match "? "))
+      (goto-char start)
+      (while (re-search-forward "! +" end t)
+        (replace-match "! "))
+      (goto-char start)
+      (while (re-search-forward "\\. +" end t)
+        (replace-match ". "))
+
+      ;; 中文全角标点处理
+      (goto-char start)
+      (while (re-search-forward "， +" end t)
+        (replace-match "，"))
+      (goto-char start)
+      (while (re-search-forward "。 +" end t)
+        (replace-match "。"))
+      (goto-char start)
+      (while (re-search-forward "： +" end t)
+        (replace-match "："))
+      (goto-char start)
+      (while (re-search-forward "？ +" end t)
+        (replace-match "？"))
+      (goto-char start)
+      (while (re-search-forward "； +" end t)
+        (replace-match "；"))
+      (goto-char start)
+      (while (re-search-forward "！ +" end t)
+        (replace-match "！"))
+      (goto-char start)
+      (while (re-search-forward "、 +" end t)
+        (replace-match "、")))))
+
+(defun gwp::format-chinese-paragraph ()
+  "综合格式化中文段落：
+1. 删除加粗标记（**文字**）
+2. 删除中文字符之间的多余空格
+3. 删除标点符号后的多余空格"
+  (interactive)
+  (let ((start (if (region-active-p) (region-beginning) (point-min)))
+        (end (if (region-active-p) (region-end) (point-max))))
+    ;; 保存当前选区信息
+    (let ((region-active (region-active-p)))
+      ;; 删除加粗标记
+      (gwp::remove-org-bold-markup)
+      ;; 重新设置选区（如果原本有选区的话）
+      (when region-active
+        (set-mark start)
+        (goto-char end)
+        (activate-mark))
+      ;; 删除中文之间的空格
+      (gwp::remove-chinese-spaces)
+      ;; 删除中文标点后的多余空格
+      (gwp::remove-punctuation-trailing-spaces))))
 ;; 9e0bf95e ends here
 
 ;; [[file:../gwp-scratch.note::382df7e2][382df7e2]]
