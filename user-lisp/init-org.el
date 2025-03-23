@@ -550,11 +550,12 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; fa928b1c ends here
 
 ;; [[file:../gwp-scratch.note::9b40c7cf][9b40c7cf]]
+(require 'ol)
+
 ;;;###autoload
 (defun gwp::org-babel-tangle-jump-to-org ()
   "Jump from a tangled code file to the related Org mode file."
 
-  (require 'ol)
   (interactive)
   (let ((mid (point))
 	start body-start end target-buffer target-char link block-name body)
@@ -1105,7 +1106,6 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
    ]
   ["edit"
    ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
-   ("*" "清除加粗标记" gwp::remove-org-bold-marks-region)
    ;; ("SPC" "删除多余空格"  xah-remove-punctuation-trailing-redundant-space)
    ("SPC" "删除多余空格"  gwp::format-chinese-paragraph)
    ]

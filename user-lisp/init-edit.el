@@ -289,7 +289,7 @@ Version: 2015-08-22"
       (while (re-search-forward regexp end t)
         (replace-match (cdr (assoc (match-string 0) punctuation-map)))))))
 
-(defun gwp::remove-org-bold-marks-region ()
+(defun gwp::remove-org-bold-markup ()
   "删除当前区域或整个缓冲区中的 Org mode 加粗标记（**文字**）。"
   (interactive)
   (let ((start (if (region-active-p) (region-beginning) (point-min)))
