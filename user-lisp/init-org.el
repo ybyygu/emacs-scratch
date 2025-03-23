@@ -642,122 +642,15 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
     (exchange-point-and-mark)))
 ;; 82ecc499 ends here
 
-;; [[file:../gwp-scratch.note::4971b464][4971b464]]
-;;;###autoload
-(defun gwp::search-all-notes-ivy (&optional arg)
-  "search all notes in ~/.cache/notes"
-  (interactive)
-  (let ((counsel-rg-base-command (list
-                                  "ripgrep"
-                                  "-M" "240"
-                                  "--with-filename"
-                                  "--no-heading"
-                                  "--line-number"
-                                  "--color" "never"
-                                  "%s")))
-    (if arg
-        (counsel-rg arg "~/.cache/notes")
-      (counsel-rg "" "~/.cache/notes"))))
+;; [[file:../gwp-scratch.note::0bd3c98d][0bd3c98d]]
+(require 'org-note-search)
 
-
-;;;###autoload
-(defun gwp::search-all-notes (&optional arg)
-  "search all notes in ~/.cache/notes"
-  (interactive)
-  (require 'consult)
-  (let ((consult-ripgrep-args (list
-                               "ripgrep"
-                               "--null"
-                               "--no-heading"
-                               "--path-separator" "/"
-                               "--line-number"
-                               "--ignore-case"
-                               "--color" "never"
-                               ".")))
-    (if arg
-        (consult-ripgrep "~/.cache/notes" arg)
-      (consult-ripgrep "~/.cache/notes" ""))))
-;; 4971b464 ends here
-
-;; [[file:../gwp-scratch.note::05419467][05419467]]
-(require 'simpleclip)
-
-(defun gwp::search-org-notes (query)
-  "Perform a text search on `org-directory'."
-  (interactive
-   (list (if (use-region-p)
-             (buffer-substring-no-properties
-              (region-beginning)
-              (region-end))
-           "")))
-
-  (require 'org)
-  (let ((counsel-rg-base-command (list
-                                  "ripgrep"
-                                  "-M" "240"
-                                  "--with-filename"
-                                  "--no-heading"
-                                  "--line-number"
-                                  "--color" "never"
-                                  "%s")))
-    (counsel-rg query org-directory)
-    ))
-
-
-;; credit: https://github.com/CsBigDataHub/counsel-fd/blob/master/counsel-fd.el
-(defvar gwp--fd-command "fd --hidden --color never "
-  "Base command for fd.")
-
-;;;###autoload
-(defun counsel-fd-file-jump (&optional initial-input initial-directory)
-  "Jump to a file below the current directory.
-List all files within the current directory or any of its subdirectories.
-INITIAL-INPUT can be given as the initial minibuffer input.
-INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
-  (interactive
-   (list nil
-         (when current-prefix-arg
-           (read-directory-name "From directory: "))))
-  (let* ((default-directory (or initial-directory default-directory))
-	 (d (completing-read "File: "
-		      (split-string
-		       (shell-command-to-string
-			(concat gwp--fd-command "--type l --exclude '*.git'"))
-		       "\n" t)
-		      nil
-		      t)))
-    (find-file (expand-file-name d))))
-
-(defun gwp::find-file-in-notes ()
-  "Find a file under `~/.cache/notes', recursively."
-  (interactive)
-  (let ((default-directory "~/.cache/notes")
-        (find-file-visit-truename t))
-        (counsel-fd-file-jump)))
-;; 05419467 ends here
-
-;; [[file:../gwp-scratch.note::515195f9][515195f9]]
 (general-define-key
  :prefix-map 'gwp::note-map
- ;; "s" 'gwp::search-org-notes
- "s" 'gwp::search-all-notes
- "f" 'gwp::find-file-in-notes
+ "s" 'org-note-search
+ "f" 'org-note-find-file
  )
-;; 515195f9 ends here
-
-;; [[file:../gwp-scratch.note::da4e0834][da4e0834]]
-(unless init-no-x-flag
-  (defun gwp::update-notes-cache ()
-    (interactive)
-    (message (shell-command-to-string "rebuild-note-cache.sh")))
-
-  (require 'midnight)
-  (midnight-mode t)
-  ;; 默认延时为 3600 秒
-  (midnight-delay-set 'midnight-delay 7200)
-
-  (add-hook 'midnight-hook #'gwp::update-notes-cache))
-;; da4e0834 ends here
+;; 0bd3c98d ends here
 
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
 (setq org-capture-templates

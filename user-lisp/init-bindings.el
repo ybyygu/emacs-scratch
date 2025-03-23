@@ -54,7 +54,7 @@ Repeated invocations toggle between the two most recently open buffers."
  ;; gwp::rg 会虚拟命令, 待 consult remap
  "sd" '(gwp::rg :which-key "search directory")
  "sg" '(gwp::git-grep :which-key "git grep")
- "sn" '(gwp::search-all-notes :which-key "search all .note files"))
+ "sn" '(org-note-search :which-key "search all .note files"))
 ;; f220a2a2 ends here
 
 ;; [[file:../gwp-scratch.note::e13c7903][e13c7903]]
