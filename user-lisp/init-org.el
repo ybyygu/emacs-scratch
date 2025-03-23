@@ -642,6 +642,10 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
     (exchange-point-and-mark)))
 ;; 82ecc499 ends here
 
+;; [[file:../gwp-scratch.note::ac1d0086][ac1d0086]]
+(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+;; ac1d0086 ends here
+
 ;; [[file:../gwp-scratch.note::0bd3c98d][0bd3c98d]]
 (require 'org-note-search)
 

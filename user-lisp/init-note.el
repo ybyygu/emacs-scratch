@@ -88,117 +88,6 @@
   (locate (file-name-nondirectory (dired-get-file-for-visit))))
 ;; 6c8dad94 ends here
 
-;; [[file:../gwp-scratch.note::ac1d0086][ac1d0086]]
-;; (use-package org-id
-;;   :custom
-;;   (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
-
-(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-;; ac1d0086 ends here
-
-;; [[file:../gwp-scratch.note::98fd4d7a][98fd4d7a]]
-(use-package el-patch)
-
-(defun gwp::org-id-find-id-file (id)
-  (let* ((rg-command (format "ripgrep -l --color never -e '^\\s*:ID:\\s+%s' /home/ybyygu/.cache/notes" id))
-         (output (shell-command-to-string rg-command))
-         (file (car (split-string output "[\r\n]+" t))))
-    file))
-
-(el-patch-feature org-id)
-(with-eval-after-load 'org-id
-  (el-patch-defun org-id-find-id-file (id)
-    "Query the id database for the file in which ID is located."
-    (unless org-id-locations (org-id-locations-load))
-    (or (and org-id-locations
-             (hash-table-p org-id-locations)
-             (gethash id org-id-locations))
-        ;; Fall back on current buffer
-        (or
-         (gwp::org-id-find-id-file id)
-         (buffer-file-name (or (buffer-base-buffer (current-buffer))
-                               (current-buffer)))))))
-;; 98fd4d7a ends here
-
-;; [[file:../gwp-scratch.note::48102b4f][48102b4f]]
-(use-package org-sidebar
-  :custom
-  (org-sidebar-side 'left)                                                         ; 新版中 left 是默认
-  (org-ql-sidebar-buffer-setup-hook nil)                                           ; 避免多行显示, 太乱
-  (org-sidebar-default-fns '(gwp::org-sidebar--backlinks org-sidebar--todo-items)) ; 使用反链视图
-  (org-sidebar-tree-jump-fn 'org-sidebar-tree-jump-source)                         ; 跳至源文件对应的位置, 而不是 narrowed heding
-  :config
-  ;; 2025-02-28: 升级到 emacs 30后, 得禁用以下设置, 不然会报错了
-  ;; org-ql-use-preamble: 提前生成一个正则表达式预处理模板（preamble），旨在加速某些查询（尤其是基于文本的正则匹配）
-  (setq org-ql-use-preamble nil)
-  ;; 避免误按
-  (;; map! :map org-sidebar-tree-map
-   ;;      [mouse-1] nil
-   ;;      [drag-mouse-1] nil
-   ))
-
-;;;###autoload
-(defun gwp::org-backlinks ()
-  "显示指向当前 heading 的反向链接"
-  (interactive)
-
-  (let* ((org-sidebar-side 'right)
-         (id (org-entry-get (point) "ID"))
-         (custom-id (org-entry-get (point) "CUSTOM_ID"))
-         (query (gwp::org-backlinks--get-query id custom-id)))
-    (org-sidebar-ql (gwp::org-backlinks-search-files id)
-      query :title (concat "Links to: " (org-get-heading t t)))))
-
-(defun gwp::org-backlinks--get-query (id custom-id)
-  (cond ((and id custom-id)
-         ;; This will be slow because it isn't optimized to a single regexp.  :(
-         (warn "Entry has both ID and CUSTOM_ID set; query will be slow")
-         `(or (link :target ,(concat "id:" id))
-              (link :target ,(concat "id:" custom-id))))
-        ((or id custom-id)
-         `(link :target ,(concat "id:" (or id custom-id))))
-        (t (error "Entry has no ID nor CUSTOM_ID property"))))
-
-
-;; reference:
-;; (collection (funcall ffip-project-search-function cmd))
-(defun gwp::org-backlinks-search-files (keyword)
-  "搜索文件系统中所有的.note文件, 返回包含引用 keyword 的文件名"
-  (let* (
-         (rg-command (format "ripgrep -l --color never -e %s /home/ybyygu/.cache/notes" keyword))
-         (output (shell-command-to-string rg-command))
-         (collection (split-string output "[\r\n]+" t))
-         result)
-    ;; (message "shell output:\n%s" result)
-    (dolist (file collection result) (push file result))
-    result))
-
-(defun gwp::org-sidebar--backlinks (source-buffer)
-  "在 org-sidebar 中显示 backlinks buffer"
-  (let* ((display-buffer (generate-new-buffer (format "org-sidebar<%s>" (buffer-name source-buffer))))
-         (title (propertize (concat "反链条目: " (buffer-name source-buffer)) 'help-echo "含有指向当前heading链接的条目"))
-         (id (org-entry-get (point) "ID"))
-         (custom-id (org-entry-get (point) "CUSTOM_ID"))
-         (source-buffers (gwp::org-backlinks-search-files id))
-         query)
-    (with-current-buffer display-buffer
-      (setf org-sidebar-source-buffer source-buffer))
-
-    ;; 如果当前 heading 无 ID, 不报错
-    (condition-case err
-        (setq query (gwp::org-backlinks--get-query id custom-id))
-      (error
-       (message "%s" (error-message-string err))
-       (setq source-buffers nil)))
-
-    (org-ql-search source-buffers
-      query
-      :buffer display-buffer
-      :title title)
-
-    display-buffer))
-;; 48102b4f ends here
-
 ;; [[file:../gwp-scratch.note::1773f1a3][1773f1a3]]
 (defun gwp::org-note::get-pdf-file ()
   (save-excursion
@@ -266,7 +155,9 @@
 (gwp::local-leader-def
   :keymaps 'org-mode-map
   "n" '(:ignore t :which-key "org note")
-  "nb" #'gwp::org-backlinks
+  ;; "nb" #'gwp::org-backlinks
+  "ns" #'org-note-search-by-id
+  "nb" #'org-note-show-backlinks
   "no" #'gwp::org-note::open-pdf
   )
 ;; 8ae833e2 ends here
