@@ -375,6 +375,11 @@
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
         gptel-model 'deepseek-ai/DeepSeek-R1)
 
+    ;; remove default ChatGPT provider from backends
+  (dolist (item gptel--known-backends)
+    (if (string= (car item) "ChatGPT")
+        (setq gptel--known-backends (cl-remove item gptel--known-backends))))
+  
   (defun gwp::gptel-build-directives (promptdir)
     "从 PROMPTDIR 构建 (key . content) 形式的指令列表"
     (mapcar
