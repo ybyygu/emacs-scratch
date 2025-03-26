@@ -174,6 +174,11 @@
   (denote-sort-keywords t)
   (denote-rename-confirmations '(add-front-matter)) ; 少一些确认项
   (denote-known-keywords '("fact" "thread" "question" "insight"))
+  (denote-org-front-matter (concat "#+title:      %s\n"
+                                   "#+date:       %s\n"
+                                   "#+filetags:   %s\n"
+                                   "#+identifier: %s\n"
+                                   "#+SETUPFILE: ~/Notes/common.org\n\n"))
   :config
   (setq denote-backlinks-show-context t)
   (setq denote-directory "~/Workspace/Notes/"
