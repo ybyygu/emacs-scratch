@@ -269,16 +269,14 @@ If on a:
    "a" '(org-attach-extra-dispatch :which-key "org-attach-extra")))
 ;; a27612ae ends here
 
-;; [[file:../gwp-scratch.note::928d8213][928d8213]]
-(require 'emacs-zotero)
-(setq emacs-zotero-auto-setup-org-mode t)
-(emacs-zotero-setup)
-;; 设置按键 (确保 gwp::local-leader-def 已定义)
+;; [[file:../gwp-scratch.note::a54e6aa7][a54e6aa7]]
+(require 'org-zotero)
+(org-zotero-setup)
 (with-eval-after-load 'org
   (gwp::local-leader-def
    :keymaps 'org-mode-map
-   "z" '(emacs-zotero-menu :which-key "zotero")))
-;; 928d8213 ends here
+   "z" '(org-zotero :which-key "zotero")))
+;; a54e6aa7 ends here
 
 ;; [[file:../gwp-scratch.note::95825713][95825713]]
 (defun gwp::new-memo-time-stamp (arg)
