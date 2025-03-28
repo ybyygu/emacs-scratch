@@ -251,6 +251,77 @@ Add this function to the `after-save-hook'."
       (call-interactively 'denote))))
 ;; 63f83f7b ends here
 
+;; [[file:../gwp-scratch.note::dc7fe12d][dc7fe12d]]
+(require 'el-patch)
+(require 'denote) ; Ensure denote definitions are loaded
+(require 'dired)  ; Ensure dired functions are available
+
+(el-patch-defun denote-get-path-by-id (id)
+  "Return absolute path of file with ID using fd (recursive, first match only).
+Searches within `denote-directory`. Uses fd --max-results 1.
+NOTE: This returns the *first* file fd finds, potentially ignoring extension preferences if multiple matches exist across directories.
+Patched by el-patch to use fd."
+  ;; --- Start of patched code ---
+  (let* ((denote-dir (expand-file-name denote-directory))
+         (pattern (concat "^" (regexp-quote id) "--.*"))
+         ;; Handle fd/fdfind executable
+         (fd-executable (or (executable-find "fd")
+                            (executable-find "fdfind")))
+         ;; Error out if fd/fdfind is not found
+         (_ (unless fd-executable
+              (error "el-patch (denote-get-path-by-id): Cannot find 'fd' or 'fdfind' executable in PATH")))
+         ;; Build the command with --max-results 1
+         (command (format "%s -a --max-results 1 --type f --regex %s %s"
+                          (shell-quote-argument fd-executable)
+                          (shell-quote-argument pattern)
+                          (shell-quote-argument denote-dir)))
+         ;; Execute fd, capture output, and remove potential trailing newline
+         (output (string-trim-right (shell-command-to-string command))))
+
+    ;; If output is not empty, return it (it's the absolute path). Otherwise, return nil.
+    (unless (string-empty-p output)
+      output))
+  ;; --- End of patched code ---
+  )
+
+(defun gwp::dired-copy-denote-link ()
+  "Copy a Denote link for the file at point in Dired.
+The link format is [[denote:ID][Title]]. Title is retrieved using
+Denote's v3.1.0 heuristics (preferring front matter if available).
+Signals an error if point is not on a file or if the file
+does not have a recognizable Denote ID in its name."
+  (interactive)
+  ;; Ensure we are in a Dired buffer
+  (unless (derived-mode-p 'dired-mode)
+    (error "Not in a Dired buffer"))
+
+  ;; Get the full filename at point, don't prompt, return full path
+  (let* ((file (dired-get-filename nil t))
+         ;; Check if we got a file before proceeding
+         (_ (unless file (error "No file at point")))
+         ;; Try to extract the Denote ID using Denote's function that errors out
+         ;; (denote-retrieve-filename-identifier-with-error is available in v3.1.0)
+         (denote-id (denote-retrieve-filename-identifier-with-error file))
+         ;; Determine the file type using heuristics (available in v3.1.0)
+         (file-type (denote-filetype-heuristics file))
+         ;; Get the title using Denote's function (available in v3.1.0).
+         ;; This prioritizes front matter title if available and readable,
+         ;; falling back to the filename component (raw slug in v3.1.0).
+         ;; Returns nil if neither found, so we default to "".
+         (denote-title (or (denote-retrieve-title-or-filename file file-type) ""))
+         ;; Construct the link string with ID and Title
+         (denote-link (format "[[denote:%s][%s]]" denote-id denote-title)))
+
+    ;; Copy to kill ring (clipboard)
+    (kill-new denote-link)
+    ;; Provide user feedback in the echo area
+    (message "Copied Denote link: %s" denote-link)))
+
+;; Assuming you still want the same keybinding (e.g., C-c d l):
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "C-c d l") #'gwp::dired-copy-denote-link))
+;; dc7fe12d ends here
+
 ;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
