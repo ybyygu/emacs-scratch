@@ -269,14 +269,22 @@ If on a:
    "a" '(org-attach-extra-dispatch :which-key "org-attach-extra")))
 ;; a27612ae ends here
 
-;; [[file:../gwp-scratch.note::a54e6aa7][a54e6aa7]]
-(require 'org-zotero)
-(org-zotero-setup)
-(with-eval-after-load 'org
-  (gwp::local-leader-def
-   :keymaps 'org-mode-map
-   "z" '(org-zotero :which-key "zotero")))
-;; a54e6aa7 ends here
+;; [[file:../gwp-scratch.note::8d2a54a4][8d2a54a4]]
+;; 确保包含 org-zotero 文件所在的目录在 load-path 中
+;; (add-to-list 'load-path "~/.emacs.d/lisp/org-zotero") ; 根据你的实际路径修改
+(use-package org-zotero
+  :ensure nil ; 因为是本地加载，不需要从包管理器获取
+  :after (org consult transient) ; 确保在依赖包加载后加载
+  ;; :commands (org-zotero) ; 使 M-x org-zotero 可用
+  :config
+  ;; 自动设置 org-mode hook 和注册链接类型
+  (org-zotero-setup)
+  (add-hook 'org-mode-hook #'org-zotero-org-mode-setup) ; 手动设置 hook
+  (with-eval-after-load 'org
+    (gwp::local-leader-def
+      :keymaps 'org-mode-map
+      "z" '(org-zotero :which-key "zotero"))))
+;; 8d2a54a4 ends here
 
 ;; [[file:../gwp-scratch.note::95825713][95825713]]
 (defun gwp::new-memo-time-stamp (arg)
