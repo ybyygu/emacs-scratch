@@ -56,6 +56,17 @@
     (gwp::duplicate-line)))
 ;; 3eff5fa2 ends here
 
+;; [[file:../gwp-scratch.note::6b39d377][6b39d377]]
+(defun gwp::paste-from-clipboard-workaround ()
+  "使用 wl-clipboard 作为中转粘贴剪贴板内容，绕过 Wayland 乱码问题."
+  (interactive)
+  (let ((clipboard-text
+         (shell-command-to-string "wl-paste --type text/plain")))
+    (insert clipboard-text)))
+
+(global-set-key (kbd "C-S-y") #'gwp::paste-from-clipboard-workaround)
+;; 6b39d377 ends here
+
 ;; [[file:../gwp-scratch.note::b5a74212][b5a74212]]
 (setq kill-ring-max 999)
 
