@@ -369,7 +369,7 @@
     (gptel-make-gemini "Gemini"
       :stream t
       :key key
-      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash gemini-2.0-flash-thinking-exp gemini-2.0-pro-exp-02-05)))
+      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash gemini-2.0-flash-thinking-exp gemini-2.5-pro-exp-03-25)))
 
   ;; 设置默认后端（需在 backend 定义之后）
   (setq gptel-backend (gptel-get-backend "SiliconFlow")
@@ -379,7 +379,7 @@
   (dolist (item gptel--known-backends)
     (if (string= (car item) "ChatGPT")
         (setq gptel--known-backends (cl-remove item gptel--known-backends))))
-  
+
   (defun gwp::gptel-build-directives (promptdir)
     "从 PROMPTDIR 构建 (key . content) 形式的指令列表"
     (mapcar
