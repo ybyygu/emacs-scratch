@@ -174,11 +174,7 @@
   (denote-sort-keywords t)
   (denote-rename-confirmations '(add-front-matter)) ; 少一些确认项
   (denote-known-keywords '("fact" "thread" "question" "insight"))
-  (denote-org-front-matter (concat "#+title:      %s\n"
-                                   "#+date:       %s\n"
-                                   "#+filetags:   %s\n"
-                                   "#+identifier: %s\n"
-                                   "#+SETUPFILE: ~/Notes/common.org\n\n"))
+
   :config
   (setq denote-backlinks-show-context t)
   (setq denote-directory "~/Workspace/Notes/"
@@ -187,7 +183,14 @@
                                          "~/Workspace/Notes/projects"
                                          "~/Workspace/Notes/resources"
                                          "~/Workspace/Notes/publish"
-                                         ))
+                                         )
+        denote-org-front-matter (concat "#+title:      %s\n"
+                                        "#+date:       %s\n"
+                                        "#+filetags:   %s\n"
+                                        "#+identifier: %s\n"
+                                        "#+SETUPFILE: ~/Notes/common.org\n\n"
+                                        ))
+
   (setq denote-prompts '(subdirectory title keywords))
   ;; 在子目录选择时不显示 org-mode attachment 对应的 data 目录
   (setq denote-excluded-directories-regexp "data\\|graphs")
@@ -332,7 +335,15 @@ does not have a recognizable Denote ID in its name."
  "d" '(gwp::denote-dispatch :which-key "denote"))
 
 ;; transient 按键, 方便记忆
-(require 'denote)
+(defun gwp::conditional-link-command ()
+  "Execute link command based on current mode.
+In Dired mode, run `gwp::dired-copy-denote-link`.
+Otherwise, run `denote-link-or-create`."
+  (interactive) ; Make it callable interactively
+  (if (derived-mode-p 'dired-mode)
+      (call-interactively #'gwp::dired-copy-denote-link)
+    (call-interactively #'denote-link-or-create)))
+
 (transient-define-prefix gwp::denote-dispatch ()
   "Invoke a denote.el command from a list of available commands."
   ["Create"
@@ -355,7 +366,7 @@ does not have a recognizable Denote ID in its name."
    ("r" "random note" denote-explore-random-note)
    ]
   ["Link"
-   ("l" "Create link" denote-link-or-create)
+   ("l" "Link (Create/Copy)" gwp::conditional-link-command)
    ("L" "Find link" denote-find-link)
    ("ib" "Insert org dblock backlinks" denote-org-extras-dblock-insert-backlinks)
    ("id" "Insert org dblock links" denote-org-extras-dblock-insert-links)
