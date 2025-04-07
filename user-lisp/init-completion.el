@@ -62,6 +62,7 @@
 ;; [[file:../gwp-scratch.note::3702e7df][3702e7df]]
 ;; Enable vertico
 (use-package vertico
+  :ensure t
   :init
   (vertico-mode)
 
@@ -70,6 +71,10 @@
 
   ;; Show more candidates
   (setq vertico-count 15)
+
+  (vertico-multiform-mode)
+  (setq vertico-multiform-commands
+        '((denote-open-or-create (vertico-sort-function . vertico-sort-history-alpha))))
 
   ;; Grow and shrink the Vertico minibuffer
   ;; (setq vertico-resize t)
