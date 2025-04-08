@@ -1,6 +1,4 @@
 ;; [[file:../gwp-scratch.note::840c0c02][840c0c02]]
-(require 'magit)
-
 ;; https://www.reddit.com/r/emacs/comments/gjukb3/yadm_magit/
 (use-package tramp
   :ensure nil

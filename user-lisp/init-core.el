@@ -15,6 +15,7 @@
 ;; [[file:../gwp-scratch.note::f3c25d9e][f3c25d9e]]
 (use-package transient
   :commands (transient-define-prefix define-infix-argument define-suffix-command)
+  :ensure t
   :custom
   ;; 延时显示
   (transient-show-popup 0.5)
@@ -36,7 +37,7 @@
   (save-excursion
     (let* ((beg (or beg (region-beginning)))
            (end (or end (region-end)))
-           (region (buffer-substring beg end)))
+           (region (buffer-substring-no-properties beg end)))
       (goto-char end)
       (insert region))))
 
@@ -44,7 +45,7 @@
   (save-excursion
     (move-end-of-line nil)
     (save-excursion
-      (insert (buffer-substring (point-at-bol) (point-at-eol))))
+      (insert (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
     (newline)))
 
 (defun gwp::duplicate-line-or-region()

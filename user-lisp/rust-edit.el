@@ -6,7 +6,7 @@
   (interactive)
   (save-excursion
     (back-to-indentation)
-    (if (string= "pub " (buffer-substring (point) (+ (point) 4)))
+    (if (string= "pub " (buffer-substring-no-properties (point) (+ (point) 4)))
         (delete-region (point) (+ (point) 4))
       (insert "pub "))))
 
@@ -110,31 +110,29 @@ for cargo watch -x `any-cmd` command to execute"
 ;; 524a7643 ends here
 
 ;; [[file:../gwp-scratch.note::8e3d9a91][8e3d9a91]]
-;; (defun rust-edit-cargo-build-in-tmux (&rest args)
-;;   (interactive
-;;    (flatten-list (transient-args transient-current-command)))
-;;   (if args
-;;       (+tmux/run (format "cargo watch -x c %s" (mapconcat #'identity args " ")))
-;;     (+tmux/run "cargo watch -x c -x d")))
-
-;; (transient-define-prefix rust-edit-cargo-transient-build ()
-;;   "cargo build transient"
-;;   :value '("--offline")
-;;   ["Arguments"
-;;    ("-o" "Run without accessing the network" "--offline")
-;;    ("-t" "Test name" "--example=")
-;;    ("-b" "Name of the bin target to run" "--bin=")
-;;    ]
-;;   ["Actions"
-;;    ("r" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
-;;    ("R" "cargo run in tmux" rust-edit-cargo-build-in-tmux)
-;;    ])
-
 (defun rust-edit--run-in-tmux (cmds)
   "在 tmux 中当前目录下运行命令"
   (+tmux "new-window")
   (+tmux/cd-to-here)
   (+tmux/run cmds))
+
+(defun rust-edit-cargo-build-in-tmux (&rest args)
+  (interactive
+   (flatten-list (transient-args transient-current-command)))
+  (if args
+      (rust-edit--run-in-tmux (format "cargo watch -x c %s" (mapconcat #'identity args " ")))
+    (rust-edit--run-in-tmux "cargo watch -x c -x d")))
+
+(transient-define-prefix rust-edit-cargo-transient-build ()
+  "cargo build transient"
+  ["Arguments"
+   ("-t" "Test name" "--example=")
+   ("-b" "Name of the bin target to run" "--bin=")
+   ]
+  ["Actions"
+   ("r" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
+   ("R" "cargo run in tmux" rust-edit-cargo-build-in-tmux)
+   ])
 ;; 8e3d9a91 ends here
 
 ;; [[file:../gwp-scratch.note::da4b2928][da4b2928]]
@@ -229,7 +227,7 @@ for cargo watch -x `any-cmd` command to execute"
 (transient-define-prefix rust-edit-cargo-transient ()
   "rust development tools"
   ["cargo"
-   ("b" "cargo watch build (C-u for cargo subcommand)" rust-edit-cargo-watch-build)
+   ("b" "cargo build ..." rust-edit-cargo-transient-build)
    ("r" "cargo run ..." rust-edit-cargo-transient-run)
    ("R" "rustup ..." rust-edit-rustup-transient)
    ("d" "cargo doc ..." rust-edit-cargo-transient-doc)

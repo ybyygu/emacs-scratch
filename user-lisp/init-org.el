@@ -582,7 +582,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
                   (setq end (line-beginning-position))))))))
 	(unless (and start (< start mid) (< mid end))
 	  (error "Not in tangled code"))
-        (setq body (buffer-substring body-start end)))
+        (setq body (buffer-substring-no-properties body-start end)))
       ;; Go to the beginning of the relative block in Org file.
       (org-link-open-from-string link)
       (message "%s" link)

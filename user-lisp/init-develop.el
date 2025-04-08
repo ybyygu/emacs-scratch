@@ -36,7 +36,7 @@
 
 ;; [[file:../gwp-scratch.note::8970c514][8970c514]]
 (use-package magit
-  :demand t
+  :ensure t
   :unless init-no-x-flag
   :config
   (setq magit-completing-read-function 'ivy-completing-read)
@@ -85,8 +85,7 @@
 
 ;; 显示 src 中的 TODO FIXME 等项
 (use-package magit-todos
-  :diminish
-  :after magit
+  :ensure t
   :config
   ;; 2022-11-01: 会影响 magit 响应速度, 现禁用
   ;; (magit-todos-mode)
@@ -264,26 +263,6 @@
         ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
 
-;; [[file:../gwp-scratch.note::ca5c2058][ca5c2058]]
-(use-package aider
-  :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
-  :custom
-  (aider-program "~/.local/bin/run-aider.sh")
-  ;; aider 参数直接在 shell 脚本中设置. 别受 aider.el 默认值的影响
-  (aider-args nil)
-  :config
-  ;; ;; Search available model by command 'aider --list-models openrouter/ | grep openrouter/'
-  ;; (setq aider-args '("--no-auto-commits"
-  ;;                    "--model" "openai/deepseek-ai/DeepSeek-R1"))
-  ;; Optional: Set a key binding for the transient menu
-  ;; (setenv "OPENROUTER_API_KEY" (with-temp-buffer
-  ;;                              (insert-file-contents "~/Install/configs/llms/openrouter-key.txt")
-  ;;                              (string-trim (buffer-string))))
-  :bind
-  (:map gwp::develop-map
-        ("a" . aider-transient-menu)))
-;; ca5c2058 ends here
-
 ;; [[file:../gwp-scratch.note::42777d2f][42777d2f]]
 (defun gwp::convert-think-block-to-text ()
   "将 DeepSeek-R1 思考链文字(以 <think>foo</think> 标记)转化为 org-mode 的 text 代码块"
@@ -302,7 +281,7 @@
         (setq end (line-end-position))
         (unless (and (>= origin-pos start) (<= origin-pos end))
           (user-error "请先将光标置于 think 代码块内再执行操作"))
-        (setq content (buffer-substring content-start (match-beginning 0)))
+        (setq content (buffer-substring-no-properties content-start (match-beginning 0)))
         (delete-region start end)
         (insert "#+begin_src text\n" content "\n#+end_src")))))
 ;; 42777d2f ends here
