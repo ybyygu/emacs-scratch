@@ -655,11 +655,13 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 ;; [[file:../gwp-scratch.note::0bd3c98d][0bd3c98d]]
 (require 'org-note-search)
 
-(general-define-key
- :prefix-map 'gwp::note-map
- "s" 'org-note-search
- "f" 'org-note-find-file
- )
+(use-package org-note-search
+  :ensure nil ; 因为是本地加载，不需要从包管理器获取
+  :after (org consult transient) ; 确保在依赖包加载后加载
+  :config
+  (gwp::local-leader-def
+      :keymaps 'org-mode-map
+      "n" '(org-note-search-menu :which-key "zotero")))
 ;; 0bd3c98d ends here
 
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
@@ -1005,7 +1007,7 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
    ("td" "toggle debug" org-table-toggle-formula-debugger)
    ]
   ["zotero"  :if gwp::org-in-zotero-link-p
-   ("RET" "zotero menu" emacs-zotero-menu)
+   ("RET" "zotero menu" org-zotero)
    ]
   ["edit"
    ("e" "替换为英文标点符号" gwp::replace-chinese-punctuation)
