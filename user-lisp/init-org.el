@@ -660,8 +660,12 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
   :after (org consult transient) ; 确保在依赖包加载后加载
   :config
   (gwp::local-leader-def
-      :keymaps 'org-mode-map
-      "n" '(org-note-search-menu :which-key "zotero")))
+    :keymaps 'org-mode-map
+    "n" '(org-note-search-menu :which-key "zotero"))
+  (general-define-key
+   :prefix-map 'gwp::note-map
+   "f" '(org-note-find-file :which-key "find note files")
+   "s" '(org-note-search :which-key "search note files")))
 ;; 0bd3c98d ends here
 
 ;; [[file:../gwp-scratch.note::5dc0bf0f][5dc0bf0f]]
