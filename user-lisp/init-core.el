@@ -29,6 +29,7 @@
 (setq magit-git-output-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8-auto)
+(set-selection-coding-system 'utf-8)
 ;; 0a9921e5 ends here
 
 ;; [[file:../gwp-scratch.note::3eff5fa2][3eff5fa2]]
