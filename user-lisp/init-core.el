@@ -495,6 +495,11 @@
       (goto-char (point-max))
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
+
+(use-package transient
+  :straight t
+  :config
+  (message "Transient version: %s" transient-version))
 ;; be6d7c1f ends here
 
 ;; [[file:../gwp-scratch.note::7b0203a1][7b0203a1]]
