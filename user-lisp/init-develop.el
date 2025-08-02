@@ -372,6 +372,38 @@
   (setq gptel-directives (gwp::gptel-build-directives "~/Install/configs/llms/prompts")))
 ;; 0ce7e90e ends here
 
+;; [[file:../gwp-scratch.note::d1b26252][d1b26252]]
+(use-package claude-code
+  :ensure t
+  :after transient
+  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
+                   :files ("*.el" (:exclude "images/*")))
+  :config
+  (setq claude-code-terminal-backend 'vterm)
+  ;; (setq claude-code-term-name "xterm-256color")
+  (setq claude-code-program-switches '("--verbose"))
+  ;; (setq claude-code-enable-notifications t)
+  ;; (setq claude-code-notification-function 'claude-code--default-notification)
+
+  ;; 方法一: 通过 claude-code-proxy 的方式设置代理, 接入 OPENAI-compatible 模型
+  ;; (progn
+  ;;   (setenv "ANTHROPIC_BASE_URL" "http://localhost:8082")
+  ;;   (setenv "ANTHROPIC_AUTH_TOKEN" "api-key")
+  ;;   (setq claude-code-program "/usr/local/bin/claude")
+  ;;   )
+
+  ;; 方法二: 使用 kimi Anthropic-compatible API interface
+  ;; kimi 提供了 Anthropic-compatible API 接口, 参考链接 https://platform.moonshot.ai/docs/guide/agent-support.en-US#install-cline
+  ;; kimi 存在充值与限速问题, 参考链接 https://platform.moonshot.cn/docs/pricing/limits#%E9%99%90%E9%80%9F%E6%A6%82%E5%BF%B5%E8%A7%A3%E9%87%8A
+  ;; 可以关注 LLM-Red-Team/kimi-cc 项目中的讨论, 例如 https://github.com/LLM-Red-Team/kimi-cc/issues/35
+  ;; (progn
+  ;; (setenv "ANTHROPIC_BASE_URL" "https://open.bigmodel.cn/api/anthropic")
+  ;; (setenv "ANTHROPIC_AUTH_TOKEN" "api-key")
+  ;; (setq claude-code-program "/usr/local/bin/claude")
+  ;; )
+  )
+;; d1b26252 ends here
+
 ;; [[file:../gwp-scratch.note::*provide][provide:1]]
 (provide 'init-develop)
 ;; provide:1 ends here
