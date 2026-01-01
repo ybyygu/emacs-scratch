@@ -263,29 +263,6 @@
         ("j" . gwp::citre-transient)))
 ;; f8651bde ends here
 
-;; [[file:../gwp-scratch.note::42777d2f][42777d2f]]
-(defun gwp::convert-think-block-to-text ()
-  "将 DeepSeek-R1 思考链文字(以 <think>foo</think> 标记)转化为 org-mode 的 text 代码块"
-  (interactive)
-  (save-excursion
-    (let* ((origin-pos (point))
-           (start (when (re-search-backward "^<think>" nil t)
-                    (line-beginning-position)))
-           content-start end content)
-      ;; AI: 当找不到 think 块时给出提示
-      (unless start
-        (user-error "请先将光标置于 think 代码块内再执行操作"))
-      (forward-char 7)                ; 跳过 <think>
-      (setq content-start (point))
-      (when (re-search-forward "^</think>" nil t)
-        (setq end (line-end-position))
-        (unless (and (>= origin-pos start) (<= origin-pos end))
-          (user-error "请先将光标置于 think 代码块内再执行操作"))
-        (setq content (buffer-substring-no-properties content-start (match-beginning 0)))
-        (delete-region start end)
-        (insert "#+begin_src text\n" content "\n#+end_src")))))
-;; 42777d2f ends here
-
 ;; [[file:../gwp-scratch.note::0ce7e90e][0ce7e90e]]
 (use-package gptel
   :ensure t
@@ -293,16 +270,21 @@
   (gptel-default-mode 'org-mode)
   (gptel-temperature 0.6)                    ; 控制生成文本的随机性 (0.0-2.0)
   (gptel-log-level 'info)                    ; 调试日志级别
-  ;; (gptel-org-branching-context t)         ; 使用 org heading 上下文; 2025-02-02 显示 WARNING, 先禁用吧
   (gptel-use-curl t)                         ; 使用 curl 而不是 url-retrieve
+  :hook
+  ;; 【新增】启用回复高亮模式，让 AI 回复内容左侧有视觉提示
+  (gptel-post-response-functions . gptel-end-of-response)
+
   :bind
   (:map gwp::develop-map
         ("gr" . gptel-rewrite)
         ("g RET" . gptel-send)
         ("gm" . gptel-menu)
-        ("gg" . gptel)
-        ("gw" . gwp::convert-think-block-to-text))
+        ("gg" . gptel))
   :config
+  ;; 【新增】全局开启高亮模式
+  (gptel-highlight-mode 1)
+
   ;; 自定义安全读取 API Key 函数
   (defun my/gptel-read-api-key (file)
     "安全地从文件中读取 API key"
@@ -316,45 +298,42 @@
   ;; 结构化后端配置
   ;; openai compatible models
   (setq gptel-backends
-    (cl-loop for (name key-file . config) in
-             `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
-                :protocol "https" :host "api.siliconflow.cn"
-                :models (Pro/deepseek-ai/DeepSeek-V3 Pro/deepseek-ai/DeepSeek-R1))
-               ("LM Studio" nil  ; 本地无需 key
-                :protocol "http" :host "localhost:1234"
-                :models (qwen2.5-7b-instruct-1m deepseek-r1-distill-qwen-14b-uncensored))
-               ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
-                :protocol "https" :host "dashscope.aliyuncs.com"
-                :endpoint "/compatible-mode/v1/chat/completions"
-                :models (qwen-max-latest deepseek-v3 deepseek-r1 qwq-plus))
-               ("DeepSeek" "~/Install/configs/llms/deepseek-key.txt"
-                :protocol "https" :host "api.deepseek.com"
-                :endpoint "/chat/completions"
-                :models (deepseek-chat deepseek-reasoner))
-               ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
-                :host "openrouter.ai"
-                :endpoint "/api/v1/chat/completions"
-                :models (deepseek/deepseek-r1:free minimax/minimax-01 openai/o3-mini-high google/gemini-2.0-flash-001)))
-             when (or (null key-file) (file-exists-p key-file))
-             collect
-             (let ((key (when key-file (my/gptel-read-api-key key-file))))
-               (apply #'gptel-make-openai name
-                      :stream t
-                      :key key
-                      (append config '(:endpoint "/v1/chat/completions"))))))
+        (cl-loop for (name key-file . config) in
+                 `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
+                    :protocol "https" :host "api.siliconflow.cn"
+                    :models (Pro/deepseek-ai/DeepSeek-V3 Pro/deepseek-ai/DeepSeek-R1))
+                   ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
+                    :protocol "https" :host "dashscope.aliyuncs.com"
+                    :endpoint "/compatible-mode/v1/chat/completions"
+                    :models (qwen-max-latest deepseek-v3 deepseek-r1 qwq-plus))
+                   ("DeepSeek" "~/Install/configs/llms/deepseek-key.txt"
+                    :protocol "https" :host "api.deepseek.com"
+                    :endpoint "/chat/completions"
+                    :models (deepseek-chat deepseek-reasoner))
+                   ("OpenRouter" "~/Install/configs/llms/openrouter-key.txt"
+                    :host "openrouter.ai"
+                    :endpoint "/api/v1/chat/completions"
+                    :models (deepseek/deepseek-r1:free minimax/minimax-01 openai/o3-mini-high google/gemini-2.0-flash-001)))
+                 when (or (null key-file) (file-exists-p key-file))
+                 collect
+                 (let ((key (when key-file (my/gptel-read-api-key key-file))))
+                   (apply #'gptel-make-openai name
+                          :stream t
+                          :key key
+                          (append config '(:endpoint "/v1/chat/completions"))))))
 
   ;; gemini models
   (let ((key (my/gptel-read-api-key "~/Install/configs/llms/google-key.txt")))
     (gptel-make-gemini "Gemini"
       :stream t
       :key key
-      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-2.0-flash gemini-2.0-flash-thinking-exp gemini-2.5-pro-exp-03-25)))
+      :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-3-flash-preview)))
 
   ;; 设置默认后端（需在 backend 定义之后）
-  (setq gptel-backend (gptel-get-backend "SiliconFlow")
-        gptel-model 'deepseek-ai/DeepSeek-R1)
+  (setq gptel-backend (gptel-get-backend "Gemini")
+        gptel-model 'gemini-3-flash-preview)
 
-    ;; remove default ChatGPT provider from backends
+  ;; 移除默认 ChatGPT
   (dolist (item gptel--known-backends)
     (if (string= (car item) "ChatGPT")
         (setq gptel--known-backends (cl-remove item gptel--known-backends))))
@@ -371,6 +350,36 @@
 
   (setq gptel-directives (gwp::gptel-build-directives "~/Install/configs/llms/prompts")))
 ;; 0ce7e90e ends here
+
+;; [[file:../gwp-scratch.note::*gptel/markdown][gptel/markdown:1]]
+(defun gwp/gptel-paste-markdown-as-org ()
+  "从剪贴板(kill-ring)读取 Markdown 文本，转换后插入。
+使用 `current-kill' 代替 `gui-get-selection' 以避免编码问题。"
+  (interactive)
+  (require 'gptel-org)
+  ;; (current-kill 0) 会自动触发 interprogram-paste-function，
+  ;; 将系统剪贴板的内容同步到 Emacs kill-ring 中并返回，
+  ;; 这样拿到的就是解码正确的中文了。
+  (let ((md-text (current-kill 0)))
+    (if (and md-text (not (string-empty-p md-text)))
+        (let ((org-text (gptel--convert-markdown->org md-text)))
+          ;; 记录位置并插入
+          (push-mark)
+          (insert org-text)
+          (message "已转换并粘贴"))
+      (message "剪贴板为空！"))))
+
+
+;; 也可以做一个针对 Region（选区）的转换版本
+(defun gwp/gptel-convert-region-markdown-to-org (beg end)
+  "将选区内的 Markdown 文本转换为 Org 格式。"
+  (interactive "r")
+  (require 'gptel-org)
+  (let* ((md-text (buffer-substring-no-properties beg end))
+         (org-text (gptel--convert-markdown->org md-text)))
+    (delete-region beg end)
+    (insert org-text)))
+;; gptel/markdown:1 ends here
 
 ;; [[file:../gwp-scratch.note::d1b26252][d1b26252]]
 (use-package claude-code
