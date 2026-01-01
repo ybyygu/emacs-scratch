@@ -1037,6 +1037,16 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
 (require 'ox-md)
 ;; d737c18e ends here
 
+;; [[file:../gwp-scratch.note::f8cb2d85][f8cb2d85]]
+(use-package ox-typst
+  :ensure t
+  :after org
+  :config
+  ;; 使用 Latex 来编公式
+  (setq org-typst-from-latex-environment #'org-typst-from-latex-with-pandoc
+        org-typst-from-latex-fragment #'org-typst-from-latex-with-pandoc))
+;; f8cb2d85 ends here
+
 ;; [[file:../gwp-scratch.note::*zotero/export][zotero/export:1]]
 (with-eval-after-load 'org-compat
   (defun gwp/org-zotero-export (path desc format)
