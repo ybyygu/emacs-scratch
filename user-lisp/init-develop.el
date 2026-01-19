@@ -299,7 +299,11 @@
   ;; openai compatible models
   (setq gptel-backends
         (cl-loop for (name key-file . config) in
-                 `(("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
+                 `(("GLM" "~/Install/configs/llms/glm-key.txt"  ; 建议将 API key 单独存放
+                    :protocol "https" :host "open.bigmodel.cn"
+                    :endpoint "/api/coding/paas/v4/chat/completions"  ; 注意完整的 endpoint
+                    :models (glm-4.7))
+                   ("SiliconFlow" "~/Install/configs/llms/siliconflow-key.txt"
                     :protocol "https" :host "api.siliconflow.cn"
                     :models (Pro/deepseek-ai/DeepSeek-V3 Pro/deepseek-ai/DeepSeek-R1))
                    ("Aliyun Qwen" "~/Install/configs/llms/qwen-key.txt"
