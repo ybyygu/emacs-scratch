@@ -915,6 +915,15 @@ Attribution: URL `http://orgmode.org/manual/System_002dwide-header-arguments.htm
     (message "No text selected. Please select some text first.")))
 ;; 6630a9a4 ends here
 
+;; [[file:../gwp-scratch.note::a1af0180][a1af0180]]
+(with-eval-after-load 'org
+  (org-link-set-parameters
+   "obsidian"
+   :follow (lambda (path)
+             ;; 重组完整的 URI (obsidian:// + path)
+             (browse-url (concat "obsidian:" path)))))
+;; a1af0180 ends here
+
 ;; [[file:../gwp-scratch.note::e13e8c0f][e13e8c0f]]
 (defun gwp::org-in-latext-env-p ()
   "Return whether point is latex environment."
