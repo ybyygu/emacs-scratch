@@ -33,18 +33,18 @@
 ;; Packages
 (require 'package)
 
-;; (setq package-archives
-;;       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-;;         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-;;         ("melpa-stable" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/")
-;;         ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
-;;         ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
+(setq package-archives
+      '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+        ;; ("melpa-stable" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/")
+        ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
+        ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 
 (setq package-archives
       '(("gnu"   . "http://mirrors.ustc.edu.cn/elpa/gnu/")
         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-        ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-        ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")
+        ;; ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
+        ;; ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")
         ("nongnu" . "http://mirrors.ustc.edu.cn/elpa/nongnu/")))
 
 (package-initialize)

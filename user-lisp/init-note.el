@@ -274,7 +274,8 @@ Patched by el-patch to use fd."
          (_ (unless fd-executable
               (error "el-patch (denote-get-path-by-id): Cannot find 'fd' or 'fdfind' executable in PATH")))
          ;; Build the command with --max-results 1
-         (command (format "%s -a --max-results 1 --type f --regex %s %s"
+         ;; [2026-01-23 Fri] -L 跟随软链接
+         (command (format "%s -L -a --max-results 1 --type f --regex %s %s"
                           (shell-quote-argument fd-executable)
                           (shell-quote-argument pattern)
                           (shell-quote-argument denote-dir)))
@@ -325,6 +326,42 @@ does not have a recognizable Denote ID in its name."
   (define-key dired-mode-map (kbd "C-c d l") #'gwp::dired-copy-denote-link))
 ;; dc7fe12d ends here
 
+;; [[file:../gwp-scratch.note::20e2a70e][20e2a70e]]
+(use-package denote-protocol
+  :ensure nil ; 因为是本地加载，不需要从包管理器获取
+  :commands (denote-protocol-copy-formatted-uri denote-protocol-copy-uri)
+  )
+;; 20e2a70e ends here
+
+;; [[file:../gwp-scratch.note::be4b72b7][be4b72b7]]
+(defun gwp/denote-ai-draft ()
+  "先询问标题（默认为 flomo），然后在 ~/Notes/ai-drafts/ 下创建 Markdown 笔记。"
+  (interactive)
+  (let* ((target-subdir-name "ai-drafts")
+         ;; 基于你的全局配置获取完整路径
+         (target-path (expand-file-name target-subdir-name (denote-directory)))
+         ;; 1. 弹出询问框，默认输入设为 flomo
+         ;; 在 v3.1 中，denote-title-prompt 的参数是 (denote-title-prompt &optional default-title prompt-text)
+         (title (denote-title-prompt "fleeting-ai-note"))
+         ;; 2. 锁定 MD 环境
+         (denote-file-type 'markdown-yaml)
+         (denote-directory target-path))
+
+    ;; 确保物理目录存在
+    (unless (file-exists-p target-path)
+      (make-directory target-path t))
+
+    ;; 3. 创建笔记
+    (denote
+     title             ; 使用刚才输入的标题
+     '("fact")         ; 默认关键字
+     'markdown-yaml    ; 指定格式
+     nil               ; 路径已由 denote-directory 锁定，此处传 nil
+     nil nil nil)
+
+    (message "AI Draft '%s' created in ai-drafts/" title)))
+;; be4b72b7 ends here
+
 ;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
 (general-define-key
  :prefix-map 'gwp::note-map
@@ -348,6 +385,7 @@ Otherwise, run `denote-link-or-create`."
   "Invoke a denote.el command from a list of available commands."
   ["Create"
    ("d" "New note" denote-silo-extras-create-note)
+   ("ca" "AI Draft (Markdown)" gwp/denote-ai-draft)
    ("cr" "With region" denote-region)
    ("cd" "With date" denote-date)
    ("cn" "New note in current directory" gwp::denote-new-note-in-currrent-directory)
