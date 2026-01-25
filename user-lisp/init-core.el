@@ -502,6 +502,11 @@
   (message "Transient version: %s" transient-version))
 ;; be6d7c1f ends here
 
+;; [[file:../gwp-scratch.note::17dbf6c8][17dbf6c8]]
+(with-eval-after-load 'xref
+  (setq xref-search-program 'ripgrep))
+;; 17dbf6c8 ends here
+
 ;; [[file:../gwp-scratch.note::7b0203a1][7b0203a1]]
 (provide 'init-core)
 ;; 7b0203a1 ends here

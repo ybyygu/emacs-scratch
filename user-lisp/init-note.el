@@ -162,221 +162,153 @@
   )
 ;; 8ae833e2 ends here
 
-;; [[file:../gwp-scratch.note::7fbc6e78][7fbc6e78]]
+;; [[file:../gwp-scratch.note::9717b843][9717b843]]
 (use-package denote
   :ensure t
-  :hook
-  (dired-mode . denote-dired-mode)
+  :hook (dired-mode . denote-dired-mode)
   :custom
-  ;; 默认是 org. .note 与 mime 桌面系统配置更好一些
   (denote-file-type 'org)
+  ;; 2026-01-25: 可以设置为多个不同的目录, 但感觉很多函数对这个支持的还有 bug
+  (denote-directory
+   '("~/Workspace/Notes/"
+     ;; "~/Workspace/Obsidian/"
+     ))
   (denote-infer-keywords t)
   (denote-sort-keywords t)
   (denote-rename-confirmations '(add-front-matter)) ; 少一些确认项
   (denote-known-keywords '("fact" "thread" "question" "insight"))
-
+  (denote-prompts '(subdirectory title keywords))
+  ;; 启用历史补全
+  (denote-history-completion-in-prompts t)
   :config
-  (setq denote-backlinks-show-context t)
-  (setq denote-directory "~/Workspace/Notes/"
-        denote-silo-extras-directories '(
-                                         "~/Workspace/Notes/areas"
-                                         "~/Workspace/Notes/projects"
-                                         "~/Workspace/Notes/resources"
-                                         "~/Workspace/Notes/publish"
-                                         )
-        denote-org-front-matter (concat "#+title:      %s\n"
-                                        "#+date:       %s\n"
-                                        "#+filetags:   %s\n"
-                                        "#+identifier: %s\n"
-                                        "#+SETUPFILE: ~/Notes/common.org\n\n"
-                                        ))
-
-  (setq denote-prompts '(subdirectory title keywords))
   ;; 在子目录选择时不显示 org-mode attachment 对应的 data 目录
-  (setq denote-excluded-directories-regexp "data\\|graphs")
-  (setq denote-excluded-files-regexp "data\\|graphs")
-
+  (setq denote-excluded-directories-regexp
+        (rx (or bos "/")
+            (or "data" "ltximg" "assets" ".git")
+            (opt "/")
+            eos))
+  (setq denote-org-front-matter
+        (concat "#+title:      %s\n"
+                "#+date:       %s\n"
+                "#+filetags:   %s\n"
+                "#+identifier: %s\n"
+                "#+SETUPFILE: ~/Notes/common.org\n\n"))
   ;; 默认用 .note, 而不是 .org
-  (let ((org-settings (alist-get 'org denote-file-types)))
-    (add-to-list 'denote-file-types
-                 `(org ,@(plist-put (copy-tree org-settings) :extension ".note"))))
-
+  (let ((org-settings (copy-tree (alist-get 'org denote-file-types))))
+    (plist-put org-settings :extension ".note")
+    (setf (alist-get 'org denote-file-types) org-settings))
   ;; 修改 buffer 名称, 不然依原文字名是有些丑
   (denote-rename-buffer-mode 1))
 
-;; 可以更方便地搜索 denote 笔记, 充许逐层过滤
-(use-package denote-search)
+(use-package denote-silo
+  :ensure t
+  :after denote
+  :config
+  (setq denote-silo-directories
+        '("~/Workspace/Notes/areas"
+          "~/Workspace/Notes/projects"
+          "~/Workspace/Notes/resources"
+          "~/Workspace/Notes/ai-drafts"
+          "~/Workspace/Notes/publish")))
 
-(use-package consult-denote
-  :after (denote consult)
-  :init
-  (consult-denote-mode t)
-  :custom
-  (consult-denote-find-command 'consult-fd)
-  (consult-denote-grep-command 'consult-ripgrep)
-  )
+(use-package denote-org
+  :ensure t
+  :after denote)
+;; 9717b843 ends here
 
-;; 更方便地显示 denote 所有笔记
-(use-package denote-menu
-  :bind (:map denote-menu-mode-map
-              ("/ c" . denote-menu-clear-filters)
-              ("/ r" . denote-menu-filter)
-              ("/ k" . denote-menu-filter-by-keyword)
-              ("/ o" . denote-menu-filter-out-keyword)))
-
-(use-package denote-explore)
-;; 7fbc6e78 ends here
+;; [[file:../gwp-scratch.note::63f83f7b][63f83f7b]]
+(defun gwp::denote-new-note-in-current-directory ()
+  "在当前目录下建立 denote 笔记。"
+  (interactive)
+  (require 'denote) ; 确保命令可用，不依赖 init 加载顺序
+  (let ((denote-directory (expand-file-name default-directory))
+        (denote-prompts '(title keywords)))
+    (call-interactively #'denote)))
+;; 63f83f7b ends here
 
 ;; [[file:../gwp-scratch.note::b8e9b0ca][b8e9b0ca]]
-(defun my-denote-always-rename-on-save-based-on-front-matter ()
-  "Rename the current Denote file, if needed, upon saving the file.
-Rename the file based on its front matter, checking for changes in the
-title or keywords fields.
+(defvar-local gwp--denote-rename-in-progress nil)
 
-Add this function to the `after-save-hook'."
-  (let ((denote-rename-confirmations nil)
-        (denote-save-buffers t)) ; to save again post-rename
-    (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
-      (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
-      (message "Buffer saved; Denote file renamed"))))
+(defun my-denote-always-rename-on-save-based-on-front-matter ()
+  "Auto rename Denote note after save, guarded against reentry."
+  (unless gwp--denote-rename-in-progress
+    (when buffer-file-name
+      ;; 确保 denote 的函数都已定义（避免 void-function）
+      (require 'denote nil t)
+      (when (and (featurep 'denote)
+                 (cond
+                  ;; 4.x 新函数（如果存在就用它）
+                  ((fboundp 'denote-file-has-denoted-filename-p)
+                   (denote-file-has-denoted-filename-p buffer-file-name))
+                  ;; 回退：老版本/或更保守的判定
+                  ((fboundp 'denote-file-is-note-p)
+                   (denote-file-is-note-p buffer-file-name))))
+        (let ((gwp--denote-rename-in-progress t)
+              (denote-rename-confirmations nil)
+              (denote-save-buffers t)
+              (old buffer-file-name))
+          (condition-case err
+              (progn
+                (denote-rename-file-using-front-matter old)
+                (unless (string-equal old buffer-file-name)
+                  (message "Denote renamed: %s -> %s"
+                           (file-name-nondirectory old)
+                           (file-name-nondirectory buffer-file-name))))
+            (error
+             (message "Denote rename failed: %s" (error-message-string err)))))))))
 
 (add-hook 'after-save-hook #'my-denote-always-rename-on-save-based-on-front-matter)
 ;; b8e9b0ca ends here
 
-;; [[file:../gwp-scratch.note::63f83f7b][63f83f7b]]
-(use-package denote
-  :config
-  (defun gwp::denote-new-note-in-currrent-directory ()
-    "在当前目录下建立 denote 笔记"
-    (interactive)
-    (let ((denote-directory (expand-file-name default-directory))
-          (denote-prompts '(title keywords)))
-      (call-interactively 'denote))))
-;; 63f83f7b ends here
-
-;; [[file:../gwp-scratch.note::dc7fe12d][dc7fe12d]]
-(require 'el-patch)
-(require 'denote) ; Ensure denote definitions are loaded
-(require 'dired)  ; Ensure dired functions are available
-
-(el-patch-defun denote-get-path-by-id (id)
-  "Return absolute path of file with ID using fd (recursive, first match only).
-Searches within `denote-directory`. Uses fd --max-results 1.
-NOTE: This returns the *first* file fd finds, potentially ignoring extension preferences if multiple matches exist across directories.
-Patched by el-patch to use fd."
-  ;; --- Start of patched code ---
-  (let* ((denote-dir (expand-file-name denote-directory))
-         (pattern (concat "^" (regexp-quote id) "--.*"))
-         ;; Handle fd/fdfind executable
-         (fd-executable (or (executable-find "fd")
-                            (executable-find "fdfind")))
-         ;; Error out if fd/fdfind is not found
-         (_ (unless fd-executable
-              (error "el-patch (denote-get-path-by-id): Cannot find 'fd' or 'fdfind' executable in PATH")))
-         ;; Build the command with --max-results 1
-         ;; [2026-01-23 Fri] -L 跟随软链接
-         (command (format "%s -L -a --max-results 1 --type f --regex %s %s"
-                          (shell-quote-argument fd-executable)
-                          (shell-quote-argument pattern)
-                          (shell-quote-argument denote-dir)))
-         ;; Execute fd, capture output, and remove potential trailing newline
-         (output (string-trim-right (shell-command-to-string command))))
-
-    ;; If output is not empty, return it (it's the absolute path). Otherwise, return nil.
-    (unless (string-empty-p output)
-      output))
-  ;; --- End of patched code ---
-  )
-
-(defun gwp::dired-copy-denote-link ()
-  "Copy a Denote link for the file at point in Dired.
-The link format is [[denote:ID][Title]]. Title is retrieved using
-Denote's v3.1.0 heuristics (preferring front matter if available).
-Signals an error if point is not on a file or if the file
-does not have a recognizable Denote ID in its name."
-  (interactive)
-  ;; Ensure we are in a Dired buffer
-  (unless (derived-mode-p 'dired-mode)
-    (error "Not in a Dired buffer"))
-
-  ;; Get the full filename at point, don't prompt, return full path
-  (let* ((file (dired-get-filename nil t))
-         ;; Check if we got a file before proceeding
-         (_ (unless file (error "No file at point")))
-         ;; Try to extract the Denote ID using Denote's function that errors out
-         ;; (denote-retrieve-filename-identifier-with-error is available in v3.1.0)
-         (denote-id (denote-retrieve-filename-identifier-with-error file))
-         ;; Determine the file type using heuristics (available in v3.1.0)
-         (file-type (denote-filetype-heuristics file))
-         ;; Get the title using Denote's function (available in v3.1.0).
-         ;; This prioritizes front matter title if available and readable,
-         ;; falling back to the filename component (raw slug in v3.1.0).
-         ;; Returns nil if neither found, so we default to "".
-         (denote-title (or (denote-retrieve-title-or-filename file file-type) ""))
-         ;; Construct the link string with ID and Title
-         (denote-link (format "[[denote:%s][%s]]" denote-id denote-title)))
-
-    ;; Copy to kill ring (clipboard)
-    (kill-new denote-link)
-    ;; Provide user feedback in the echo area
-    (message "Copied Denote link: %s" denote-link)))
-
-;; Assuming you still want the same keybinding (e.g., C-c d l):
-(with-eval-after-load 'dired
-  (define-key dired-mode-map (kbd "C-c d l") #'gwp::dired-copy-denote-link))
-;; dc7fe12d ends here
-
 ;; [[file:../gwp-scratch.note::20e2a70e][20e2a70e]]
 (use-package denote-protocol
   :ensure nil ; 因为是本地加载，不需要从包管理器获取
-  :commands (denote-protocol-copy-formatted-uri denote-protocol-copy-uri)
   )
 ;; 20e2a70e ends here
 
+;; [[file:../gwp-scratch.note::7c74026b][7c74026b]]
+(defun gwp::dired-copy-denote-link ()
+  "Copy a Denote link for the file at point in Dired (v4.1 compatible).
+修复：在格式化链接字符串前先检查 ID 是否存在，防止 nil 导致 format 报错。"
+  (interactive)
+  (let* ((file (dired-get-filename nil t))
+         (id (denote-retrieve-filename-identifier file)))
+    (if id
+        (let* ((type (denote-filetype-heuristics file))
+               (title (or (denote-retrieve-title-or-filename file type) ""))
+               ;; 确保 format 只有在 id 为 string 时才执行
+               (link (format denote-org-link-format id title)))
+          (kill-new link)
+          (message "Copied: %s" link))
+      (user-error "File at point is not a Denote note"))))
+;; 7c74026b ends here
+
 ;; [[file:../gwp-scratch.note::be4b72b7][be4b72b7]]
 (defun gwp/denote-ai-draft ()
-  "先询问标题（默认为 flomo），然后在 ~/Notes/ai-drafts/ 下创建 Markdown 笔记。"
   (interactive)
-  (let* ((target-subdir-name "ai-drafts")
-         ;; 基于你的全局配置获取完整路径
-         (target-path (expand-file-name target-subdir-name (denote-directory)))
-         ;; 1. 弹出询问框，默认输入设为 flomo
-         ;; 在 v3.1 中，denote-title-prompt 的参数是 (denote-title-prompt &optional default-title prompt-text)
+  (let* ((target-path (expand-file-name "ai-drafts" (denote-directory)))
          (title (denote-title-prompt "fleeting-ai-note"))
-         ;; 2. 锁定 MD 环境
-         (denote-file-type 'markdown-yaml)
-         (denote-directory target-path))
-
-    ;; 确保物理目录存在
-    (unless (file-exists-p target-path)
-      (make-directory target-path t))
-
-    ;; 3. 创建笔记
-    (denote
-     title             ; 使用刚才输入的标题
-     '("fact")         ; 默认关键字
-     'markdown-yaml    ; 指定格式
-     nil               ; 路径已由 denote-directory 锁定，此处传 nil
-     nil nil nil)
-
-    (message "AI Draft '%s' created in ai-drafts/" title)))
+         (denote-use-directory target-path)
+         (denote-use-file-type 'markdown-yaml)
+         (denote-use-keywords '("fact"))
+         (denote-use-title title))
+    (unless (file-exists-p target-path) (make-directory target-path t))
+    (call-interactively #'denote)
+    (message "AI Draft created in %s" target-path)))
 ;; be4b72b7 ends here
 
-;; [[file:../gwp-scratch.note::8bff31e2][8bff31e2]]
-(general-define-key
- :prefix-map 'gwp::note-map
- "d" '(gwp::denote-dispatch :which-key "denote"))
+;; [[file:../gwp-scratch.note::c2fd095c][c2fd095c]]
+;; --- Denote transient dispatch (Denote 4.1 friendly) -------------------------
 
-(general-define-key
- :prefix-map 'gwp::develop-map
- "d" '(gwp::denote-dispatch :which-key "denote"))
+(require 'seq) ; for `seq-find' (built-in since Emacs 25)
+(require 'transient)
 
 ;; transient 按键, 方便记忆
 (defun gwp::conditional-link-command ()
   "Execute link command based on current mode.
 In Dired mode, run `gwp::dired-copy-denote-link`.
 Otherwise, run `denote-link-or-create`."
-  (interactive) ; Make it callable interactively
+  (interactive)
   (if (derived-mode-p 'dired-mode)
       (call-interactively #'gwp::dired-copy-denote-link)
     (call-interactively #'denote-link-or-create)))
@@ -384,34 +316,40 @@ Otherwise, run `denote-link-or-create`."
 (transient-define-prefix gwp::denote-dispatch ()
   "Invoke a denote.el command from a list of available commands."
   ["Create"
-   ("d" "New note" denote-silo-extras-create-note)
-   ("ca" "AI Draft (Markdown)" gwp/denote-ai-draft)
-   ("cr" "With region" denote-region)
-   ("cd" "With date" denote-date)
-   ("cn" "New note in current directory" gwp::denote-new-note-in-currrent-directory)
-   ]
+   ("d"  "New note (silo)"                 denote-silo-create-note)
+   ("ca" "AI Draft (Markdown)"             gwp/denote-ai-draft)
+   ("cr" "With region"                     denote-region)
+   ("cd" "With date"                       denote-date)
+   ("cn" "New note in current directory"   gwp::denote-new-note-in-current-directory)]
   ["Update"
-   ("ut" "Rename file title" denote-rename-file-title)
-   ("uk" "Rename file keywords" denote-rename-file-keywords)
-   ("ua" "Add front matter" denote-add-front-matter)
-   ]
+   ("ut" "Rename file title"               denote-rename-file-title)
+   ("uk" "Rename file keywords"            denote-rename-file-keywords)
+   ;; v4+: `denote-add-front-matter` 弃用，rename 系列会自动补/改 front matter
+   ("ua" "Rename file (also fixes front matter)" denote-rename-file)]
   ["Search/Find/List"
-   ("f" "Find or create note" denote-open-or-create) ; 这个更方便
-   ("F" "Find notes" consult-denote-find)            ; 有不少限制, 比如不支持拼音搜索. 但适合找更多的, 非 denote 管理的文件, 比如 data 目录下
-   ("o" "Open or create" denote-silo-extras-open-or-create) ; 过滤下 silo
-   ("s" "search notes using denote-search" denote-search)
-   ("m" "list notes" denote-menu-list-notes)
-   ("r" "random note" denote-explore-random-note)
-   ]
+   ("f" "Find or create note"              denote-open-or-create)
+   ("F" "Find notes (consult-denote)"      consult-denote-find)
+   ("o" "Open or create (silo)"            denote-silo-open-or-create)
+   ;; v4+: denote-search 并入 core -> denote-grep
+   ("s" "Search notes (grep)"              denote-grep)
+   ("m" "List notes (denote-menu)"         denote-menu-list-notes)
+   ("r" "Random note (denote-explore)"     denote-explore-random-note)]
   ["Link"
-   ("l" "Link (Create/Copy)" gwp::conditional-link-command)
-   ("L" "Find link" denote-find-link)
-   ("ib" "Insert org dblock backlinks" denote-org-extras-dblock-insert-backlinks)
-   ("id" "Insert org dblock links" denote-org-extras-dblock-insert-links)
-   ("B" "Backlinks" denote-backlinks)
-   ("b" "Find all backlink" denote-find-backlink)]
-  )
-;; 8bff31e2 ends here
+   ("l"  "Link (Create/Copy)"              gwp::conditional-link-command)
+   ("L"  "Find link"                       denote-find-link)
+   ("ib" "Insert org dblock backlinks"     denote-org-dblock-insert-backlinks)
+   ("id" "Insert org dblock links"         denote-org-dblock-insert-links)
+   ("B"  "Backlinks"                       denote-backlinks)
+   ("b"  "Find all backlink"               denote-find-backlink-with-location)])
+
+(general-define-key
+ :prefix-map 'gwp::note-map
+ "d" '(gwp::denote-dispatch :which-key "denote"))
+
+(general-define-key
+ :prefix-map 'gwp::develop-map
+ "d" '(gwp::denote-dispatch :which-key "denote"))
+;; c2fd095c ends here
 
 ;; [[file:../gwp-scratch.note::8d4b377b][8d4b377b]]
 (provide 'init-note)
