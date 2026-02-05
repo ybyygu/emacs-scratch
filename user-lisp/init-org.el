@@ -63,7 +63,8 @@ region active."
   (setq org-cycle-separator-lines 0)
 
   ;; 禁用*bold*等标注的字体效果. 写代码时容易弄花显示. 比如__init__.
-  (setq org-fontify-emphasized-text nil)
+  ;; 2026-02-05: 为了美观, 还是打开吧
+  ;; (setq org-fontify-emphasized-text nil)
 
   ;; 默认为 ...
   (setq org-ellipsis "⤵")
@@ -73,6 +74,22 @@ region active."
   ;;  '(org-table ((t (:family "Ubuntu Mono")))))
   )
 ;; 0c698627 ends here
+
+;; [[file:../gwp-scratch.note::9b9a0fb9][9b9a0fb9]]
+(use-package org-appear
+  :ensure t
+  :hook (org-mode . org-appear-mode))
+
+;; 这个很漂亮. 之前在 emacs 中文论坛里见过介绍
+(use-package org-modern
+  :ensure t
+  ;; :hook (org-mode . org-modern-mode)
+  )
+
+
+(setq org-fontify-emphasized-text t
+      org-hide-emphasis-markers  t)
+;; 9b9a0fb9 ends here
 
 ;; [[file:../gwp-scratch.note::1480f386][1480f386]]
 (use-package valign
@@ -268,6 +285,20 @@ If on a:
    :keymaps 'org-mode-map
    "a" '(org-attach-extra-dispatch :which-key "org-attach-extra")))
 ;; a27612ae ends here
+
+;; [[file:../gwp-scratch.note::0d9e9424][0d9e9424]]
+(setq org-attach-id-dir "data")
+
+;; 自定义 UUID 到目录的映射，不使用分层结构
+;; 直接使用完整的 UUID 作为目录名，不分层
+(defun gwp/org-attach-id-uuid-folder-format (id)
+  "Translate an UUID ID into a folder-path without subdirectories."
+  id)
+
+;; 替换默认的 UUID 文件夹格式函数
+(setq org-attach-id-to-path-function-list
+      '(gwp/org-attach-id-uuid-folder-format))
+;; 0d9e9424 ends here
 
 ;; [[file:../gwp-scratch.note::8d2a54a4][8d2a54a4]]
 ;; 确保包含 org-zotero 文件所在的目录在 load-path 中
