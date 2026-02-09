@@ -290,7 +290,7 @@
          (title (denote-title-prompt "fleeting-ai-note"))
          (denote-use-directory target-path)
          (denote-use-file-type 'markdown-yaml)
-         (denote-use-keywords '("fact"))
+         (denote-use-keywords '("question"))
          (denote-use-title title))
     (unless (file-exists-p target-path) (make-directory target-path t))
     (call-interactively #'denote)
