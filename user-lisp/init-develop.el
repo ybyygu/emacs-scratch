@@ -334,8 +334,8 @@
       :models '(gemini-2.0-flash-thinking-exp-01-21 gemini-3-flash-preview)))
 
   ;; 设置默认后端（需在 backend 定义之后）
-  (setq gptel-backend (gptel-get-backend "Gemini")
-        gptel-model 'gemini-3-flash-preview)
+  (setq gptel-backend (gptel-get-backend "GLM")
+        gptel-model 'glm-4.7)
 
   ;; 移除默认 ChatGPT
   (dolist (item gptel--known-backends)
@@ -384,6 +384,12 @@
     (delete-region beg end)
     (insert org-text)))
 ;; gptel/markdown:1 ends here
+
+;; [[file:../gwp-scratch.note::*gptel-magit][gptel-magit:1]]
+(use-package gptel-magit
+  :ensure t
+  :hook (magit-mode . gptel-magit-install))
+;; gptel-magit:1 ends here
 
 ;; [[file:../gwp-scratch.note::d1b26252][d1b26252]]
 (use-package claude-code

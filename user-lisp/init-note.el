@@ -283,6 +283,32 @@
       (user-error "File at point is not a Denote note"))))
 ;; 7c74026b ends here
 
+;; [[file:../gwp-scratch.note::2c7d2ffc][2c7d2ffc]]
+(defun gwp/denote-grep-md-note (query)
+  "Search QUERY in .md/.note files under the Denote directory.
+
+File collection uses `fd' (fast), while rendering reuses Denote's
+results buffer, so it stays as pretty as `denote-grep'."
+  (interactive (list (denote-grep-query-prompt)))
+  (let* ((dir (if (listp denote-directory)
+                  (car denote-directory)
+                denote-directory))
+         (dir (expand-file-name dir))
+         (default-directory dir)
+         ;; 用 fd 快速收集文件列表（-a 输出绝对路径）
+         (files (split-string
+                 (with-output-to-string
+                   (with-current-buffer standard-output
+                     (process-file "fd" nil t nil
+                                   "-t" "f" "-a"
+                                   "-e" "md" "-e" "note")))
+                 "\n" t)))
+    (unless files
+      (user-error "No .md/.note files under %s" dir))
+    (denote-make-links-buffer query files nil
+                              denote-grep-display-buffer-action)))
+;; 2c7d2ffc ends here
+
 ;; [[file:../gwp-scratch.note::be4b72b7][be4b72b7]]
 (defun gwp/denote-ai-draft ()
   (interactive)
@@ -332,6 +358,7 @@ Otherwise, run `denote-link-or-create`."
    ("o" "Open or create (silo)"            denote-silo-open-or-create)
    ;; v4+: denote-search 并入 core -> denote-grep
    ("s" "Search notes (grep)"              denote-grep)
+   ("S" "Search notes/md files (grep)"     gwp/denote-grep-md-note)
    ("m" "List notes (denote-menu)"         denote-menu-list-notes)
    ("r" "Random note (denote-explore)"     denote-explore-random-note)]
   ["Link"
