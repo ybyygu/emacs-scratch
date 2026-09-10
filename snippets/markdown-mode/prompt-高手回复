@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: 高手的回复-reply
+# key: utf8
+# contributor: ybyygu@gmail.com
+# --
+
+$0
+<高手回复>
+$1
+</高手回复>

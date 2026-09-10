@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ..Default::default()
+# key: ..Default
+# --
+..Default::default()

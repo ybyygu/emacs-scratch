@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org-mode
+# key: utf8
+# contributor: ybyygu@gmail.com
+# --
+<emacs-org-mode>
+$0
+</emacs-org-mode>
