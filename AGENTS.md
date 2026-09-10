@@ -41,6 +41,14 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 
 `init-no-x-flag` 为 t（无 X / 远程终端）时，跳过 `init-org`、`init-note`，且不自动安装包。
 
+## snippets 约定
+
+`snippets/<mode>/` 是 yasnippet 目录，正本入库；`.yas-compiled-snippets.el` 是编译缓存（内含机器绝对路径），已在 `.gitignore` 中忽略，使用时自动重建。
+
+- `markdown-mode/` 是日常写作主力：30 个 markdown 语法 snippet + 18 个 `prompt-*` 提示词模板。
+- `prompt-*` 全部用 `key: utf8` 触发（输入 `utf8` 后由补全列表按 `# name:` 选择），文件内容是提示词正文。
+- 新增提示词：在 `snippets/markdown-mode/` 下照现有格式加文件（`# name:` 写清用途）即可，不需要改配置。
+
 ## 维护约定
 
 - **一次一个具体问题**：改动范围由这个问题决定，不顺手扩展。
@@ -92,7 +100,7 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 ### 密钥与外部数据在仓库外
 
 - **现象**：gptel 等配置可用，但仓库里搜不到 key。
-- **真相**：密钥统一放在 `~/Install/configs/llms/*.txt`；仓库根的 `english-words.txt` 被 `init-completion.el` 当作补全词典引用。
+- **真相**：密钥统一放在 `~/Install/configs/llms/*.txt`；仓库根的 `english-words.txt`（370,105 词，已入库）被 `init-completion.el` 当作 ispell 备用词典引用。
 - **错误后果**：误删根目录数据文件会破坏补全；新增密钥不要写进 `.el`。
 
 ## 索引
