@@ -145,6 +145,16 @@
         (message "IME on")
       (message "IME off"))))
 
+(defun gwp::rime-predicate-after-alphabet-char-p ()
+  "英文字母后延续英文输入, 但 `-' 之后回到中文.
+
+与 emacs-rime 自带的 `rime-predicate-after-alphabet-char-p' 相同, 只把 `-'
+从可延续英文的标点字符类中剔除: 输入 \"abc-\" 之后的下一个按键交给 rime
+处理 (即中文), 而不再继续按英文输入."
+  (and (> (point) (save-excursion (back-to-indentation) (point)))
+       (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
+         (string-match-p "[a-zA-Z][0-9\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]*$" string))))
+
 (use-package rime
   :unless init-no-x-flag
   :custom
@@ -173,8 +183,8 @@
           meow-normal-mode-p
           meow-motion-mode-p
           meow-beacon-mode-p
-          ;; 首字母为是英文字母时进入英文模式
-          rime-predicate-after-alphabet-char-p
+          ;; 首字母为是英文字母时进入英文模式; `-' 之后回到中文
+          gwp::rime-predicate-after-alphabet-char-p
           ;; 将要输入的为大写字母时
           rime-predicate-current-uppercase-letter-p
           ;; 在 prog-mode 和 conf-mode 中除了注释和引号内字符串之外的区域
