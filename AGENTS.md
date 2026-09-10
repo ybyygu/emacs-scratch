@@ -85,6 +85,12 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 - **真相**：daemon 已加载旧版本代码。
 - **错误后果**：重复修改或误判失败。
 
+### 输入法行为分三层，改之前先定位
+
+- **现象**：改了“输入法”的设置没效果，或不知道该改哪里。
+- **真相**：① RIME 数据目录 `~/.local/share/fcitx5/rime/`（**在仓库外**，fcitx5 与 emacs-rime 共用，改完要重新部署）；② emacs-rime 的 predicate 与按键（`user-lisp/init-ui.el`，决定“何时自动切英文”）；③ 跑的是哪份配置：`~/.emacs-profiles.el` 的 profile + `gwp` socket daemon（当前由 `~/.config/autostart/emacs.desktop` → systemd `app-emacs@autostart.service` 拉起）。该 RIME 方案的 `ascii_mode` 只有“中文”一个状态，所以 Emacs 里感受到的“自动中英文切换”实际由 ② 决定。
+- **错误后果**：去 RIME 侧改 `switch_key` 想解决 Emacs 里的行为；或改完 `.el` 忘了重启 daemon，以为没生效。
+
 ### 不要在源码目录留 `.elc`
 
 - **现象**：编辑 `.el` 后行为仍是旧的。
