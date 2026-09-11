@@ -1,3 +1,6 @@
+;;; init.el --- gwp-scratch 装配入口 -*- lexical-binding: t; -*-
+;; 状态与缓存的位置不在这个文件里 —— 见 early-init.el。
+
 ;; [[file:gwp-scratch.note::ec81fe51][ec81fe51]]
 (defcustom init-no-x-flag t
   "for running in remote ssh server no X display"
@@ -53,9 +56,8 @@
 ;; 158fcd0c ends here
 
 ;; [[file:gwp-scratch.note::07c1e867][07c1e867]]
-;; 将 custom 定义为独立的文件
-(setq custom-file (locate-user-emacs-file "custom.el"))
-;; Create the custom-file if it doesn't exist.
+;; custom 文件位置在 early-init.el 里定死（~/.local/state/emacs/custom.el），
+;; 这里只负责读进来 —— Emacs 自己不会自动加载 custom-file。
 (unless (file-exists-p custom-file)
   (write-region "" nil custom-file))
 (load-file custom-file)

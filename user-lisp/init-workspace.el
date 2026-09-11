@@ -125,8 +125,7 @@ Otherwise delete one character."
   (bm-highlight-style 'bm-highlight-only-fringe)
   ;; save bookmarks
   (bm-buffer-persistence t)
-  ;; where to store persistant files
-  (bm-repository-file (expand-file-name "bm-repository" user-emacs-directory))
+  ;; bm-repository-file 的位置由 early-init.el 统一指定（~/.local/state/emacs/）
 
   :init
   ;; restore on load (even before you require bm)

@@ -180,8 +180,7 @@
 (use-package bookmark
   :ensure nil
   :custom
-  (bookmark-default-file
-   (expand-file-name "bookmarks" user-emacs-directory))
+  ;; bookmark-default-file 的位置由 early-init.el 统一指定（~/.local/state/emacs/）
   ;; 修改 bookmark 后立刻保存, 防止冲突. 默认仅当退出 emacs 时保存
   (bookmark-save-flag 1)
   ;; 不提示, 直接读取硬盘中的内容. 避免不同电脑间冲突
