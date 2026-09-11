@@ -2,6 +2,7 @@
 # name: grill-me
 # key: utf8
 # contributor: ybyygu@gmail.com
+# expand-env: ((yas-indent-line 'none))
 # --
 
 持续拷问 ybyygu，直到认知对齐。产物是一棵决策树：每个决策下挂着由它岔出的决策。

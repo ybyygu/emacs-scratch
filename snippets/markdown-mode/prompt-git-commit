@@ -2,6 +2,7 @@
 # name: git-commit
 # key: utf8
 # contributor: ybyygu@gmail.com
+# expand-env: ((yas-indent-line 'none))
 # --
 
 git commit 操作规范
