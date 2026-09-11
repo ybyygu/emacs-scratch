@@ -51,6 +51,17 @@
       url-configuration-directory (expand-file-name "url/" gwp-state-dir)
       auto-save-list-file-prefix  (expand-file-name "auto-save-list/.saves-" gwp-state-dir))
 
+;;; 启动期行为
+;; Emacs 31 新增 User Lisp Directory 特性：配置目录下的 user-lisp/ 会被递归
+;; byte-compile（.elc 直接写进源码目录）、扫 autoload、并把子目录加进 load-path。
+;; 这份配置的 user-lisp/ 恰好同名，但它自己管理加载（init.el 加 load-path +
+;; 按固定顺序 require）——不由 Emacs 代管。开着会有三个代价：机器本地的 .elc
+;; 落进 git 树里（还会遮蔽真源，见 AGENTS.md）、启动时为了解析
+;; transient-define-prefix 之类的 cookie 而去 load 模块（触发 Recursive load 告警
+;; 并打乱加载顺序）、以及多出一份机器本地的 autoloads 文件。
+;; 关闭后 30.2/31.1 行为一致；这个变量必须在这里设（init.el 之前生效）。
+(setq user-lisp-auto-scrape nil)
+
 ;;; socket 名
 ;; 日用实例必须叫 gwp：~/.local/share/applications/gwp-emacsclient.desktop 按名字找它。
 ;; 演化轨用 GWP_SERVER_NAME=gwp-dev 另起一个，两个实例并存互不抢。
