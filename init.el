@@ -33,25 +33,17 @@
 ;; Packages
 (require 'package)
 
+;; 归档只留 USTC 一份：原先还有一版清华镜像，写在上面却被下面覆盖，从未生效。
+;; 必须 https —— 包是直接下载并执行的代码，明文 http 把安装链暴露给中间人。
+;; 正常启动不联网：刷新归档只在 M-x gwp::package-refresh-archives 里发生。
 (setq package-archives
-      '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-        ;; ("melpa-stable" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/")
-        ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
-        ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
-
-(setq package-archives
-      '(("gnu"   . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")
-        ;; ("melpa-stable" . "http://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-        ;; ("org" . "http://mirrors.ustc.edu.cn/elpa/org/")
-        ("nongnu" . "http://mirrors.ustc.edu.cn/elpa/nongnu/")))
+      '(("gnu"    . "https://mirrors.ustc.edu.cn/elpa/gnu/")
+        ("melpa"  . "https://mirrors.ustc.edu.cn/elpa/melpa/")
+        ("nongnu" . "https://mirrors.ustc.edu.cn/elpa/nongnu/")))
 
 (package-initialize)
 (unless init-no-x-flag
-  (setq use-package-always-ensure t)
-  (unless package-archive-contents
-    (package-refresh-contents)))
+  (setq use-package-always-ensure t))
 
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)

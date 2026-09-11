@@ -15,7 +15,7 @@
 | 文件 | 职责 | 主要内容 |
 |---|---|---|
 | `init-defaults.el` | 全局默认值 | `use-short-answers`、`truncate-lines`、`indent-tabs-mode`、kill 去重 |
-| `init-core.el` | 基础设施 | crux、transient、recentf、bookmark、paren/smartparens、auto-revert；server 启动；straight bootstrap |
+| `init-core.el` | 基础设施 | crux、transient、recentf、bookmark、paren/smartparens、auto-revert；server 启动；straight bootstrap；归档刷新命令 `gwp::package-refresh-archives` |
 | `init-general.el` | 按键基础设施 | general.el、leader 前缀常量与 `gwp::` 前缀 map |
 | `init-meow.el` | 编辑状态机 | meow、多光标、剪贴板 |
 | `init-edit.el` | 编辑增强 | avy、isearch、goto-chg、xah-replace-pairs |

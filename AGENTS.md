@@ -54,7 +54,7 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 ## 维护约定
 
 - **一次一个具体问题**：改动范围由这个问题决定，不顺手扩展。
-- **包管理**：默认用 `:ensure`（package.el + USTC 镜像）；只有需要 GitHub 直装时才用 `:straight`（当前仅 3 处）。新增依赖不要开辟第三条路。
+- **包管理**：默认用 `:ensure`（package.el + USTC 镜像，**只此一份**，https）；只有需要 GitHub 直装时才用 `:straight`（当前仅 3 处）。新增依赖不要开辟第三条路。**启动不联网**：归档刷新只在 `M-x gwp::package-refresh-archives`（`user-lisp/init-core.el`）里发生。新机器、或新增 `:ensure` 包后报 “unavailable”，先跑这条命令再重启；`elpa/archives/*/archive-contents` 的 mtime 就是归档新鲜度。
 - **提交**：中文 commit，写清"为什么改、对使用有什么影响"；GitHub `ybyygu/emacs-scratch` 是 private 备份仓库，不 rebase / force-push 已推送历史。
 - **文档回环**：装配结构、模块职责、维护约定变化时，同步本文件与 [user-lisp/AGENTS.md](user-lisp/AGENTS.md)；普通修复不更新文档。
 - **验证**：见下节。启动基线尚未采集，首次改动前先记录现状。

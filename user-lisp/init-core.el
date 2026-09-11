@@ -500,6 +500,17 @@
   :straight t
   :config
   (message "Transient version: %s" transient-version))
+
+;; 正常启动不联网：归档刷新只在显式调用时发生。
+;; 新机器，或新增 :ensure 包之后，先 M-x gwp::package-refresh-archives 再重启。
+(defun gwp::package-refresh-archives ()
+  "刷新 package 归档内容。联网操作，不在启动时自动执行。"
+  (interactive)
+  (require 'package)                    ; 不依赖 init 加载顺序
+  (message "Refreshing package archives...")
+  (package-refresh-contents)
+  (message "Package archives refreshed: %d entries"
+           (length package-archive-contents)))
 ;; be6d7c1f ends here
 
 ;; [[file:../gwp-scratch.note::17dbf6c8][17dbf6c8]]
