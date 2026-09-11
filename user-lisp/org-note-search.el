@@ -1,0 +1,1 @@
+/home/ybyygu/Workspace/Notes/resources/explore/data/206d4395-82c1-448e-9822-fa7792e44243/org-note-search/org-note-search.el

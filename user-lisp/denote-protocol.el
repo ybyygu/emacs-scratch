@@ -1,0 +1,1 @@
+/home/ybyygu/Workspace/Notes/resources/explore/data/02fdbbb6-2e1c-4eca-88f8-f48be1a6f551/org-protocol-denote/denote-protocol.el
