@@ -43,9 +43,9 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 
 ## snippets 约定
 
-`snippets/<mode>/` 是 yasnippet 目录，正本入库；`.yas-compiled-snippets.el` 是编译缓存（内含机器绝对路径），已在 `.gitignore` 中忽略。**它不会自动重建**，且只要存在就被无条件加载、不比对 mtime——改完 snippet 必须删掉它或 `M-x yas-recompile-all`，否则改动永不生效；已运行的实例还需 `M-x yas-reload-all` 才会重读目录。`markdown-mode/` 目录当前不留缓存。
+`snippets/<mode>/` 是 yasnippet 目录，正本入库；`.yas-compiled-snippets.el` 是编译缓存（内含机器绝对路径），已在 `.gitignore` 中忽略。**它不会自动重建**，且只要存在就被无条件加载、不比对 mtime——改完 snippet 必须删掉它或 `M-x yas-recompile-all`，否则改动永不生效；已运行的实例还需 `M-x yas-reload-all` 才会重读目录。**各目录当前都不留缓存**（2026-09-11 起；要加载速度再 `M-x yas-recompile-all`，但要记得改完再删）。
 
-- `markdown-mode/` 是日常写作主力：30 个 markdown 语法 snippet + 19 个 `prompt-*` 提示词模板。
+- `markdown-mode/` 是日常写作主力：`code` + 19 个 `prompt-*` 提示词模板；2018 年那批 markdown 语法 snippet（`+`/`h1`/`img`/`link`/`ordered-list` 等 29 个）因不用已于 2026-09-11 删除。
 - `prompt-*` 全部用 `key: utf8` 触发（输入 `utf8` 后由补全列表按 `# name:` 选择），文件内容是提示词正文。
 - 正文里的字面反引号要转义成 ``\` ``（美元符同理 ``\$``）：yasnippet 把 `` `…` `` 当 elisp 求值、`${…}` 当字段，未转义时展开会把散文静默换成错误串。
 - 两类容易误判的情况：`$0`/`$1` 在少数提示词里是**有意**的光标落点（插入后光标停在 `<ybyygu>` 之类的位置），别当残留修掉；`yas-indent-line` 默认会按 markdown 规则重排展开文本的缩进（嵌套子项变平级），所以正文带嵌套缩进的提示词都加了 `# expand-env: ((yas-indent-line 'none))` 逐字保留（当前：`prompt-git-commit`、`prompt-grill-me`）。校验脚本对这一类应报 0 个 △，出现 △ 就是新问题。
