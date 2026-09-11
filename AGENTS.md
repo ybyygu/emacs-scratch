@@ -43,10 +43,11 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 
 ## snippets 约定
 
-`snippets/<mode>/` 是 yasnippet 目录，正本入库；`.yas-compiled-snippets.el` 是编译缓存（内含机器绝对路径），已在 `.gitignore` 中忽略，使用时自动重建。
+`snippets/<mode>/` 是 yasnippet 目录，正本入库；`.yas-compiled-snippets.el` 是编译缓存（内含机器绝对路径），已在 `.gitignore` 中忽略。**它不会自动重建**，且只要存在就被无条件加载、不比对 mtime——改完 snippet 必须删掉它或 `M-x yas-recompile-all`，否则改动永不生效；已运行的实例还需 `M-x yas-reload-all` 才会重读目录。`markdown-mode/` 目录当前不留缓存。
 
-- `markdown-mode/` 是日常写作主力：30 个 markdown 语法 snippet + 18 个 `prompt-*` 提示词模板。
+- `markdown-mode/` 是日常写作主力：30 个 markdown 语法 snippet + 19 个 `prompt-*` 提示词模板。
 - `prompt-*` 全部用 `key: utf8` 触发（输入 `utf8` 后由补全列表按 `# name:` 选择），文件内容是提示词正文。
+- 正文里的字面反引号要转义成 ``\` ``（美元符同理 ``\$``）：yasnippet 把 `` `…` `` 当 elisp 求值、`${…}` 当字段，未转义时展开会把散文静默换成错误串。
 - 新增提示词：在 `snippets/markdown-mode/` 下照现有格式加文件（`# name:` 写清用途）即可，不需要改配置。
 
 ## 维护约定
@@ -62,6 +63,7 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 | 级别 | 做法 | 覆盖 |
 |---|---|---|
 | 编译 | `emacs -Q --batch` 把改动文件 `batch-byte-compile` 到 `/tmp` | 语法与编译告警 |
+| snippet | 在隔离副本里删掉 `.yas-compiled-snippets.el`，`emacs -Q --batch` 加载目录并 `yas-expand-snippet`，与正文逐字比对 | 展开静默损坏、反引号/字段被求值 |
 | 装配 | batch 加载 profile `gwp`（注意会触发 `server-start`，见隐性知识） | require 链是否断裂 |
 | 目视 | 独立 socket 起一个实例确认，通过后再重启日用 daemon | 交互行为、有 X 的分支 |
 
@@ -78,6 +80,12 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 - **现象**：`emacs --batch` 加载 `init.el` 时打印 "Starting a server..."。
 - **真相**：`init-core.el` 末尾有 `(unless (server-running-p) (server-start))`。
 - **错误后果**：与日用 daemon 抢 socket；测试需另指定 `server-name`。
+
+### snippet 改了或新增了却不出现
+
+- **现象**：编辑或新增 `snippets/**` 后，`C-.` 的候选列表里还是旧内容，新文件完全不出现。
+- **真相**：目录下若有 `.yas-compiled-snippets.el`，yasnippet 无条件 `load` 它、不比对 mtime；缓存只由 `M-x yas-recompile-all` 生成，不会自动重建；已运行的实例还要 `M-x yas-reload-all` 才会重读目录。
+- **错误后果**：把“缓存陈旧”误判为格式写错、键位不对，或以为编辑没保存。
 
 ### 改动只在重启后生效
 
