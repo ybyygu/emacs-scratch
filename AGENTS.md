@@ -124,3 +124,4 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 |---|---|
 | `AGENTS.md`（本文件） | 项目宪法：边界、加载拓扑、约定、验证、隐性知识 |
 | [user-lisp/AGENTS.md](user-lisp/AGENTS.md) | 模块地图、加载依赖、目录级隐性知识 |
+| [PORT-EMACS31.md](PORT-EMACS31.md) | **进行中的迁移**（Emacs 31 移植 + 搬到 `~/.config/emacs`、chemacs 退役）：决议、证据、施工面、待办与验收判据、回退面。动本目录前先读它 |
