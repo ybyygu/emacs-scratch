@@ -1,6 +1,7 @@
 ;;; early-init.el --- 配置树只放代码：状态与缓存落点 -*- lexical-binding: t; -*-
 ;;
-;; 加载时机：Emacs 启动的最早阶段（早于 init.el，也早于 site-start.el）。
+;; 加载时机：用户 init.el 之前的最早阶段。与 site-start.el 的先后顺序随 Emacs
+;; 版本变化（31 起 site-start.el 在前），所以这里只依赖“早于 init.el”这一点。
 ;; 凡是“会写盘的位置”必须在这里定死；否则它们默认算在 user-emacs-directory 里，
 ;; 也就是配置仓库本身 —— 而仓库随 syncthing 跨机，运行态会把冲突带过去。
 ;;
@@ -25,16 +26,27 @@
   "包树与缓存目录：可重建，不进版本控制。")
 
 (mapc (lambda (dir) (make-directory dir t))
-      (list gwp-state-dir gwp-cache-dir))
+      (list gwp-state-dir
+            gwp-cache-dir
+            ;; eshell 写 history/lastdir 时不建目录，目录不在就静默不记（30.2 实测：
+            ;; 直接调 eshell-write-history，文件不存在且无报错）；其余几处
+            ;; （transient、auto-save-list）Emacs 自己会 make-directory，不用管。
+            (expand-file-name "eshell/" gwp-state-dir)))
 
 ;;; 包树与编译产物（可重建）
 (setq package-user-dir (expand-file-name "elpa/" gwp-cache-dir))
 ;; straight 自己会拼上 straight/ 子目录；init-core.el 的引导路径也读这个变量
 (setq straight-base-dir gwp-cache-dir)
-;; 系统自带的 eln 目录（/usr/lib/emacs/*/native-lisp/）必须留着，否则连 Emacs 自己的 lisp 都要重编
-(setq native-comp-eln-load-path
-      (cons (expand-file-name "eln-cache/" gwp-cache-dir)
-            (cdr native-comp-eln-load-path)))
+;; eln 目录表：去掉配置目录下的默认项（user-emacs-directory/eln-cache），换成缓存目录；
+;; 系统自带的 /usr/lib/emacs/*/native-lisp/ 必须留着，否则连 Emacs 自己的 lisp 都要重编。
+(let ((user-eln (file-name-as-directory (expand-file-name "eln-cache/" user-emacs-directory)))
+      (our-eln  (file-name-as-directory (expand-file-name "eln-cache/" gwp-cache-dir)))
+      (kept nil))
+  (dolist (dir native-comp-eln-load-path)
+    (let ((dir (file-name-as-directory (expand-file-name dir))))
+      (unless (or (equal dir user-eln) (equal dir our-eln))
+        (push dir kept))))
+  (setq native-comp-eln-load-path (cons our-eln (nreverse kept))))
 
 ;;; 运行态
 (setq custom-file                 (expand-file-name "custom.el" gwp-state-dir)
