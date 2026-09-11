@@ -85,7 +85,8 @@
 - **`setq` 早于 `defcustom` 的值会保留**（8 项路径变量实测）；
 - `.eln` 文件名含**源文件路径**的哈希（同内容不同路径 → 不同 `.eln`）：包树一搬，`eln-cache` 必然失效重编；缓存目录名 `<ver>-<hash>` 只含版本与编译器指纹，与路径无关；
 - **eshell 不自建目录**：实测空 state 目录下 `eshell-write-history` 静默不写（`file-writable-p` 为 nil，只 message 一句）→ 显式建 `eshell/`；`transient`（`transient--pp-to-file` 里 `make-directory`）与 `auto-save-list`（`files.el` 里 `make-directory`）都自建，不用管；
-- 启动的联网边界（核实过，别把"不联网"说大）：`package-installed-p 'use-package` 为 t（内置，那行 `package-install` 不会跑）；straight 的引导只在 `straight/repos/straight.el/bootstrap.el` 缺失时联网；`:ensure` 只在**缺包**时联网。也就是说：**归档刷新确实只在显式命令里发生，但"缺件"仍会联网**——新机器或换包时的联网是 bootstrap 行为，不是日常行为。
+- 启动的联网边界（核实过，别把"不联网"说大）：`package-installed-p 'use-package` 为 t（内置，那行 `package-install` 不会跑）；straight 的引导只在 `straight/repos/straight.el/bootstrap.el` 缺失时联网；`:ensure` 只在**缺包**时联网。也就是说：**归档刷新确实只在显式命令里发生，但"缺件"仍会联网**——新机器或换包时的联网是 bootstrap 行为，不是日常行为；
+- **搬包树之前必须先关掉所有还在用它的实例**（2026-09-12 实测踩到）：实例在启动时就把 `package-user-dir` 记死了，包树一搬，它会在「第一个碰到的延迟加载」上报 `Cannot open load file: ... vertico-repeat` 这类随机名字的错（本例：`init-completion.el` 给 `vertico-repeat` 挂了 `minibuffer-setup` 钩子，按 M-x 才去找那个文件）；更坑的是 `kill-emacs` 的钩子也会进 minibuffer，于是**连退出都被同一个错误挡住**。处置：临时把旧路径符号链接到新树，让它跑完退出钩子，再拆掉链接、按新路径重起（`kill -KILL` 也可，代价是丢掉未保存内容）。
 
 ### 3.10 提升路径的分支拓扑（实测纠正）
 
