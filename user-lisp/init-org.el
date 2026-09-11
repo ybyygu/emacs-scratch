@@ -126,6 +126,24 @@ region active."
 
 ;; [[file:../gwp-scratch.note::2f61258f][2f61258f]]
 ;; https://stackoverflow.com/questions/17590784/how-to-let-org-mode-open-a-link-like-file-file-org-in-current-window-inste
+
+(defun gwp::org-open-file-other-window (file)
+  "在另一个窗口打开 FILE；若 FILE 是目录（如附件目录），固定在左侧新窗口打开。
+非目录文件保持 `find-file-other-window' 的默认分窗规则。
+目录这一支必须显式 `split-window'：`split-window-sensibly' 只会往右/往下分，
+而当前阈值（200 / 80）在 182×42 的帧上两个方向都不满足，会退化成“上下分”。"
+  (if (file-directory-p file)
+      ;; 想让 dired 定宽 N 列：SIZE 写负数 -N（正数是给原窗口的宽度）
+      (let ((win (split-window (selected-window) nil 'left)))
+        (select-window win)
+        (find-file file))
+    (find-file-other-window file)))
+
+;; org 打开文件的统一入口：dwim 的 C-u / C-u C-u 分支之外都走这里，
+;; 也覆盖 attach 菜单里的 org-attach-reveal。
+(with-eval-after-load 'org
+  (setf (alist-get 'file org-link-frame-setup) #'gwp::org-open-file-other-window))
+
 ;; Depending on universal argument try opening link
 (defun gwp::org-open-at-point-dwim (&optional arg)
   (interactive "P")
@@ -136,9 +154,8 @@ region active."
    ((equal arg '(4))                     ; C-u
     (let ((org-link-frame-setup (quote ((file . find-file-other-frame)))))
       (org-open-at-point)))
-   (t                                   ; the default behavior
-    (let ((org-link-frame-setup (quote ((file . find-file-other-window)))))
-      (org-open-at-point)))))
+   (t                                   ; 默认：走 org-link-frame-setup（目录在左窗）
+    (org-open-at-point))))
 
 ;; 注释代码时, 在org code block下特殊处理. 不然光标会跳开很远.
 (defun gwp/comment-or-uncomment-dwim ()
