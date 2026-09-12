@@ -1,3 +1,4 @@
+;;; cp2k-mode.el --- CP2K 输入文件 major mode -*- lexical-binding: t; -*-
 ;;;;; Emacs major mode for cp2k input, written by Lianheng Tong
 ;;;;; Copyright (c) Lianheng Tong
 ;;;;; Last modify date: Saturday, 2014/01/25

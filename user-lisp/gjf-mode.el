@@ -1,3 +1,4 @@
+;;; gjf-mode.el --- Gaussian (gjf) 输入文件 major mode -*- lexical-binding: t; -*-
 ;; [[file:../gwp-scratch.note::781e14bf][781e14bf]]
 (defvar gjf-mode-hook nil)
 

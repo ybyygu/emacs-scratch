@@ -1,3 +1,4 @@
+;;; yadm.el --- yadm + magit 辅助 -*- lexical-binding: t; -*-
 ;; [[file:../gwp-scratch.note::840c0c02][840c0c02]]
 ;; https://www.reddit.com/r/emacs/comments/gjukb3/yadm_magit/
 ;; https://github.com/TheLocehiliosan/yadm/blob/master/yadm.md#commands

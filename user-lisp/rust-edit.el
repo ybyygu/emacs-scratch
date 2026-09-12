@@ -1,3 +1,4 @@
+;;; rust-edit.el --- Rust 编辑辅助（cargo 编译/watch） -*- lexical-binding: t; -*-
 ;; [[file:../gwp-scratch.note::3241e30e][3241e30e]]
 (require 'smartparens)
 (require 'rust-utils)
