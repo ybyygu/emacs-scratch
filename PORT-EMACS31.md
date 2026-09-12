@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.10 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；31 线改「双 worktree + 符号链接门牌」、`gwp-scratch` 定为冻结的 30 保底轨（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.19 的施工（计划待按区域框架重写，见 3.20）**
+> 版本：V1.11 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；31 线改「双 worktree + 符号链接门牌」、`gwp-scratch` 定为冻结的 30 保底轨（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.20 的施工（S0–S5，判据事前冻结，待开窗口执行）**
 > 角色：本区域的**过程档案与执行计划**——记「当时为什么这么定」（决议来路、证据、施工、验收、回退）。目标与原则的正本在区域层： [../docs/framework.md](../docs/framework.md)（框架）＋ [../AGENTS.md](../AGENTS.md)（入口与纪律）；本文与框架冲突时以框架为准，并回来改本文。
 > 关联：[../AGENTS.md](../AGENTS.md)（区域入口）｜ [../docs/framework.md](../docs/framework.md)（区域框架）｜ [../docs/registry.md](../docs/registry.md)（现状登记处）｜ [AGENTS.md](AGENTS.md)（仓库宪法）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md)
 
@@ -293,9 +293,90 @@
 2. **worktree 元数据在同步区里的跨机表现**：`.git/worktrees/*` 与 worktree 里的 `.git` 文件都含绝对路径；三台机器路径相同（`/home/ybyygu/...`），预期可用但未实测。用户已明确"其他机器不太需要考虑"。
 3. **daily worktree 的"零新增文件"**：清单的 Z-01/Z-02/Z-03 断言要在 daily 侧也成立（本轮先靠 `git status` 观察）。
 
-### 3.20 当前施工计划（待按区域框架重写）
+### 3.20 当前施工计划（按区域框架重写）
 
-当前只确认了目标架构（区域框架 §三），可执行的迁移步骤尚未形成：§3.19 的 P0/P1/P2 建立在被否定的仓库模型上（见 §3.19 开头的警示），不能照做。计划形成后以本节为当前计划；§3.19 仅作历史回查。
+**判据来源**：区域框架 §四（代际连续性与资产交割）与 §三（目标架构）。步骤用 S0–S5 编号，**与 §3.19 的 P0/P1/P2 不对应**；§3.19 只作历史回查。
+
+**已核实的前提（2026-09-12 下午实测；重测前不要推翻）**：
+
+| 项 | 实测 | 对计划的意义 |
+|---|---|---|
+| 活动仓库工作树 | `~/Incoming/emacs-dev` 干净（`git status --short` 无已跟踪改动） | 可整体搬迁，不必先 stash |
+| 代码 vs 日用部署副本 | `diff -rq --exclude=.git` 只差 4 个 `.md` | `daily` 的起点取 dev tip 即可：代码零回归，文档差异可接受 |
+| 配置树的编译产物 | 两份 eln 缓存（日用 821 个、开发 461 个）里没有配置树 `.el` 的产物，也没有 `.elc` | 换门牌不会引发配置重编；§3.19「待实测 1」降为一次计数核对 |
+| 门牌下的 `user-emacs-directory` | 裸 `emacs` 报的是字面 `~/.config/emacs/`，`file-truename` 才展开成绝对路径 | `accept.sh` 的 `user-emacs-directory` 断言会假红，S3 先修脚本 |
+| yadm 所有权 | `~/.config/emacs` 下 127 个文件由 yadm 跟踪，`yadm status` 干净 | S4 的交还必须显式做，顺序不能反 |
+| 日用入口 | `~/.local/bin/emacs` 已不存在；入口是桌面图标与裸 `emacs` | §八 回退面里那条 wrapper 说明作废 |
+| GitHub 分支 | 31 库与 30 库同推 `emacs-scratch`；远端 `master` 在 30 线祖先链上，31 库本地 `master` 落后 15 个提交 | 31 库不得推 `master`（见开放决定 1） |
+
+**S0 现场清理（不动配置）**
+
+- 清掉卡死的 magit 钩子：那条链是 `git commit`（2367084）→ 钩子脚本（2367164）→ `emacsclient`（2367165）互相等待；提交本身已落盘（`87fc7df` 那次 amend），所以杀掉 `2367165`、`2367164` 即可让链条结束，不需要重做提交。
+- 退出 `gwp-dev`（`~/Incoming/dev-emacs` 起的实例）：搬迁前必须先退，否则它的 `--init-directory` 会指向被搬走的路径。
+- 判据：该进程链消失；`emacsclient -s gwp-dev -e 't'` 连不上；`gwp`／`gwp-new`／`gwp30` 三个实例不受影响。
+
+**S1 搬迁活动仓库（不碰日用）**
+
+```bash
+mv ~/Incoming/emacs-dev ~/Install/configs/emacs/emacs-dev
+# 改启动器：~/Incoming/dev-emacs
+#   DEV="${GWP_DEV_DIR:-$HOME/Incoming/emacs-dev}"
+# → DEV="${GWP_DEV_DIR:-$HOME/Install/configs/emacs/emacs-dev}"
+# 剪断回线（旧模型残留：本仓库曾以 `stable` 远端指向保底仓库）
+git -C ~/Install/configs/emacs/emacs-dev remote remove stable
+git -C ~/Install/configs/emacs/emacs-dev branch -D master   # 其提交都在 dev 历史里，删除只丢指针
+```
+
+- 判据：`git worktree list` 只有一项且路径为新的；用 `~/Incoming/dev-emacs --socket gwp-dev2 --daemon=gwp-dev2` 起得来，落点仍是 `~/.cache/emacs-dev/` ＋ `~/.local/state/emacs-dev/`；搬迁前后 `diff -r`（除 `.git`）为空。
+- 回退：`mv` 回 `~/Incoming/emacs-dev`，启动器改回。
+
+**S2 建 daily 分支与 worktree**
+
+```bash
+git -C ~/Install/configs/emacs/emacs-dev branch daily <dev tip>
+git -C ~/Install/configs/emacs/emacs-dev worktree add ~/Install/configs/emacs/emacs-daily daily
+```
+
+- 判据：`git worktree list` 恰两项（`emacs-dev`／`emacs-daily`；`gwp-scratch` 不出现在这里，它是独立仓库）；两处 `git status --porcelain` 为空；`diff -rq --exclude=.git ~/.config/emacs ~/Install/configs/emacs/emacs-daily` 的差异**只允许 `.md`**。
+- 回退：`git worktree remove emacs-daily` ＋ `git branch -D daily`。
+
+**S3 daily 隔离验证（仍不碰日用）**
+
+- 先用绝对路径起临时实例：`--init-directory=$HOME/Install/configs/emacs/emacs-daily`，socket `gwp-daily-check`。
+- 先修 `accept.sh` 的日用侧断言：把 `user-emacs-directory` 的比较改成 `(expand-file-name user-emacs-directory)`；日用侧覆盖用现成的 `GWP_DEV_DIR`／`GWP_CACHE_DIR`／`GWP_STATE_DIR`。
+- 判据：`package-user-dir` = `~/.cache/emacs/elpa/`、运行态落 `~/.local/state/emacs/`、`server-name` 为临时名；配置树零新增；`ls ~/.cache/emacs/eln-cache/31.1-*/ | wc -l` 与验证前一致；`accept.sh` 全绿；退出前等编译池排空。
+- 记录：把 `user-emacs-directory` 与 `(file-truename user-emacs-directory)` 的实测值写回本节，作为 S4 的对照基准。
+
+**S4 交还所有权 + 换门牌（需要用户在场五分钟）**
+
+1. 用户退掉 `gwp` 与 `gwp-new`；
+2. `yadm rm -r --cached .config/emacs` ＋ 提交；`~/.config/yadm/ignore` 加 `.config/emacs`；
+3. 一条链完成搬家与门牌（中间不留「配置目录不存在」的窗口）：
+
+```bash
+mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
+  ln -s ~/Install/configs/emacs/emacs-daily ~/.config/emacs
+```
+
+4. 起裸 `emacs`，跑 `accept.sh`（带 S3 修的日用侧覆盖）＋ §6.1 手点五条（中文输入、`M-x vterm`、org 附件左窗、snippet、界面）。
+
+- 判据：`~/.config/emacs` 是指向 `emacs-daily` 的符号链接；门牌下的实况与 S3 记录一致；在 dev 改一行 `.el` 后日用的文件内容不变；`git -C emacs-daily status --porcelain` 为空。
+- 回退：删符号链接 → `mv ~/Incoming/emacs-config-deploy-20260912 ~/.config/emacs` → 重启；yadm 所有权按需恢复。
+
+**S5 收尾（可延后）**
+
+- `systemctl --user daemon-reload`；确认无 socket 归属的裸 `emacs` 实例是否还是用户窗口（是就先问，不盲杀）；
+- 保底轨现在有**两个 30.2 实例**（2288031／2374551）共用同一份状态文件，收尾时只留一个；
+- GitHub 备份：31 库推 `dev`／`daily`；30 库推 `master` 并打 `gwp30-frozen-20260912`（分支归属见开放决定 1）；
+- 文档回环：`docs/registry.md` 三条轨表按实测回改、区域 `AGENTS.md` 删掉施工窗口行、本文件状态列更新、区域 `docs/learnings.md` 补一条（门牌与 worktree 落地后的实际表现）。
+
+**开放决定（未裁决，不得替用户决定）**
+
+| # | 决定 | 现状与建议 |
+|---|---|---|
+| 1 | GitHub 分支归属 | 建议 `master` 归 30 保底（打 tag 冻结）、31 只推 `dev`／`daily`；替代方案是给保底另开一个远端库 |
+| 2 | S4 的时机 | 需要用户在场并退掉 `gwp`／`gwp-new`；可先走完 S0–S3，把 S4 留到有窗口时 |
+| 3 | 旧部署副本保留多久 | 建议留到日常使用数天无异常；删除是不可逆动作，需单独确认 |
 
 ## 四、施工面（我的工作面，日用零接触）
 
@@ -405,7 +486,7 @@
 1. 读 `~/Install/configs/emacs/AGENTS.md`（区域入口与纪律）+ `~/Install/configs/emacs/docs/framework.md`（区域框架：目标与原则）+ 本文件 + 仓库 `AGENTS.md` + `user-lisp/AGENTS.md`；
 2. 确认三处载体与工具还在：`~/Incoming/{dev-emacs,dev-emacs-gui,emacs30-fallback,emacs-30.2,accept.sh,checklist.sh}`，桌面项 `~/.local/share/applications/{emacs-31dev,emacs-30-fallback,gwp-emacsclient}.desktop`；31 线的 worktree 用活动仓库自己的 `git worktree list` 核对（目标形态恰两项：`emacs-dev`／`emacs-daily`；`gwp-scratch` 是独立仓库，不会出现在该列表里）；
 3. 从“六、待办”里**第一个未完成项**继续，判据照表；做一步就更新本文件的“状态”列；
-4. 待办 6 已退役（决议 14），剩下的动作是 3.19 的施工——**先按区域框架重写施工计划**（旧 P0/P1/P2 建立在已被否定的仓库模型上，见 §3.19 开头的警示），再动手。需要用户决策的：切换时机与手点验收、§七 那几个开放决策。
+4. 待办 6 已退役（决议 14）；**当前计划是 §3.20 的 S0–S5**（现场清理 → 搬迁 → 建 daily → 隔离验证 → 换门牌 → 收尾），判据已事前冻结，按步执行、逐步更新本文件。需要用户决策的：§3.20 的三条开放决定（GitHub 分支归属、换门牌时机、旧部署副本保留）与 §七 那几个开放决策。
 
 ## 更新记录
 
@@ -419,3 +500,4 @@
 - **2026-09-12 V1.8**：新增决议 **13、14** 与证据 **3.19** —— 31 线改成「双 worktree + 符号链接门牌」（`emacs-dev`／`emacs-daily`，`~/.config/emacs` 只是门牌），`gwp-scratch` 降级为冻结的 30 保底轨；**作废决议 11、退役待办 6**（提升链）；记下动手前的七项现状核实、P0/P1/P2 施工计划与 G1/G2 闸门、三项待实测。同步：`AGENTS.md` 拆成「区域宪法（外层）+ 仓库宪法（31 线）」，区域经验库（`~/Install/configs/emacs/docs/learnings.md`）建立，代码级经验库加第 11 条。
 - **2026-09-12 V1.7**：新增证据 **3.18** —— 默认切到 `~/.config/emacs`（加法先行、减法随后，两个 yadm 提交分开以保护另外两台机器）；三处载体定型（日常/开发/保底）；保底通道那两个坑（GUI 下 init 先于 `--eval`；`server-force-delete` 不重置 Lisp 侧状态）。同步：**决议 2 订正**（新家是 yadm 管的**部署产物**，不再是"git 仓库本身"；开发在 dev 改、单向部署过来）、决议 3 标已执行、待办 4 标已由更简单方式完成；`AGENTS.md` 加载拓扑改写为三处载体；`docs/learnings.md` 加第 10 条（state 目录里的 custom.el 缺 cookie，且每台机器各犯一次）。
 - **2026-09-12 V1.9／V1.10**：目标与原则的正本上移到区域层（区域 `docs/framework.md`）；本文件退为**过程档案与执行计划**（头部与 §二 声明，§二 改名「历史决议索引」）；§3.19 施工计划标为已废止（其 P0/P1/P2 建立在「`gwp-scratch` 是仓库本体」这个错误模型上），新增 §3.20 当前施工计划占位；§四、§十一 中“dev worktree”的旧说法按活动仓库本体纠正。
+- **2026-09-12 V1.11**：§3.20 落成——七项已核实前提、S0–S5 施工步骤与逐步判据、逐步回退面、三条开放决定；步骤编号与 §3.19 的 P0/P1/P2 显式脱钩。其中 S0（清 magit 卡死钩子、退 `gwp-dev`）与 S3（先修 `accept.sh` 的 `user-emacs-directory` 断言）是实测发现的必做前置。
