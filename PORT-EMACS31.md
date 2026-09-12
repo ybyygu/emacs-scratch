@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.12 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**S0–S4 已执行（搬迁 + daily worktree + 门牌已换，验收全绿）；剩 §3.20 的 S5 收尾与人工手点五条；GitHub 分支归属待裁决**
+> 版本：V1.13 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**S0–S5 已执行完毕**（搬迁 + daily worktree + 门牌 + 备份/tag + `daemon-reload`，验收全绿）；剩人工手点五条与旧部署副本的去留（观察数天）
 > 角色：本区域的**过程档案与执行计划**——记「当时为什么这么定」（决议来路、证据、施工、验收、回退）。目标与原则的正本在区域层： [../docs/framework.md](../docs/framework.md)（框架）＋ [../AGENTS.md](../AGENTS.md)（入口与纪律）；本文与框架冲突时以框架为准，并回来改本文。
 > 关联：[../AGENTS.md](../AGENTS.md)（区域入口）｜ [../docs/framework.md](../docs/framework.md)（区域框架）｜ [../docs/registry.md](../docs/registry.md)（现状登记处）｜ [AGENTS.md](AGENTS.md)（仓库宪法）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md)
 
@@ -379,6 +379,7 @@ mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
 | S2 | `daily` 分支 = dev tip `a88b4b0`；`emacs-daily` worktree 建在同目录 | `worktree list` 恰两项；两处 `status --porcelain` 空；与旧部署副本之差仅 4 个 `.md` |
 | S3 | 隔离实例（socket `gwp-daily-check`，用绝对 `--init-directory`）验收全绿 | `accept.sh` 18 项全过（落点全在生产 XDG；配置树零新增；无 `elpa/`／`eln-cache/`／`straight/`／`state/`）；eln 计数 821→821 |
 | S4 | yadm 交还所有权（`bd05e33` 移出 127 个索引条目；`0ea1df6` ignore 加 `.config/emacs`）→ 旧副本移到 `~/Incoming/emacs-config-deploy-20260912` → 门牌指向 `emacs-daily` | 门牌下起裸 `emacs --daemon`：`user-emacs-directory` 原始值 `~/.config/emacs/`、`file-truename` = `…/emacs-daily/`；`accept.sh gwp gwp --log …` **全绿且启动日志零错误**；eln 计数仍 821；worktree 零新增 |
+| S5 | 备份与收尾：`systemctl --user daemon-reload`（stale autostart 单元已消失）；按“分支归属”推备份——30 库 `master`（`0a3b49a..10beb51`，fast-forward）＋ tag `gwp30-frozen-20260912`；31 库新推 `dev`（`e924488`）与 `daily`（`a88b4b0`） | `git ls-remote github`：`daily`／`dev`／`master` ＋ tag 各就位；远端 `master` 现指 30 线；`dev` 比 `daily` 前进一个文档提交——首次体现“开发在前、发布是显式动作” |
 
 **现场发现（都与“怎么调 Emacs”有关，已落到工具与区域经验）**
 
@@ -390,7 +391,7 @@ mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
 
 | # | 决定 | 现状与建议 |
 |---|---|---|
-| 1 | GitHub 分支归属 | 建议 `master` 归 30 保底（打 tag 冻结）、31 只推 `dev`／`daily`；替代方案是给保底另开一个远端库 |
+| 1 | ~~GitHub 分支归属~~ | ✅ 2026-09-12 用户确认按建议执行：`master` 归 30 保底（冻结 tag）、31 只推 `dev`／`daily`；规则已写进区域框架 §三.4；备份已推 |
 | 2 | ~~S4 的时机~~ | ✅ 2026-09-12 已执行（用户当时无 31 实例在跑）；剩下的人工验收是 §6.1 手点五条 |
 | 3 | 旧部署副本保留多久 | 建议留到日常使用数天无异常；删除是不可逆动作，需单独确认 |
 
@@ -518,3 +519,4 @@ mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
 - **2026-09-12 V1.9／V1.10**：目标与原则的正本上移到区域层（区域 `docs/framework.md`）；本文件退为**过程档案与执行计划**（头部与 §二 声明，§二 改名「历史决议索引」）；§3.19 施工计划标为已废止（其 P0/P1/P2 建立在「`gwp-scratch` 是仓库本体」这个错误模型上），新增 §3.20 当前施工计划占位；§四、§十一 中“dev worktree”的旧说法按活动仓库本体纠正。
 - **2026-09-12 V1.11**：§3.20 落成——七项已核实前提、S0–S5 施工步骤与逐步判据、逐步回退面、三条开放决定；步骤编号与 §3.19 的 P0/P1/P2 显式脱钩。其中 S0（清 magit 卡死钩子、退 `gwp-dev`）与 S3（先修 `accept.sh` 的 `user-emacs-directory` 断言）是实测发现的必做前置。
 - **2026-09-12 V1.12**：§3.20 追加**执行记录（S0–S4）**——搬迁、建 daily、隔离验收、yadm 交还与门牌切换均已执行并附判据证据（`accept.sh` 18 项全绿、eln 计数不变、worktree 零新增）；新增“现场发现”三条（emacsclient wrapper 会弹窗/起实例、启动就绪 30–90s、陈旧 socket 文件）；开放决定 2 标已完成，1／3 仍待用户裁决。`accept.sh` 同步修改：`user-emacs-directory` 断言改用 `expand-file-name`。
+- **2026-09-12 V1.13**：S5 执行完毕并留痕——`daemon-reload`；GitHub 备份按分支归属落定（30 库 `master` + tag `gwp30-frozen-20260912`；31 库 `dev`／`daily`）；开放决定 1 标已完成，规则上移到区域框架 §三.4（每条线只拥有自己职责所需的分支名）。
