@@ -72,8 +72,8 @@ init.el
 |---|---|---|
 | 编译 | `emacs -Q --batch` 把改动文件 `batch-byte-compile` 到 `/tmp` | 语法与编译告警 |
 | snippet | 隔离副本删掉 `.yas-compiled-snippets.el` → batch 展开 → 与正文逐字比对（清单 F 段已自动化） | 展开静默损坏、反引号/字段被求值 |
-| 体验清单 | `~/Incoming/checklist.sh`（隔离实例 + socket `gwp-check`，54 条二值 + 5 观察，顺带列启动日志错误） | 装配、落点、snippet、rime 谓词、gptel、magit、vterm 模块 |
-| 运行实例 | `~/Incoming/accept.sh gwp gwp`（15 项落点 + socket 名 + 版本 + 日志零错误 + 配置树零新增） | 日用实况 |
+| 体验清单 | `tools/checklist.sh`（隔离实例 + socket `gwp-check`，54 条二值 + 5 观察，顺带列启动日志错误） | 装配、落点、snippet、rime 谓词、gptel、magit、vterm 模块 |
+| 运行实例 | `tools/accept.sh gwp gwp`（15 项落点 + socket 名 + 版本 + 日志零错误 + 配置树零新增） | 日用实况 |
 | 手点 | 中文输入、`M-x vterm`、org 附件左窗、snippet 补全、界面一眼 | batch 测不到的交互 |
 
 ## 隐性知识
