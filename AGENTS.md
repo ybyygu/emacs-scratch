@@ -1,14 +1,14 @@
-# 个人 Emacs 配置 — 31 线仓库宪法
+# 个人 Emacs 配置 — 仓库宪法
 
-> 版本：V2.0 ｜ 更新：2026-09-12 ｜ 创建：2026-09-10
-> 角色：31 线仓库的宪法与 AI 协作入口 ｜ 给接手这份配置的 AI，以及未来的自己
-> 关联：**区域级**地图（三处载体、发布纪律、路径与回退）在 [../AGENTS.md](../AGENTS.md)——pi 会自动加载父目录那份，本文件不重复 ｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md) ｜ [PORT-EMACS31.md](PORT-EMACS31.md)
+> 版本：V2.1 ｜ 更新：2026-09-12 ｜ 创建：2026-09-10
+> 角色：本仓库的宪法与 AI 协作入口——管的是「默认轨 + 开发轨」那份配置代码 ｜ 给接手这份配置的 AI，以及未来的自己
+> 关联：**区域级**地图（三条轨、发布纪律、路径与回退）在 [../AGENTS.md](../AGENTS.md)——pi 会自动加载父目录那份，本文件不重复 ｜ [../docs/registry.md](../docs/registry.md)（现状：版本、二进制、socket）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md) ｜ [PORT-EMACS31.md](PORT-EMACS31.md)
 
 ## 职责三要素
 
-- **做什么**：维护这份日常在用的 Emacs 配置（31 线；两处载体 `emacs-daily` 日用、`emacs-dev` 开发），验收底线是"正在使用的功能不退化"。
-- **不做什么**：不动冻结的 30 保底轨、不在 `emacs-daily` 上做开发、不重构、不清点或删除用途未确认的文件、不统一包管理器、不引入没人要的工具链与流程。
-- **谁消费我**：接手 31 线的 AI（先 [../AGENTS.md](../AGENTS.md) → 本文件 → [user-lisp/AGENTS.md](user-lisp/AGENTS.md)）；人工协作者按需查阅。
+- **做什么**：维护这份日常在用的 Emacs 配置（两个载体：`emacs-daily` 默认轨、`emacs-dev` 开发轨），验收底线是"正在使用的功能不退化"。
+- **不做什么**：不动冻结的保底轨、不在 `emacs-daily` 上做开发、不重构、不清点或删除用途未确认的文件、不统一包管理器、不引入没人要的工具链与流程。
+- **谁消费我**：接手这份配置的 AI（先 [../AGENTS.md](../AGENTS.md) → 本文件 → [user-lisp/AGENTS.md](user-lisp/AGENTS.md)）；人工协作者按需查阅。
 
 ## 协作方式
 
@@ -19,19 +19,19 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 | 对象 | 状态 |
 |---|---|
 | `early-init.el`、`init.el`、`user-lisp/*.el`、`snippets/` | **唯一真源**，可直接修改（`early-init.el` 定死状态与缓存落点，`init.el` 是装配入口，实现在 `user-lisp/`） |
-| 本仓库的三个 worktree | `emacs-dev/`（`dev`，**改动只在这里**）、`emacs-daily/`（`daily`，日用快照，只接受 fast-forward）、`gwp-scratch/`（仓库本体 + 冻结的 30 保底配置） |
+| 本仓库的三个 worktree | `emacs-dev/`（`dev`，**改动只在这里**）、`emacs-daily/`（`daily`，日用快照，只接受 fast-forward）、`gwp-scratch/`（仓库本体 ＋ 冻结的保底轨配置） |
 | `~/.config/emacs` | 指向 `emacs-daily` 的**符号链接**：门牌，不是真源；在里面手改等于改 daily |
 | `elpa/`、`straight/`、`eln-cache/`、运行态 | **已不在仓库里**：包树与缓存落 `~/.cache/emacs[-dev]/`，运行态落 `~/.local/state/emacs[-dev]/`（由 `early-init.el` 定死，路径表见 [../AGENTS.md](../AGENTS.md)） |
 | `gwp-scratch.note`、`gwp-scratch.note_archive` | **不属于本项目**。旧的 literate 源码，已停用：不读、不写、不比对、不回收 |
-| 保底轨目录里的 `pkg/`、`a.el`、`orca.el`、`start-eaf.sh`、`run.sh`、`test.json`、`ai-20250217.note`、`data/`、`ltximg/` | 30 保底轨的遗留物：原地保留，31 线不处理 |
+| 保底轨目录里的 `pkg/`、`a.el`、`orca.el`、`start-eaf.sh`、`run.sh`、`test.json`、`ai-20250217.note`、`data/`、`ltximg/` | 保底轨的遗留物：原地保留，本仓库不处理 |
 
 ## 载体与加载拓扑
 
-区域级地图（三处载体、socket、发布与回退）在 [../AGENTS.md](../AGENTS.md)。本文件只记与代码有关的部分：
+区域级地图（三条轨、socket、发布与回退）在 [../AGENTS.md](../AGENTS.md)。本文件只记与代码有关的部分；**版本号（系统 Emacs、解包树、socket 名）是会浮动的现状，登记在 [../docs/registry.md](../docs/registry.md)，本文件不写**。
 
-- 31 线的两处载体是**同一分支的不同提交**：`emacs-dev/`（`dev`，演化）与 `emacs-daily/`（`daily`，发布快照）；`~/.config/emacs` 只是后者的符号链接。
-- 30 保底轨跑的是另一个目录（`gwp-scratch/`）里的**冻结老配置**（没有 `early-init.el`），不在本文件范围内；要动它先读 [../gwp-scratch/AGENTS.md](../gwp-scratch/AGENTS.md)。
-- 加载链（31 线两处共用这一份代码）：
+- 本仓库的两处载体是**同一分支的不同提交**：`emacs-dev/`（`dev`，演化）与 `emacs-daily/`（`daily`，发布快照）；`~/.config/emacs` 只是后者的符号链接。
+- 保底轨跑的是另一个目录（`gwp-scratch/`）里的**冻结老配置**（没有 `early-init.el`），不在本文件范围内；要动它先读 [../gwp-scratch/AGENTS.md](../gwp-scratch/AGENTS.md)。
+- 加载链（两处载体共用这一份代码）：
 
 ```
 init.el
@@ -43,7 +43,7 @@ init.el
   └─ init-develop → init-completion → init-chemistry → init-bindings（必须最后）
 ```
 
-`early-init.el` 比 `init.el` 更早：定死 `package-user-dir`／`straight-base-dir`／eln 目录表／各运行态文件／`server-name`，并关掉 31 的 `user-lisp-auto-scrape`（否则 `.elc` 与 autoloads 会写进源码目录、还会打乱加载顺序，见 [PORT-EMACS31.md](PORT-EMACS31.md) §3.7）。`init-no-x-flag` 为 t（无 X / 远程终端）时，跳过 `init-org`、`init-note`，且不自动安装包。
+`early-init.el` 比 `init.el` 更早：定死 `package-user-dir`／`straight-base-dir`／eln 目录表／各运行态文件／`server-name`，并关掉 `user-lisp-auto-scrape`（新版 Emacs 新增的 user-lisp 自动处理：否则 `.elc` 与 autoloads 会写进源码目录、还会打乱加载顺序，见 [PORT-EMACS31.md](PORT-EMACS31.md) §3.7）。`init-no-x-flag` 为 t（无 X / 远程终端）时，跳过 `init-org`、`init-note`，且不自动安装包。
 
 ## snippets 约定
 
@@ -85,7 +85,7 @@ init.el
 - **改动只在重启后生效**：daemon 里跑的是旧版本代码 —— learnings #4
 - **输入法行为分三层，改之前先定位**：RIME 数据目录 / emacs-rime 的 predicate / 跑的是哪份配置 —— learnings #5
 - **升级包之后 vterm / rime 打不开**：原生模块不在包内容里，升级后要在**新包目录**里重编 —— learnings #6
-- **不要在源码目录留 `.elc`**：同名 `.elc` 会被优先加载，遮蔽真源（31 的 `user-lisp-auto-scrape` 会主动往里写，必须关） —— learnings #7
+- **不要在源码目录留 `.elc`**：同名 `.elc` 会被优先加载，遮蔽真源（`user-lisp-auto-scrape` 开着时会主动往里写，本配置已关） —— learnings #7
 - **仓库位于同步区内**：`~/Install` 由 syncthing 共享，运行态入库会引发跨机冲突（现已由 `early-init.el` 移出仓库） —— learnings #8
 - **密钥与外部数据在仓库外**：密钥在 `~/Install/configs/llms/*.txt`，别写进 `.el` —— learnings #9
 - **state 目录里的 custom.el 可能缺 cookie**：它在按机器的 state 目录里，每台机器各犯一次 —— learnings #10
@@ -95,9 +95,10 @@ init.el
 
 | 文档 | 职责 | AI 何时读 |
 |---|---|---|
-| `AGENTS.md`（本文件） | 31 线仓库宪法：边界、载体与加载链、约定、验证、隐性知识速查 | 进入仓库即读 |
-| [../AGENTS.md](../AGENTS.md) | **区域宪法**：三处载体、发布纪律、路径与回退、遗留物声明 | 涉及发布、回退、搬迁、其它轨时 |
+| `AGENTS.md`（本文件） | 仓库宪法：边界、载体与加载链、约定、验证、隐性知识速查 | 进入仓库即读 |
+| [../AGENTS.md](../AGENTS.md) | **区域宪法**：三条轨、发布纪律、路径与回退、遗留物声明 | 涉及发布、回退、搬迁、其它轨时 |
+| [../docs/registry.md](../docs/registry.md) | **现状登记处**：版本、二进制、socket、启动器与桌面项 | 换版本、改入口、核对"现在跑的是哪个" |
 | [user-lisp/AGENTS.md](user-lisp/AGENTS.md) | 模块地图、加载依赖、目录级局部陷阱 | 改 `user-lisp/` 下模块前 |
 | [docs/learnings.md](docs/learnings.md) | **代码级经验库正本**：Emacs 行为、batch 盲区、snippet 缓存、原生模块… | 排查同类问题前、新经验写入时 |
 | [../docs/learnings.md](../docs/learnings.md) | **区域级经验库正本**：所有权、门牌、发布方向、同步区 | 做发布/回退/搬迁前后 |
-| [PORT-EMACS31.md](PORT-EMACS31.md) | **过程档案**：31 移植与本区域架构变更的决议、证据、施工与回退 | 动结构前；回查"当时为什么这么定" |
+| [PORT-EMACS31.md](PORT-EMACS31.md) | **过程档案**：本区域的版本迁移与架构变更（决议、证据、施工、回退） | 动结构前；回查"当时为什么这么定" |
