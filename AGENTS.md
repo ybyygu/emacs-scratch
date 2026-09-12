@@ -100,6 +100,12 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 - **真相**：① RIME 数据目录 `~/.local/share/fcitx5/rime/`（**在仓库外**，fcitx5 与 emacs-rime 共用，改完要重新部署）；② emacs-rime 的 predicate 与按键（`user-lisp/init-ui.el`，决定“何时自动切英文”）；③ 跑的是哪份配置：`~/.emacs-profiles.el` 的 profile + `gwp` socket daemon（当前由 `~/.config/autostart/emacs.desktop` → systemd `app-emacs@autostart.service` 拉起）。该 RIME 方案的 `ascii_mode` 只有“中文”一个状态，所以 Emacs 里感受到的“自动中英文切换”实际由 ② 决定。
 - **错误后果**：去 RIME 侧改 `switch_key` 想解决 Emacs 里的行为；或改完 `.el` 忘了重启 daemon，以为没生效。
 
+### 升级包之后 vterm / rime 打不开
+
+- **现象**：`M-x vterm` 弹 `Vterm needs 'vterm-module' to work. Compile it now?`（batch 里变成 `end-of-file during reading stdin`，清单 V-01 会红）；或中文输入起不来。
+- **真相**：`vterm-module.so`、`librime-emacs.so` 是**机器本地编译产物，不在包内容里** —— 包一升级，版本目录换新，模块就留在了旧目录里。重编要在**新版包目录**里做：`mkdir -p build && cd build && cmake -G 'Unix Makefiles' -DUSE_SYSTEM_LIBVTERM=ON .. && make`（系统有 `libvterm` 与头文件，不联网，产物落在包根）；rime 走它自己的 `make lib`。
+- **错误后果**：把"包升级弄坏了配置"当真去翻 `.el`；或者清理旧版本目录时，把还没重编的那份模块一起删了。dev 轨与日用轨的包树各有一份模块，**升级后各自都要重编**。
+
 ### 不要在源码目录留 `.elc`
 
 - **现象**：编辑 `.el` 后行为仍是旧的。

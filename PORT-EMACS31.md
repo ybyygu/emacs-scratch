@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.4 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1、2 完成；演化轨 31 单轨、清单 batch 全绿；日用轨 2026-09-12 那场"基本没法用"已止血修好（见 3.12）——剩 5 条手点项（§6.1）与切换**
+> 版本：V1.5 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 全部完成（清单 54 ✅ / 0 ❌ / 5 ⓘ；§6.1 五条手点项经用户逐项确认通过）；演化轨 31 单轨、包树已清扫并在 31 下升级、eln 已预热；日用轨全程冻结未触碰——剩待办 4（切换准备）、5、6**
 > 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
 > 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
 
@@ -133,6 +133,74 @@
 
 **对迁移的意义**：这是"chemacs + 目录即身份"的又一个结构性缺陷 —— 只要 `~/.emacs.d` 里躺着包，它们就永久参与 `load-path`，且**优先级高于**真正的配置目录。落到 `~/.config/emacs` + 显式 state/cache 之后，这类"影子包树"从机制上消失。
 
+### 3.13 演化轨包树：化石清扫 + 在 31 下升级（2026-09-12 执行，日用轨零接触）
+
+**判据先踩过一坑**：判断"哪个版本在生效"必须用 **`load-path` 的先后顺序**（即 `locate-library` 的落点），**不能**用 `package-alist` 里 `package-desc-dir` 给的"主版本"——两者可以不一致（`peg` 在日用树里实测命中的是最老的 `peg-1.0`）。修正判据后实测：63 个多版本包里，只有 `compat` 的 elpa 副本全部惰性，其余**生效版本 = 版本号最大者**，所以"删旧留新"安全。
+
+**清扫**（先做快照 `~/.cache/emacs-dev-elpa-snapshot-20260912-0939.tar`，75 MB，`tar -x` 即还原）：顶层 205 个目录 → **132**，82 MB → 49 MB。删除清单共 102 项（其中 2 项与僵尸组重叠计数）：70 个僵尸旧版本目录 + 5 个"内置接替"副本（eglot / seq / lua-mode / compat 两个旧版）+ `archives/org`（2022-12 的陈旧归档，早已不在 `package-archives` 里）+ 26 个 `.signed` 签名文件；折合**净删 73 个顶层包目录 + 26 个文件**（`archives/org` 不是顶层目录，compat 两版与僵尸组重复）。删前三道断言：僵尸无一在 load-path；在 load-path 里被删的只有 `eglot`/`lua-mode` 两个**有意**退给内置的；内置确实有对应 `.el`。
+
+**影子包定案**（判据是 `locate-library` 实测谁胜出，不是名字撞车）：
+
+| 包 | 31.1 内置 | elpa 版 | 实测胜出 | 处置 |
+|---|---|---|---|---|
+| `eglot` | **1.24.31** | 1.9（2022-10） | **elpa 老版** | 删 —— 真隐患：一旦调用就拿到四年前的代码 |
+| `lua-mode` | 31.1 已并入（FSF 2025–2026 版权） | 20250310 | elpa | 删（内置那份更新） |
+| `seq` | 2.24 | 2.24（同版） | 内置 | 删（纯冗余） |
+| `compat` | **31.1.9999**（stub） | 28 / 29 / 30 三版 | 内置 | 三版全删 |
+| `peg` | 1.0.1 | 1.0 / 1.0.1 / 1.0.2 | elpa | 留 1.0.2，删两个旧版 |
+| `bind-key` | 2.4.1 | 两个日期版 | elpa | 留新版 |
+| `transient` | 0.13.3 | 0.13.8 | elpa 新版 | **保留**（magit 要 ≥0.13） |
+
+`compat` 有个值得知道的机制：31 自带的是 **stub**，用 `(push '(compat 31 1 9999) package--builtin-versions)` 把内置版标成 9999 —— 故意让内置永远压过外置，好让别的包不再下载 compat。机制生效（elpa 三版根本没进 load-path），但**已装过的目录仍占地**。
+
+**在 31 下升级**：只升"配置声明闭包内"的 44 个包（**44/44 成功**）；闭包外 17 个**故意跳过**——它们过半是下一轮清扫候选（`ivy`/`counsel`/`swiper`/`yaml-mode`/`typst-preview`/`ess`/`doom-modeline-now-playing`…），给要删的东西下新版本与"先清扫后更新"的次序自相矛盾。straight 侧 6 个包仓库与远端 `ls-remote` **全部同步**，无需拉取。
+
+**一处偏离预告（记账）**：`compat-30.1.0.1` 也被删了。原计划保留最新那版，但"僵尸"规则对 `compat` 的判定是"生效目录为空"，于是三版一并归入。后果为零（内置 stub 一直胜出）。
+
+### 3.14 升级暴露的两处真故障（都已修）
+
+升级不是"换新就完了"——它会把两类旧伤揭开。
+
+1. **`vterm` 的原生模块丢失**（**清单 V-01 自己抓到的**，不是人眼发现）：`vterm-module.so` **不在 MELPA 包内容里**，包目录一换新就没了，于是 `(require 'vterm)` 弹 "Compile it now?"，batch 下直接 `end-of-file`。补编：`cd <vterm 包目录> && mkdir -p build && cd build && cmake -G 'Unix Makefiles' -DUSE_SYSTEM_LIBVTERM=ON .. && make`（系统有 `libvterm 0.3.3` + 头文件，不需要联网；`CMakeLists.txt` 默认就用系统库，找不到才去 GitHub 下）。**结论：升级任何带原生模块的包之后必须重编模块。**
+2. **`bm` 在 `kill-emacs-hook` 报 `wrong-type-argument listp \...`**：真因不在 bm，在 **state 文件**——`bm-repository` 列表尾部混着一个**名字叫 `...` 的符号**。那是历史上某次在 `print-length` 被绑成小值时存盘，截断标记被当成元素写进了文件（当年被截断的那条记录已不可追回）。旧版 `bm-repository-remove` 用 `(when (assoc key …))` 短路、从不遍历全表，所以安静了多年；新版改用 `(cl-remove key repo :key #'car)` **无条件遍历全部元素**，`(car '...)` 立刻炸 → 每次存盘必炸。修法：剔除非列表元素后用 bm 自己的 `bm-repository-save` 重写（备份 `bm-repository.pre-repair-20260912-094639`），`equal` 深度比对与逐条书签数**零差异**。
+   教训：**新老交替时，"实现更严格的版本"会把潜藏的数据损坏翻出来**；宽松的旧实现会把损坏藏住。
+
+### 3.15 2026-09-12 09:49 那次崩溃：退出时编译在飞（用户决定不上报上游）
+
+现象：用户退出 dev 实例时 KDE 弹崩溃框。**崩的不是他的会话**，而是一个异步原生编译子进程（`emacs -no-comp-spawn -Q --batch -l /tmp/emacs-async-comp-org-noter-core-*.el`，正在编译刚升级的 `org-noter`），SIGABRT，core 留在 `/var/lib/systemd/coredump/`。用户的 state 全部正常落盘（`bm-repository`/`history`/`recentf`/`tramp`/`transient`）。
+
+栈（二进制带完整符号表，逐帧可读）：`main → … → eval_sub → exec_byte_code → garbage_collect → sweep_vectors`，随后 `deliver_fatal_signal → terminate_due_to_signal → Fkill_emacs → safe_run_hooks → org-persist-gc → org-persist--gc-orphan-p → org-persist--write-elisp-file → Fwrite_region → Flock_file → lock_file → xsignal0 → signal_or_quit → emacs_abort`。
+
+读法：**主因是 GC 扫向量时遭遇致命信号（内存故障类）**；org-persist 是被卷入**紧急退出流程**的倒霉蛋——Emacs 已在 fatal 路径上，此时内部再想抛一个普通 Lisp 错误已经不允许，于是转成硬 abort。**这也解释了最反直觉的一点**：`org-persist--gc-orphan-p` 里明明有 `(ignore-errors …)`，为什么没兜住——**`emacs_abort` 不是 Lisp 错误，`ignore-errors` 捕不到**。
+
+把握等级：机制（谁调谁、为何 abort）**高**；致命信号的确切成因**中**（只见落在 `sweep_vectors`，疑似 Emacs 31.1 的 bug；同命令手工重跑**不崩**，不可复现）；**用户决定不上报上游**。
+
+**直接诱因与处置**：崩溃前提是"**退出时有一批 JIT 编译在飞**"——本轮升级 44 个包天然制造了这个场地。处置：清掉 13 个 0 字节 `.eln.tmp` 残留，再做**受控预热**——对升级过的 45 个包目录调 `native-compile-async`，**等编译池（`comp-async-compilations`）排空再退出**（上次缺的就是这一步；该函数只编"源文件比 eln 新"的，不会重复劳动）。结果：`eln-cache/31.1-*/` 的 `.eln` 由 261 → **460**，残留 `.tmp` 归零，无新崩溃，清单复跑全绿。待办 5 的"全量 native 编译"仍未做（本轮只覆盖升级过的那批）。
+
+### 3.16 `~/.emacs.d/elpa` 又复活的机制，与验证过的配方
+
+§九/§十都写着"不让 `~/.emacs.d/elpa` 再次出现"，但它 2026-09-12 09:40 又出现了一次（只含 `gnupg/`）。真因实测：
+
+```
+-Q 下 package-user-dir      = ~/.emacs.d/elpa
+-Q 下 package-gnupghome-dir = ~/.emacs.d/elpa/gnupg
+只改 package-user-dir 之后     = ~/.emacs.d/elpa/gnupg   ← 不跟着变
+```
+
+`package-gnupghome-dir` 在 **`package.el` 加载时**就算定了，之后的 `(setq package-user-dir …)` 改不动它。所以：**任何 `-Q` 式批处理，只要走到 GPG 验签（`package-refresh-contents` / 安装），就会把那个目录复活**——哪怕它把 `package-user-dir` 指到了别处。正确写法是两个变量一起设（或让 `package-user-dir` 在 `require 'package` **之前**就位）：
+
+```elisp
+(require 'package)
+(setq package-user-dir      "<cache>/elpa/"
+      package-gnupghome-dir (expand-file-name "gnupg/" package-user-dir))
+```
+
+**阳性试验**（真跑一次刷新归档，触发验签）：gnupg 家建到指定位置、`~/.emacs.d/elpa` 不出现 ✅。两条轨的**配置本身都没这毛病**（dev 的 `early-init.el` 在 `package.el` 加载前就设好了 `package-user-dir`；日用轨靠 chemacs 默认路径）——踩坑的只有临时批处理脚本。
+
+清理（用户点头后执行）：先停那个**失联的孤儿 gpg-agent**（PID 1419888，9 月 10 日起，socket 早随被移走的目录消失）；目录**停靠**到 `~/.emacs.d/_moved-accidents/elpa-recreated-20260912/`（内容仅 3 个公钥文件，无价值）；复核未复活、两处 gnupg 完好、日用 daemon 存活。
+
+**迁移后的验收要点**：`<新家>/elpa`（即 `~/.config/emacs/elpa`）应**不存在**；gnupg 要落在 `~/.cache/emacs/elpa/gnupg`。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
@@ -140,7 +208,7 @@
 | `~/Incoming/emacs-dev/` | 配置的**独立克隆**，branch `dev`；remote `stable`=旧库、`github`=私有库（**提升前不推**）。树里只有代码 |
 | `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。**默认就是解包的 31.1**（本轨以新为准，没有版本开关）；`--system` 跑系统装的那份；`--socket NAME` 已有 dev 实例时另起一个。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`（不允许被 env 覆盖，也拒绝 `gwp`）；31.1 的 `--dump-file` 自动取 |
 | `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本固定 31 + **启动日志错误全列** + 仓库零新增文件） |
-| `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、53 条二值断言 + 4 条观察项，顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
+| `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、59 条（54 条二值断言 + 5 条观察项），顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
 | `~/Incoming/emacs-31.1/` | 从 pacman 缓存解包的 `emacs-wayland-31.1-1`（282MB，未安装） |
 | `~/Incoming/emacs-pkg-snapshots/2026-09-11/` | `elpa-30.2-baseline.tgz` + `manifest-30.2.txt`（205 包 + 3 个 straight 仓库） |
 
@@ -153,6 +221,8 @@
 - 稳定轨日用实例（socket `gwp`、`~/.emacs.d` + chemacs 入口）全程未触碰。
 - **2026-09-12（31 单轨收敛后）**：`checklist.sh` 在 31.1 上跑出 **53 ✅ / 0 ❌ / 4 ⓘ**（观察项：`org-default-notes-file` 指向不存在的 `~/org/life.note`、`corfu-terminal` 在 31 上已不必加载、`ol-gnus` 的 batch 提示、4 个 user-lisp 文件缺 lexical-binding cookie），启动日志**零错误行**；`accept.sh --defaults` 全绿；31.1 daemon + `accept.sh` 全绿（版本断言已固定 31）。
 - 同日：magit／transient／`static-when` 三条哨兵在 31 上全绿——即 3.11 那两条历史报错在 31 侧不存在。
+- **2026-09-12（包树作业后）**：`checklist.sh` 收在 **54 ✅ / 0 ❌ / 5 ⓘ**，启动日志零错误，退出码 0。这是包树经历"清扫 + 升级 44 包 + eln 预热"三轮之后的复跑结果。
+- **同日，日用轨未触碰的证据**：`git status` 已跟踪文件 0 处改动；`elpa/` 仍 205 目录 / 82 MB / 63 个多版本包（连 `eglot-20221020.1010` 都原样留着）。
 
 ## 五、状态映射表（已落进 `early-init.el`）
 
@@ -171,14 +241,18 @@
 |---|---|---|---|
 | 1 | 施工面写 `early-init.el`；`init.el` 补 `lexical-binding` cookie、去掉它自己的 `(setq custom-file …)`；启动器与 `early-init.el` 共用同一份定义 | 30.2 与 31.1 各跑一次：state/cache 真落到新家；`git status` 显示施工面**零新增文件**；`server-name` = `gwp` | ✅ 2026-09-12（两版 daemon + 两版有 X 全量 init；`accept.sh` 全绿；`accept.sh --defaults` 验默认值） |
 | 2 | 把"新克隆跑不起来"的根补进 git：4 个 `user-lisp/*.el` 符号链接、`site-lisp/org-zotero` | 干净克隆后能起，无 `site-lisp` 目录错误 | ✅ 2026-09-12（`/tmp/fresh-clone` 实测能起；`site-lisp/treesit-jump/` 故意不并入：上游仓库、无人引用） |
-| 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | 🟡 **batch 部分 ✅ 2026-09-12**（`checklist.sh`：53 ✅ / 0 ❌ / 4 ⓘ，日志零错误）；**剩 5 条手点项，见 §6.1** |
+| 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | ✅ 2026-09-12（`checklist.sh` 收在 **54 ✅ / 0 ❌ / 5 ⓘ**，日志零错误；§6.1 的 5 条手点项经用户逐项确认**全部通过**。包树作业后再跑一次仍全绿） |
 | 4 | 切换准备：备份 `~/.emacs.d`、`~/.emacs-profiles.el`、`~/.local/bin/emacs` → 快照目录；**从批准的 git 提交做干净 checkout 到 `~/.config/emacs`**（不是 `mv` 整个工作树——旧树里有 elpa/straight/eln-cache/history/recentf/legacy 目录，搬过去等于把要清理的东西原样带进新家）；把当前仓库内的运行态拷进 `~/.local/state/emacs/`；旧路径留 README 指向新家（**其他机器还没迁移完之前，不要删同步区的旧目录**） | 备份可解包复原；`emacs` 裸命令直接起新配置；新家目录里只有代码；旧路径只剩 README | ⏳ |
 | 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | ⏳ |
 | 6 | 提升路径：`dev` → push `github` → 用户点头 → 稳定库 `git merge --ff-only` → 重启 → 跑清单 | 提升前后 `git log` 线性；不满意可 `git reset --hard <tag>` | ⏳ 拓扑已修好（见 3.10 与决议 11），可按原计划做 |
 
-### 6.1 手点清单（5 条，等 ybyygu 点）
+### 6.1 手点清单（5 条，2026-09-12 已全部通过）
 
 前置：起一个 **GUI 的 dev 实例**（`~/Incoming/dev-emacs`，socket `gwp-dev`，31.1；不动日用），你在那扇窗里点；出问题当场取现场状态。
+
+**结果（用户逐项确认）**：① 中文输入 ✓ ② 附件目录左窗 ✓ ③ snippet 补全与正文一致 ✓ ④ vterm ✓ ⑤ 界面一眼 ✓ —— 五条全过，待办 3 收口。
+
+⚠️ 这五条是在**包升级之前**点的。升级后交互项未重验，由**待办 5**（“复跑清单，含 rime/vterm 真实交互”）覆盖。
 
 1. **中文输入**：`C-SPC`（或 `s-SPC`）开 rime → 打「测试中文」→ 再打 `abc-` 之后继续打字，应回到中文（谓词 batch 已验，这条验真实按键链）。
 2. **附件目录左窗**：任一 org heading 上 `C-c C-a`（或 `C-c C-o` 开一个目录链接）→ 目录应开在**左侧满高**窗口并拿到焦点；顺眼看宽度是否顺眼。
@@ -186,13 +260,13 @@
 4. **vterm**：`M-x vterm` 开终端，跑 `ls` / `top`（31 下尤其要验：模块是新编的）。
 5. **界面一眼**：字体、主题、缩放、modeline、启动画面是否与今天一致。
 
-## 七、尚未裁决的开放决策（不阻塞待办 3，但挡在待办 5 之前）
+## 七、尚未裁决的开放决策（挡在待办 4/5 之前）
 
 | 决策 | 现状 | 为何要定 |
 |---|---|---|
-| **包策略**：冻结已验证集合，还是继续跟 MELPA 最新 | 未裁决；`~/Incoming/emacs-pkg-snapshots/2026-09-11/manifest-30.2.txt` 只是施工快照，不是正式输入 | 换机器/重建包树时，"跟新"会悄悄漂移；"冻结"要求一份写进仓库的清单（package.el 包版本 + straight 仓库 commit）。当前启动的联网边界是：归档刷新确实只在显式命令里，但**缺件会联网 bootstrap**（见 3.9） |
-| **双管理器**：一棵树里 package.el 与 straight 并存（205 个 elpa 包 + 几个 straight 包），同一包可能有两份（典型：`transient` 有 elpa 0.12.0 与 straight 0.13.8；`compat` 曾有 elpa 31.0.0.2 与 straight 2025-06 老货 —— 后者已咬过我们一次，见 3.11/3.12） | 未裁决；当前靠 load-path 顺序（straight 的构建目录在前）决定谁胜，`early-init.el` 现已显式置 `package-enable-at-startup nil` 消掉 straight 的告警 | 31 之后可以简化：31 **内置** transient 0.13.3，若把 elpa 与 straight 的 transient 都退役，同名包冲突面就小一块。"哪个管理器管哪些包"应由这条决策一次说清（straight 目前只用于 GitHub 直装的少数包） |
-| **化石包清理**：如 `highlight`（无人 `require`）、`names`、以及 53 个多版本包 | 未动（`AGENTS.md` 不许擅自清点） | 待办 5 要全量 native 编译，化石会一起被编译、浪费启动与排错精力 |
+| **包策略**：冻结已验证集合，还是继续跟 MELPA 最新 | 未裁决；`~/Incoming/emacs-pkg-snapshots/2026-09-11/manifest-30.2.txt` 只是施工快照，不是正式输入。**演化轨闭包内 44 个包已升到 2026-09-11 前后**（见 3.13） | 换机器/重建包树时，"跟新"会悄悄漂移；"冻结"要求一份写进仓库的清单（package.el 包版本 + straight 仓库 commit）。当前启动的联网边界是：归档刷新确实只在显式命令里，但**缺件会联网 bootstrap**（见 3.9） |
+| **双管理器**：一棵树里 package.el 与 straight 并存，同一包可能有两份（典型：`transient` 有 elpa 0.13.8 与 straight 的 0.13.8；`compat` 曾有 elpa 与 straight 两份 —— 后者已咬过我们一次，见 3.11/3.12） | 未裁决；当前靠 load-path 顺序决定谁胜，`early-init.el` 已显式置 `package-enable-at-startup nil` 消掉 straight 的告警。2026-09-12 实测：演化轨 straight 侧 6 个仓库与远端**全部同步**；`repos/magit` 虽被克隆却**未被构建**（生效的是 elpa 那份）；elpa 与内置同名的 7 个包已定案 6 个（见 3.13），只剩 `transient`（内置 0.13.3 < elpa 0.13.8，有意保留） | 31 之后可以简化：31 **内置** transient 0.13.3，若哪天 magit 不再要 ≥0.13，这份外置也能退役。"哪个管理器管哪些包"应由这条决策一次说清（straight 目前只用于 GitHub 直装的少数包） |
+| **化石包清理**：如 `highlight`（无人 `require`）、`names`、以及 53 个多版本包 | **演化轨 2026-09-12 已做一轮**（见 3.13：205→132 目录、僵尸与 `.signed` 清零、6 个影子包定案）；日用轨仍 205 目录 / 63 个多版本包，**按用户要求冻结不动** | 剩下的是 **53 个孤儿包**（配置不声明、也不在已声明包的依赖闭包内），其中 40 个连 `custom.el` 之外零提及。判据已备一半：孤儿必须靠**源码级 `require` 引用**分级（`pdf-tools`/`djvu`/`tablist` 被 org-noter 的 modules 用、`ht`/`ov`/`ts` 被 org-super-agenda 与 org-ql 用，这类绝不能删）；本轮把名单里 17 个可升级的孤儿**故意跳过**未升 |
 | **其他机器**：各自跑什么版本、路径是否一致、绝对路径的符号链接是否都解得开 | 未知（缓存目录名不能作证据，见 3.1） | 每台机器都要重编模块、重建包树；协调成本还没算过 |
 
 ## 八、回退面
@@ -201,7 +275,8 @@
 - 系统 Emacs：`pacman -U /var/cache/pacman/pkg/emacs-wayland-30.2-3-x86_64.pkg.tar.zst`；
 - 包树：`tar -xzf ~/Incoming/emacs-pkg-snapshots/2026-09-11/elpa-30.2-baseline.tgz`；
 - 整套回今天：解包 `~/.emacs.d` 那份备份 + 恢复 `~/.emacs-profiles.el` 与 wrapper；
-- 演化轨环境（`~/.cache/emacs-dev`、`~/.local/state/emacs-dev`）删掉即干净，日用从未依赖。
+- 演化轨环境（`~/.cache/emacs-dev`、`~/.local/state/emacs-dev`）删掉即干净，日用从未依赖；
+- 演化轨**包树**回滚点：`~/.cache/emacs-dev-elpa-snapshot-20260912-0939.tar`（75 MB，清扫前的 205 目录原状，`cd ~/.cache/emacs-dev && tar -xf <该文件>` 即还原）。注意它是**清扫前**状态，不含之后的 44 个包升级。
 
 ## 九、已知旧账
 
@@ -211,7 +286,9 @@
 4. `custom.el` 与 `init-ui.el` 的 faces 有重复（Custom UI 写的盖住了配置）；
 5. `AGENTS.md` 里"入口 wrapper 由 yadm 管理"与实测不符——yadm 三个都没纳管；
 6. `~/.emacs-profiles.el` 里 `default` 与 `gwp` 指向同一目录，纯冗余（随 chemacs 一起退役）；
-7. `user-lisp/zotero.so` 是机器本地编译产物（`emacs-zotero.el` 用 `condition-case` 包着 `require`，缺了不致命）——将来该进 `~/.cache`，不该进 git。
+7. `user-lisp/zotero.so` 是机器本地编译产物（`emacs-zotero.el` 用 `condition-case` 包着 `require`，缺了不致命）——将来该进 `~/.cache`，不该进 git；
+8. `~/.emacs.d/elpa` 于 2026-09-12 09:40 **又复活过一次**（只含 `gnupg/`）——机制与配方见 3.16，已停靠到 `_moved-accidents/elpa-recreated-20260912/` 并停掉那个失联的 gpg-agent；
+9. `~/.emacs.d/` 下还有两个非 chemacs 的残留：`eln-cache/`、`transient/`（都不属常态路径，待裁决收不收）。
 
 ## 十、不要做的事
 
@@ -222,7 +299,10 @@
 - 不用"整目录 copy/mv 工作树"做提升或搬家（丢 diff、丢历史、把 legacy 与运行态一起带过去）；
 - 不重推"chemacs 是否值得"（已裁决：退役）；
 - 不让 31 的 `user-lisp-auto-scrape` 重新打开（会把 `.elc` 写进仓库并打乱加载顺序，见 3.7）；
-- 不让演化轨与稳定轨共用同一棵包树/同一个 state（见决议 10）。
+- 不让演化轨与稳定轨共用同一棵包树/同一个 state（见决议 10）；
+- **不在批处理/脚本里"先 `require 'package` 后 `setq package-user-dir`"**——那会复活旧路径（`package-gnupghome-dir` 不跟着变，见 3.16）；两个变量一起设，或让 `package-user-dir` 在 require 之前就位；
+- **升级带原生模块的包（`vterm`、`rime`）之后必须重编模块**，否则要等到下次开终端/输中文才爆（见 3.14）；清单 V-01 是这条的哨兵；
+- **不在"异步原生编译还在跑"时退出实例**——那是 3.15 那次崩溃的场地；包大改之后先做一次受控预热（等 `comp-async-compilations` 排空再退）。
 
 ## 十一、新会话怎么接着干
 
@@ -238,3 +318,4 @@
 - **2026-09-12 V1.2**：按一轮整体复核订正——①决议 10 改为"环境按轨隔离"（原 V1.1 让两轨共用包树，会在待办 5 重编模块时弄坏日用），②新增决议 11 与证据 3.10（提升路径的分支拓扑，cherry-pick 方案被证伪，已按"文档走 master + dev rebase"修好并验证可 ff），③3.4 用实测替换"模块必然失效"的推断（rime 模块两版都能加载调用、版本也一致；只差真实交互），④3.9 补 eshell 不自建目录、启动联网的真实边界、`.eln` 名字含路径哈希，⑤待办 4 明确"干净 checkout 而非 mv 工作树"并加上"其他机器迁移前不删旧目录"，⑥旧账 1 标记已修，⑦`accept.sh` 增加 `--defaults` 模式与启动日志错误全列，⑧新增"尚未裁决的开放决策"一节（包策略、化石包、其他机器）。
 - **2026-09-12 V1.4**：新增证据 3.12 —— 日用轨那场"基本没法用"的真实原因（`~/.emacs.d/elpa` 里上一轮误装的包因 chemacs 切目录晚于启动期包激活而永久参与 load-path，压住了仓库包；叠上 straight 树停在 2025-06/08）与修复记录（park 误装目录、straight 更新 compat/transient 及其依赖 cond-let/llama、补 highlight autoloads、干净探针验证全绿、回退点）；§九 增加"不让 `~/.emacs.d/elpa` 再次出现"。
   - 同日后续（同一版内继续记）：4 个自写 user-lisp 模式补 `lexical-binding` cookie（dev `ce03c27`）；把启动路径上以源码加载的 11 个包补上 `.elc`（特意用 30.2 编，避免给"先切配置后装 31"那段埋雷）；`custom.el` 补 cookie（31 的 Customize 自己会写）；`early-init.el` 显式 `package-enable-at-startup nil` 消掉 straight 的 `Warning (straight)`（dev `b023f87`），启动日志的 cookie 告警归零；清单 wrapper 增加"告警汇总（只列不判失败）"一段，避免这类告警再被漏掉；§7 新增"双管理器"决策行。
+- **2026-09-12 V1.5**：①新增证据 **3.13**（演化轨包树：判据修正、清扫账目、影子包逐个定案、闭包内外分流升级）、**3.14**（升级暴露的两处真故障：vterm 原生模块、bm 状态文件里的截断标记）、**3.15**（09:49 那次崩溃的完整链条与"退出时编译在飞"这一前提、受控预热做法、用户决定不上报上游）、**3.16**（`~/.emacs.d/elpa` 复活机制、验证过的两变量配方、清理与迁移后验收要点）；②待办 3 收口（清单 **54 ✅ / 0 ❌ / 5 ⓘ**；§6.1 五条手点用户逐项确认通过）；③§4 施工面与 §4.1 验收记录更新（清单条数、本轮复跑、日用轨未触碰的证据）；④§七"包策略/双管理器/化石包清理"三行按实测更新；⑤§九加两条旧账（`~/.emacs.d/elpa` 复活、`~/.emacs.d` 残留）、§十加三条禁做项（脚本包路径、原生模块重编、退出时编译在飞）。
