@@ -64,6 +64,13 @@
       auto-save-list-file-prefix  (expand-file-name "auto-save-list/.saves-" gwp-state-dir))
 
 ;;; 启动期行为
+;; 异步 native 编译跑在干净环境里，会稳定地报一批“上游忘了 require”的编译期告警
+;; （例如 org-download 的 url-handler-file-remote-p、dired-collapse 的 dired-omit-regexp
+;; ——两个函数在 30/31 里都在，运行时路径也会先加载对应库）。默认 t 会弹 *Warnings*，
+;; 把启动画面弄脏；'silent 仍然记录（*Messages*，错误也一样），只是不弹窗——
+;; 验收清单读的是日志，所以信号不丢。
+(setq native-comp-async-report-warnings-errors 'silent)
+
 ;; 包激活由 init.el 显式 `(package-initialize)` 负责，不走 Emacs 启动末的那次自动激活。
 ;; 这一行只为把意图写明并消掉 straight 的告警：straight 在它自己引导时看到
 ;; “package.el 已加载 + package-enable-at-startup 仍为 t” 就会发 Warning (straight)，
