@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.2 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1、2 完成并验收；环境按轨隔离已落地；下一步是体验清单（第 3 项）**
+> 版本：V1.3 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1、2 完成；演化轨收敛到 31 单轨；体验清单 batch 部分全绿（53 ✅ / 0 ❌）——剩 5 条手点项（§6.1）等你点**
 > 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
 > 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
 
@@ -19,10 +19,11 @@
 | 5 | 状态按机器（XDG），配置按 git | 见第五节映射表；配置审计第 1 条（状态出同步区）的落实 |
 | 6 | 双轨：`~/Incoming/emacs-dev` 施工 → 验证 → 提升；用**独立克隆**而非 worktree | worktree 会把 dev 书签写进同步区 `.git/worktrees/`，跨机变坏引用 |
 | 7 | 31 先用**解包的 31.1** 跑施工面，系统包留到最后一步 | 零系统风险；回退弹药在 pacman 缓存 |
-| 8 | 保持 30.2 兼容 | 其他机器 + 回退面都需要 |
+| 8 | ~~保持 30.2 兼容~~ → **已由决议 12 取代**：不再把"能在 30.2 上跑"当判据 | 用户 2026-09-12：dev 要新，兼容不是它的目标 |
 | 9 | 演化轨用 Emacs 自带的 `--init-directory` 起 | 标准机制；`-Q` 会关掉 `init-file-user`，反而测不到真实启动路径（31 的 user-lisp 自动处理只在真实启动下发生，见 3.7） |
 | 10 | **环境按轨隔离**：演化轨用 `~/.cache/emacs-dev/` + `~/.local/state/emacs-dev/`；`early-init.el` 的默认值仍是生产那套 XDG 路径 | 待办 5 要给 31 重编 rime/vterm 的 `.so`，那些文件就写在包目录里——两轨共用一棵树，等于"给 31 重编"顺手弄坏日用 30.2。隔离后两轨只在"提升"那一刻交割快照 |
 | 11 | 文档提交走稳定库 `master`；实现提交走 `dev`；`master` 一前进就 `dev rebase`；**`dev` 在提升前不推远端** | 这样 `merge --ff-only` 永远成立（实测：cherry-pick 文档进 dev 不能让 master 成为祖先，见 3.10） |
+| 12 | **演化轨以新为准**：`dev-emacs` 默认解包的 31.1（没有版本开关，`--system` 才跑系统那份）；脚本与清单都按单版本（31）写；配置不再为 30.2 让步 | 用户 2026-09-12 原话"dev 要新，兼容不是它的目标"；且 30.2 侧已开始被生态拖住（见 3.11） |
 
 ## 三、已取得的证据（不要重做）
 
@@ -92,13 +93,32 @@
 
 稳定库 `master` 上有只动文档的提交，`dev` 从更早的点分出。实测结论：**把文档提交 cherry-pick 进 `dev` 并不能让 `master` 成为 `dev` 的祖先**（哈希不同），`merge --ff-only` 仍不成立。可行做法（已落地）：文档提交留在 `master`，实现提交留在 `dev`，`master` 一前进就把 `dev` rebase 上去（`dev` 在提升前不推远端，所以 rebase 无代价）。2026-09-12 已按此法修好，`git merge-base --is-ancestor stable/master dev` 通过。
 
+### 3.11 30.2 侧已开始被生态拖住（2026-09-12 实测，决议 12 的依据）
+
+用户从 Plasma 起日用实例时报两条错：
+
+- `⛔ Emergency (magit)`：`Magit requires ‘transient’ >= 0.13 …`——文案出自 **`magit-section`** 的 `magit--core-upgrade-instructions`，是 `display-warning` 的 `:emergency` 级（**不致命**，magit 本体仍能起）；
+- `Error (use-package): magit-todos/:catch: Symbol's function definition is void: static-when`——真断掉的是 **magit-todos** 的配置。
+
+根因是一条：**日用轨的 straight 树是去年的老货**（跨机同步的化石），而 elpa 里的 magit 是 2026-01 的新货，straight 的构建目录在 `load-path` 里排在前面：
+
+| 项 | 日用轨（30.2） | 演化轨（31.1） |
+|---|---|---|
+| straight `repos/transient` | `aa32e0d` **2025-08-01** → 构建出 **0.9.4** | `03c8ccc` 2026-09-09 → **0.13.8** |
+| straight `repos/compat` | `97f24af` **2025-06-20** → **不含 `static-when`** | `d931c9d` 2026-09-10 → 有 |
+| 实测加载到的 transient | straight 的 0.9.4（`locate-library` 指向 `straight/build/`） | straight 的 0.13.8 |
+| 31.1 内置件 | —— | transient **0.13.3**（≥0.13）；`subr.el` **内置 `static-when`** |
+
+结论：**31 上这两条错由构造消失**（内置件就够，且演化轨的 straight 树是新的）。日用轨的修法（**未执行，需用户点头**）：**A** 在日用实例里 `M-x straight-pull-all` + `straight-rebuild-all`（只牵动 3 个 straight 包，但包树在同步区、会传给其他机器）；**B** 不修，等切换（期间 magit-todos 不可用、magit 每次启动带一条 ⛔）；**C** 走 elpa 路线（要改稳定轨配置，最不划算）。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
 |---|---|
 | `~/Incoming/emacs-dev/` | 配置的**独立克隆**，branch `dev`；remote `stable`=旧库、`github`=私有库（**提升前不推**）。树里只有代码 |
-| `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。`dev-emacs` = 系统 30.2；`dev-emacs --31` = 解包版 31.1（自动带 `--dump-file`）。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`；已有 dev 实例在跑时用 `--socket gwp-dev2` 另起 |
-| `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--expect-31] [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本 + **启动日志错误全列** + 仓库零新增文件） |
+| `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。**默认就是解包的 31.1**（本轨以新为准，没有版本开关）；`--system` 跑系统装的那份；`--socket NAME` 已有 dev 实例时另起一个。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`（不允许被 env 覆盖，也拒绝 `gwp`）；31.1 的 `--dump-file` 自动取 |
+| `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本固定 31 + **启动日志错误全列** + 仓库零新增文件） |
+| `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、53 条二值断言 + 4 条观察项，顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
 | `~/Incoming/emacs-31.1/` | 从 pacman 缓存解包的 `emacs-wayland-31.1-1`（282MB，未安装） |
 | `~/Incoming/emacs-pkg-snapshots/2026-09-11/` | `elpa-30.2-baseline.tgz` + `manifest-30.2.txt`（205 包 + 3 个 straight 仓库） |
 
@@ -109,6 +129,8 @@
 - 干净克隆能起（符号链接随克隆复原、克隆内零新增文件）；
 - 旧账 1（`highlight` 缺 autoloads）已在演化轨修好（`package-generate-autoloads` 补文件），启动日志因此干净；
 - 稳定轨日用实例（socket `gwp`、`~/.emacs.d` + chemacs 入口）全程未触碰。
+- **2026-09-12（31 单轨收敛后）**：`checklist.sh` 在 31.1 上跑出 **53 ✅ / 0 ❌ / 4 ⓘ**（观察项：`org-default-notes-file` 指向不存在的 `~/org/life.note`、`corfu-terminal` 在 31 上已不必加载、`ol-gnus` 的 batch 提示、4 个 user-lisp 文件缺 lexical-binding cookie），启动日志**零错误行**；`accept.sh --defaults` 全绿；31.1 daemon + `accept.sh` 全绿（版本断言已固定 31）。
+- 同日：magit／transient／`static-when` 三条哨兵在 31 上全绿——即 3.11 那两条历史报错在 31 侧不存在。
 
 ## 五、状态映射表（已落进 `early-init.el`）
 
@@ -127,10 +149,20 @@
 |---|---|---|---|
 | 1 | 施工面写 `early-init.el`；`init.el` 补 `lexical-binding` cookie、去掉它自己的 `(setq custom-file …)`；启动器与 `early-init.el` 共用同一份定义 | 30.2 与 31.1 各跑一次：state/cache 真落到新家；`git status` 显示施工面**零新增文件**；`server-name` = `gwp` | ✅ 2026-09-12（两版 daemon + 两版有 X 全量 init；`accept.sh` 全绿；`accept.sh --defaults` 验默认值） |
 | 2 | 把"新克隆跑不起来"的根补进 git：4 个 `user-lisp/*.el` 符号链接、`site-lisp/org-zotero` | 干净克隆后能起，无 `site-lisp` 目录错误 | ✅ 2026-09-12（`/tmp/fresh-clone` 实测能起；`site-lisp/treesit-jump/` 故意不并入：上游仓库、无人引用） |
-| 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | ⏳ **下一步**（注意：符号链接指向的绝对路径在三台机器上是否都存在，只有在别的机器上才能真验——先在文档里记成"待其他机器确认"） |
+| 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | 🟡 **batch 部分 ✅ 2026-09-12**（`checklist.sh`：53 ✅ / 0 ❌ / 4 ⓘ，日志零错误）；**剩 5 条手点项，见 §6.1** |
 | 4 | 切换准备：备份 `~/.emacs.d`、`~/.emacs-profiles.el`、`~/.local/bin/emacs` → 快照目录；**从批准的 git 提交做干净 checkout 到 `~/.config/emacs`**（不是 `mv` 整个工作树——旧树里有 elpa/straight/eln-cache/history/recentf/legacy 目录，搬过去等于把要清理的东西原样带进新家）；把当前仓库内的运行态拷进 `~/.local/state/emacs/`；旧路径留 README 指向新家（**其他机器还没迁移完之前，不要删同步区的旧目录**） | 备份可解包复原；`emacs` 裸命令直接起新配置；新家目录里只有代码；旧路径只剩 README | ⏳ |
 | 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | ⏳ |
 | 6 | 提升路径：`dev` → push `github` → 用户点头 → 稳定库 `git merge --ff-only` → 重启 → 跑清单 | 提升前后 `git log` 线性；不满意可 `git reset --hard <tag>` | ⏳ 拓扑已修好（见 3.10 与决议 11），可按原计划做 |
+
+### 6.1 手点清单（5 条，等 ybyygu 点）
+
+前置：起一个 **GUI 的 dev 实例**（`~/Incoming/dev-emacs`，socket `gwp-dev`，31.1；不动日用），你在那扇窗里点；出问题当场取现场状态。
+
+1. **中文输入**：`C-SPC`（或 `s-SPC`）开 rime → 打「测试中文」→ 再打 `abc-` 之后继续打字，应回到中文（谓词 batch 已验，这条验真实按键链）。
+2. **附件目录左窗**：任一 org heading 上 `C-c C-a`（或 `C-c C-o` 开一个目录链接）→ 目录应开在**左侧满高**窗口并拿到焦点；顺眼看宽度是否顺眼。
+3. **snippet**：markdown 里敲 `utf8` → 在补全列表里按 `# name:` 选一条 prompt → 看正文与源文件是否一致、光标落点对不对（含 `prompt-高手回复` 这类带 `$0` 的）。
+4. **vterm**：`M-x vterm` 开终端，跑 `ls` / `top`（31 下尤其要验：模块是新编的）。
+5. **界面一眼**：字体、主题、缩放、modeline、启动画面是否与今天一致。
 
 ## 七、尚未裁决的开放决策（不阻塞待办 3，但挡在待办 5 之前）
 
@@ -171,7 +203,7 @@
 ## 十一、新会话怎么接着干
 
 1. 读本文件 + `AGENTS.md` + `user-lisp/AGENTS.md`；
-2. 确认施工面还在（`~/Incoming/emacs-dev`、`~/Incoming/dev-emacs`、`~/Incoming/accept.sh`、`~/Incoming/emacs-31.1`、快照目录）；顺手 `git -C ~/Incoming/emacs-dev fetch stable && git merge-base --is-ancestor stable/master dev`，确认提升路径仍然可 ff；
+2. 确认施工面还在（`~/Incoming/emacs-dev`、`~/Incoming/dev-emacs`、`~/Incoming/accept.sh`、`~/Incoming/checklist.sh`、`~/Incoming/emacs-31.1`、快照目录）；顺手 `git -C ~/Incoming/emacs-dev fetch stable && git merge-base --is-ancestor stable/master dev`，确认提升路径仍然可 ff；
 3. 从"六、待办"里**第一个未完成项**继续，判据照表；做一步就更新本文件的"状态"列；
 4. 需要用户决策的只有：切换时机（第 4/5 步）、体验清单的交互项、第 5 步切系统包。
 
@@ -180,3 +212,4 @@
 - **2026-09-11 建立**：目标、决议、证据、施工面、状态映射、待办与判据、回退面、旧账、禁做项。
 - **2026-09-12 V1.1**：待办 1、2 完成并验收；新增决议 9、10；新增证据 3.7（31 的 user-lisp 自动处理）、3.8（`--dump-file`）、3.9（custom-file 不自动加载等）；施工面表更新；映射表补两项防御性落点。
 - **2026-09-12 V1.2**：按一轮整体复核订正——①决议 10 改为"环境按轨隔离"（原 V1.1 让两轨共用包树，会在待办 5 重编模块时弄坏日用），②新增决议 11 与证据 3.10（提升路径的分支拓扑，cherry-pick 方案被证伪，已按"文档走 master + dev rebase"修好并验证可 ff），③3.4 用实测替换"模块必然失效"的推断（rime 模块两版都能加载调用、版本也一致；只差真实交互），④3.9 补 eshell 不自建目录、启动联网的真实边界、`.eln` 名字含路径哈希，⑤待办 4 明确"干净 checkout 而非 mv 工作树"并加上"其他机器迁移前不删旧目录"，⑥旧账 1 标记已修，⑦`accept.sh` 增加 `--defaults` 模式与启动日志错误全列，⑧新增"尚未裁决的开放决策"一节（包策略、化石包、其他机器）。
+- **2026-09-12 V1.3**：按用户指令"dev 要新，兼容不是它的目标"收敛为 **31 单轨**——①新增决议 12、决议 8 标记被取代，`dev-emacs` 默认 31.1（`--system` 才跑系统那份）、`accept.sh` 去掉 `--expect-31`；②新增证据 3.11（30.2 侧被生态拖住的两条报错与 straight 化石树，及三种修法）；③新增 `~/Incoming/checklist.sh` + `checklist.el`（53 断言 + 4 观察项）并把 batch 部分记为全绿，手点清单落到 §6.1；④施工面表与 4.1 验收记录同步。
