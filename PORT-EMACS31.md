@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.5 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 全部完成（清单 54 ✅ / 0 ❌ / 5 ⓘ；§6.1 五条手点项经用户逐项确认通过）；演化轨 31 单轨、包树已清扫并在 31 下升级、eln 已预热；日用轨全程冻结未触碰——剩待办 4（切换准备）、5、6**
+> 版本：V1.6 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；系统包位已归 31（31.1-2），日用轨改走本地解包 30.2，两轨各自可切换（见 3.17）；演化轨 31 单轨、包树已清扫并在 31 下升级、eln 已预热、清单 54 ✅ / 0 ❌ / 5 ⓘ；剩待办 4（切换准备）、5（收尾部分）、6（提升）**
 > 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
 > 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
 
@@ -18,7 +18,7 @@
 | 4 | socket 名保持 `gwp`；**不改 `server-socket-dir`** | `~/.local/share/applications/gwp-emacsclient.desktop` 按名字找 Emacs；改 socket 目录会让 `emacsclient` 失联 |
 | 5 | 状态按机器（XDG），配置按 git | 见第五节映射表；配置审计第 1 条（状态出同步区）的落实 |
 | 6 | 双轨：`~/Incoming/emacs-dev` 施工 → 验证 → 提升；用**独立克隆**而非 worktree | worktree 会把 dev 书签写进同步区 `.git/worktrees/`，跨机变坏引用 |
-| 7 | 31 先用**解包的 31.1** 跑施工面，系统包留到最后一步 | 零系统风险；回退弹药在 pacman 缓存 |
+| 7 | 31 先用**解包的 31.1** 跑施工面，系统包留到最后一步 | 零系统风险；回退弹药在 pacman 缓存。**2026-09-12 已履约并结束**：用户把系统包升到 31.1-2，解包版退役（见 3.17） |
 | 8 | ~~保持 30.2 兼容~~ → **已由决议 12 取代**：不再把"能在 30.2 上跑"当判据 | 用户 2026-09-12：dev 要新，兼容不是它的目标 |
 | 9 | 演化轨用 Emacs 自带的 `--init-directory` 起 | 标准机制；`-Q` 会关掉 `init-file-user`，反而测不到真实启动路径（31 的 user-lisp 自动处理只在真实启动下发生，见 3.7） |
 | 10 | **环境按轨隔离**：演化轨用 `~/.cache/emacs-dev/` + `~/.local/state/emacs-dev/`；`early-init.el` 的默认值仍是生产那套 XDG 路径 | 待办 5 要给 31 重编 rime/vterm 的 `.so`，那些文件就写在包目录里——两轨共用一棵树，等于"给 31 重编"顺手弄坏日用 30.2。隔离后两轨只在"提升"那一刻交割快照 |
@@ -61,7 +61,7 @@
 ### 3.5 系统与回退弹药
 
 - Arch Linux；`extra/emacs-wayland` 已是 **31.1-2**（当前装的是 `emacs-wayland 30.2-3`）；升级只牵动它自己，依赖全满足；
-- 回退包在缓存：`/var/cache/pacman/pkg/emacs-wayland-30.2-3-x86_64.pkg.tar.zst`，`pacman -U <该文件>`（用户实测 3 分钟）；31.1-1 的包也在。
+- 回退包在缓存：`/var/cache/pacman/pkg/emacs-wayland-30.2-3-x86_64.pkg.tar.zst`，`pacman -U <该文件>`（用户实测 3 分钟）；31.1-1 的包也在。2026-09-12 起系统装的是 **31.1-2**，30.2-3 / 31.1-1 / 31.1-2 三个包都在缓存里。
 
 ### 3.6 日用实例的入口实况
 
@@ -201,6 +201,29 @@
 
 **迁移后的验收要点**：`<新家>/elpa`（即 `~/.config/emacs/elpa`）应**不存在**；gnupg 要落在 `~/.cache/emacs/elpa/gnupg`。
 
+### 3.17 2026-09-12 下半场：系统包位归 31，日用轨转本地 30.2
+
+会话中途用户把系统包升到了 **`emacs-wayland 31.1-2`**（`/usr/bin/emacs` 从此是 31）。这一步让旧家立刻变成危险组合：**31 + chemacs 旧家**（旧家没有 `early-init.el`）会去扫 `user-lisp/`（26 个文件）、把 `.elc` 写进仓库并打乱加载顺序 —— 就是 3.7 那个坑。实测当时**没踩到**（`user-lisp/` 干净；仓库 eln-cache 里没有新的 `31.1-*` 目录）。
+
+**新分工（已落实）**：
+
+| 轨 | 二进制 | 入口 | socket |
+|---|---|---|---|
+| 日用（苟活版，30） | `~/Incoming/emacs-30.2/`（本地解包 30.2-3） | `~/.local/bin/emacs`（yadm 管的 wrapper） | `gwp` |
+| 开发（31） | `/usr/bin/emacs`（系统 31.1-2） | 桌面项「Emacs 31 · 开发版」→ `~/Incoming/dev-emacs-gui` → `dev-emacs` | `gwp-dev` |
+
+**desktop 那个坑（实测，别再踩）**：`~/.config/autostart/emacs.desktop` 写的是 `Exec=emacs %F`，但 systemd 的 xdg-autostart 生成器**在生成时就把 PATH 解析成了绝对路径** —— 实测生成出来的是 `ExecStart=:/usr/bin/emacs`，**绕过了 `~/.local/bin/emacs` 那个 wrapper**。所以想让 Plasma 起别的二进制，**必须把 desktop 的 `Exec=` 写成绝对路径**，改 wrapper 无效。改完 `systemctl --user daemon-reload` 会立刻重生成单元，本会话内也生效。
+
+**wrapper 的跨机回退**：`~/.local/bin/emacs` 由 yadm 管理、三台机器共用，所以本地 30 树缺失时**回退到 `/usr/bin/emacs`** 而不是报错（另两台机器系统还是 30.2，回退正好正确）。代价：本机若删了 `~/Incoming/emacs-30.2`，日用会静默变成 31 → 又踩 3.7。**别删那棵树。**
+
+**三条实测**：
+
+- **零重编**：本地解包 30.2-3 与系统 30.2 算出的 eln 目录同名（`30.2-8d250d40`）；系统 31.1-2 与解包 31.1-1 也同名（`31.1-8806c27d`）。**换二进制不触发 native 重编** —— 目录名只含版本与编译器指纹，与安装路径无关（3.9 早有记载，我一度预测反了）。
+- **跨版本客户端可用**：31.1 的 `emacsclient` 与 30.2 的 server（socket `gwp`）通信正常，`emacsclient` 那条链不用改。
+- **`~/Incoming/emacs-31.1/` 已删除**（282MB）：系统包位归 31 后它失去理由；功能引用只有 `dev-emacs`（已改为直接用系统包，`--system`/`--31` 保留为无意义参数）。可重建：`emacs-wayland-31.1-1` 的包仍在 pacman 缓存。
+
+**验证**：清单在系统 31.1-2 上跑 **54 ✅ / 0 ❌ / 5 ⓘ**（退出码 0）；日用实例经 chemacs 加载正常（`user-emacs-directory` 指仓库、`server-name` = `gwp`）。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
@@ -209,7 +232,7 @@
 | `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。**默认就是解包的 31.1**（本轨以新为准，没有版本开关）；`--system` 跑系统装的那份；`--socket NAME` 已有 dev 实例时另起一个。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`（不允许被 env 覆盖，也拒绝 `gwp`）；31.1 的 `--dump-file` 自动取 |
 | `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本固定 31 + **启动日志错误全列** + 仓库零新增文件） |
 | `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、59 条（54 条二值断言 + 5 条观察项），顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
-| `~/Incoming/emacs-31.1/` | 从 pacman 缓存解包的 `emacs-wayland-31.1-1`（282MB，未安装） |
+| `~/Incoming/emacs-30.2/` | **日用轨的二进制来源**：从 pacman 缓存解包的 `emacs-wayland-30.2-3`（284MB，未安装）。入口是 yadm 管的 `~/.local/bin/emacs`（带跨机回退）。原来的 `~/Incoming/emacs-31.1/` 已于 2026-09-12 删除，见 3.17 |
 | `~/Incoming/emacs-pkg-snapshots/2026-09-11/` | `elpa-30.2-baseline.tgz` + `manifest-30.2.txt`（205 包 + 3 个 straight 仓库） |
 
 ### 4.1 2026-09-12 的验收记录
@@ -243,7 +266,7 @@
 | 2 | 把"新克隆跑不起来"的根补进 git：4 个 `user-lisp/*.el` 符号链接、`site-lisp/org-zotero` | 干净克隆后能起，无 `site-lisp` 目录错误 | ✅ 2026-09-12（`/tmp/fresh-clone` 实测能起；`site-lisp/treesit-jump/` 故意不并入：上游仓库、无人引用） |
 | 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | ✅ 2026-09-12（`checklist.sh` 收在 **54 ✅ / 0 ❌ / 5 ⓘ**，日志零错误；§6.1 的 5 条手点项经用户逐项确认**全部通过**。包树作业后再跑一次仍全绿） |
 | 4 | 切换准备：备份 `~/.emacs.d`、`~/.emacs-profiles.el`、`~/.local/bin/emacs` → 快照目录；**从批准的 git 提交做干净 checkout 到 `~/.config/emacs`**（不是 `mv` 整个工作树——旧树里有 elpa/straight/eln-cache/history/recentf/legacy 目录，搬过去等于把要清理的东西原样带进新家）；把当前仓库内的运行态拷进 `~/.local/state/emacs/`；旧路径留 README 指向新家（**其他机器还没迁移完之前，不要删同步区的旧目录**） | 备份可解包复原；`emacs` 裸命令直接起新配置；新家目录里只有代码；旧路径只剩 README | ⏳ |
-| 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | ⏳ |
+| 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | 🟡 **2026-09-12 大部分完成**：用户已升系统包到 31.1-2、日用转本地 30.2、`dev-emacs` 改用系统包、解包树退役（见 3.17）；清单在 31.1-2 上全绿。剩“全量 native 编译留日志”（只做了升级过的那批的受控预热） |
 | 6 | 提升路径：`dev` → push `github` → 用户点头 → 稳定库 `git merge --ff-only` → 重启 → 跑清单 | 提升前后 `git log` 线性；不满意可 `git reset --hard <tag>` | ⏳ 拓扑已修好（见 3.10 与决议 11），可按原计划做 |
 
 ### 6.1 手点清单（5 条，2026-09-12 已全部通过）
@@ -272,7 +295,7 @@
 ## 八、回退面
 
 - 配置：`git reset --hard <tag>`（提升前打 tag）；
-- 系统 Emacs：`pacman -U /var/cache/pacman/pkg/emacs-wayland-30.2-3-x86_64.pkg.tar.zst`；
+- 系统 Emacs：`pacman -U /var/cache/pacman/pkg/emacs-wayland-30.2-3-x86_64.pkg.tar.zst`（2026-09-12 后日用轨已不依赖系统包，这条只剩“整体退回全系统 30.2”的用途）；日用入口的回退点在 yadm 的 `~/.local/bin/emacs`，本地 30 树删了可从缓存重解；
 - 包树：`tar -xzf ~/Incoming/emacs-pkg-snapshots/2026-09-11/elpa-30.2-baseline.tgz`；
 - 整套回今天：解包 `~/.emacs.d` 那份备份 + 恢复 `~/.emacs-profiles.el` 与 wrapper；
 - 演化轨环境（`~/.cache/emacs-dev`、`~/.local/state/emacs-dev`）删掉即干净，日用从未依赖；
@@ -307,9 +330,9 @@
 ## 十一、新会话怎么接着干
 
 1. 读本文件 + `AGENTS.md` + `user-lisp/AGENTS.md`；
-2. 确认施工面还在（`~/Incoming/emacs-dev`、`~/Incoming/dev-emacs`、`~/Incoming/accept.sh`、`~/Incoming/checklist.sh`、`~/Incoming/emacs-31.1`、快照目录）；顺手 `git -C ~/Incoming/emacs-dev fetch stable && git merge-base --is-ancestor stable/master dev`，确认提升路径仍然可 ff；
+2. 确认施工面还在（`~/Incoming/emacs-dev`、`~/Incoming/dev-emacs`、`~/Incoming/dev-emacs-gui`、`~/Incoming/emacs-30.2`、`~/Incoming/accept.sh`、`~/Incoming/checklist.sh`、快照目录；桌面项 `~/.local/share/applications/emacs-31dev.desktop`）；顺手 `git -C ~/Incoming/emacs-dev fetch stable && git merge-base --is-ancestor stable/master dev`，确认提升路径仍然可 ff；
 3. 从"六、待办"里**第一个未完成项**继续，判据照表；做一步就更新本文件的"状态"列；
-4. 需要用户决策的只有：切换时机（第 4/5 步）、体验清单的交互项、第 5 步切系统包。
+4. 需要用户决策的只有：切换时机（第 4/5 步）、体验清单的交互项、以及 §七 那几个开放决策。
 
 ## 更新记录
 
@@ -319,3 +342,4 @@
 - **2026-09-12 V1.4**：新增证据 3.12 —— 日用轨那场"基本没法用"的真实原因（`~/.emacs.d/elpa` 里上一轮误装的包因 chemacs 切目录晚于启动期包激活而永久参与 load-path，压住了仓库包；叠上 straight 树停在 2025-06/08）与修复记录（park 误装目录、straight 更新 compat/transient 及其依赖 cond-let/llama、补 highlight autoloads、干净探针验证全绿、回退点）；§九 增加"不让 `~/.emacs.d/elpa` 再次出现"。
   - 同日后续（同一版内继续记）：4 个自写 user-lisp 模式补 `lexical-binding` cookie（dev `ce03c27`）；把启动路径上以源码加载的 11 个包补上 `.elc`（特意用 30.2 编，避免给"先切配置后装 31"那段埋雷）；`custom.el` 补 cookie（31 的 Customize 自己会写）；`early-init.el` 显式 `package-enable-at-startup nil` 消掉 straight 的 `Warning (straight)`（dev `b023f87`），启动日志的 cookie 告警归零；清单 wrapper 增加"告警汇总（只列不判失败）"一段，避免这类告警再被漏掉；§7 新增"双管理器"决策行。
 - **2026-09-12 V1.5**：①新增证据 **3.13**（演化轨包树：判据修正、清扫账目、影子包逐个定案、闭包内外分流升级）、**3.14**（升级暴露的两处真故障：vterm 原生模块、bm 状态文件里的截断标记）、**3.15**（09:49 那次崩溃的完整链条与"退出时编译在飞"这一前提、受控预热做法、用户决定不上报上游）、**3.16**（`~/.emacs.d/elpa` 复活机制、验证过的两变量配方、清理与迁移后验收要点）；②待办 3 收口（清单 **54 ✅ / 0 ❌ / 5 ⓘ**；§6.1 五条手点用户逐项确认通过）；③§4 施工面与 §4.1 验收记录更新（清单条数、本轮复跑、日用轨未触碰的证据）；④§七"包策略/双管理器/化石包清理"三行按实测更新；⑤§九加两条旧账（`~/.emacs.d/elpa` 复活、`~/.emacs.d` 残留）、§十加三条禁做项（脚本包路径、原生模块重编、退出时编译在飞）。
+- **2026-09-12 V1.6**：新增证据 **3.17** —— 系统包位归 31（用户升到 31.1-2）后的新分工：日用轨改走本地解包 30.2、开发轨用系统包、两轨各自可点图标启动；记下三条硬事实（desktop 那条链被 systemd 生成器解析成绝对路径，改 wrapper 无效；wrapper 的跨机回退与"别删本地 30 树"；换二进制不触发 native 重编、跨版本 emacsclient 可用）。同步：决议 7 标记履约结束、§3.5 回退弹药、§4 施工面表、待办 5 状态、§八 回退面、§十一 施工面清单。
