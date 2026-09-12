@@ -64,6 +64,14 @@
       auto-save-list-file-prefix  (expand-file-name "auto-save-list/.saves-" gwp-state-dir))
 
 ;;; 启动期行为
+;; 包激活由 init.el 显式 `(package-initialize)` 负责，不走 Emacs 启动末的那次自动激活。
+;; 这一行只为把意图写明并消掉 straight 的告警：straight 在它自己引导时看到
+;; “package.el 已加载 + package-enable-at-startup 仍为 t” 就会发 Warning (straight)，
+;; 提醒“同一包可能被加载两个版本”——我们需要的就是这个显式顺序（straight 的构建目录
+;; 排在 elpa 前面，后者被前者盖住）。Emacs 31 的 package-initialize 不再自动置 nil，
+;; 所以得在这里说清楚。（双管理器的取舍见 PORT §7。）
+(setq package-enable-at-startup nil)
+
 ;; Emacs 31 新增 User Lisp Directory 特性：配置目录下的 user-lisp/ 会被递归
 ;; byte-compile（.elc 直接写进源码目录）、扫 autoload、并把子目录加进 load-path。
 ;; 这份配置的 user-lisp/ 恰好同名，但它自己管理加载（init.el 加 load-path +
