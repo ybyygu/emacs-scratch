@@ -57,6 +57,7 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 - **包管理**：默认用 `:ensure`（package.el + USTC 镜像，**只此一份**，https）；只有需要 GitHub 直装时才用 `:straight`（当前仅 3 处）。新增依赖不要开辟第三条路。**启动不联网**：归档刷新只在 `M-x gwp::package-refresh-archives`（`user-lisp/init-core.el`）里发生。新机器、或新增 `:ensure` 包后报 “unavailable”，先跑这条命令再重启；`elpa/archives/*/archive-contents` 的 mtime 就是归档新鲜度。
 - **提交**：中文 commit，写清"为什么改、对使用有什么影响"；GitHub `ybyygu/emacs-scratch` 是 private 备份仓库，不 rebase / force-push 已推送历史。
 - **文档回环**：装配结构、模块职责、维护约定变化时，同步本文件与 [user-lisp/AGENTS.md](user-lisp/AGENTS.md)；普通修复不更新文档。
+- **经验落点**：新经验先写正本 [docs/learnings.md](docs/learnings.md)，本文件的「隐性知识」节只同步摘要（条目编号与正本一致）；**目录级**的局部陷阱（只在该目录范围内成立，如 `user-lisp/` 的符号链接与 tangle 注释）留在各自的目录蓝图里，不进根经验库。
 - **验证**：见下节。启动基线尚未采集，首次改动前先记录现状。
 
 ## 验证
@@ -65,69 +66,28 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 |---|---|---|
 | 编译 | `emacs -Q --batch` 把改动文件 `batch-byte-compile` 到 `/tmp` | 语法与编译告警 |
 | snippet | 在隔离副本里删掉 `.yas-compiled-snippets.el`，`emacs -Q --batch` 加载目录并 `yas-expand-snippet`，与正文逐字比对 | 展开静默损坏、反引号/字段被求值 |
-| 装配 | batch 加载 profile `gwp`（注意会触发 `server-start`，见隐性知识） | require 链是否断裂 |
+| 装配 | batch 加载 profile `gwp`（注意会触发 `server-start`，见 learnings #2） | require 链是否断裂 |
 | 目视 | 独立 socket 起一个实例确认，通过后再重启日用 daemon | 交互行为、有 X 的分支 |
 
 ## 隐性知识
 
-### batch 环境测不到 org / note
+> 速查索引：**正本在 [docs/learnings.md](docs/learnings.md)**（条目编号与正本一致）；新经验先改正本，此处只同步摘要。
 
-- **现象**：batch 下加载 `init.el` 一切正常，但改动的 org 配置毫无反应。
-- **真相**：无 X 时 `init-no-x-flag` 为 t，`init-org`、`init-note` 整块被跳过。
-- **错误后果**：把"没测到"当成"没问题"。
-
-### batch 加载会启动 server
-
-- **现象**：`emacs --batch` 加载 `init.el` 时打印 "Starting a server..."。
-- **真相**：`init-core.el` 末尾有 `(unless (server-running-p) (server-start))`。
-- **错误后果**：与日用 daemon 抢 socket；测试需另指定 `server-name`。
-
-### snippet 改了或新增了却不出现
-
-- **现象**：编辑或新增 `snippets/**` 后，`C-.` 的候选列表里还是旧内容，新文件完全不出现。
-- **真相**：目录下若有 `.yas-compiled-snippets.el`，yasnippet 无条件 `load` 它、不比对 mtime；缓存只由 `M-x yas-recompile-all` 生成，不会自动重建；已运行的实例还要 `M-x yas-reload-all` 才会重读目录。
-- **错误后果**：把“缓存陈旧”误判为格式写错、键位不对，或以为编辑没保存。
-
-### 改动只在重启后生效
-
-- **现象**：改完 `.el`，日用 Emacs 里没有变化。
-- **真相**：daemon 已加载旧版本代码。
-- **错误后果**：重复修改或误判失败。
-
-### 输入法行为分三层，改之前先定位
-
-- **现象**：改了“输入法”的设置没效果，或不知道该改哪里。
-- **真相**：① RIME 数据目录 `~/.local/share/fcitx5/rime/`（**在仓库外**，fcitx5 与 emacs-rime 共用，改完要重新部署）；② emacs-rime 的 predicate 与按键（`user-lisp/init-ui.el`，决定“何时自动切英文”）；③ 跑的是哪份配置：`~/.emacs-profiles.el` 的 profile + `gwp` socket daemon（当前由 `~/.config/autostart/emacs.desktop` → systemd `app-emacs@autostart.service` 拉起）。该 RIME 方案的 `ascii_mode` 只有“中文”一个状态，所以 Emacs 里感受到的“自动中英文切换”实际由 ② 决定。
-- **错误后果**：去 RIME 侧改 `switch_key` 想解决 Emacs 里的行为；或改完 `.el` 忘了重启 daemon，以为没生效。
-
-### 升级包之后 vterm / rime 打不开
-
-- **现象**：`M-x vterm` 弹 `Vterm needs 'vterm-module' to work. Compile it now?`（batch 里变成 `end-of-file during reading stdin`，清单 V-01 会红）；或中文输入起不来。
-- **真相**：`vterm-module.so`、`librime-emacs.so` 是**机器本地编译产物，不在包内容里** —— 包一升级，版本目录换新，模块就留在了旧目录里。重编要在**新版包目录**里做：`mkdir -p build && cd build && cmake -G 'Unix Makefiles' -DUSE_SYSTEM_LIBVTERM=ON .. && make`（系统有 `libvterm` 与头文件，不联网，产物落在包根）；rime 走它自己的 `make lib`。
-- **错误后果**：把"包升级弄坏了配置"当真去翻 `.el`；或者清理旧版本目录时，把还没重编的那份模块一起删了。dev 轨与日用轨的包树各有一份模块，**升级后各自都要重编**。
-
-### 不要在源码目录留 `.elc`
-
-- **现象**：编辑 `.el` 后行为仍是旧的。
-- **真相**：同名 `.elc` 会被优先加载（当前仓库内没有任何 `.elc`）。
-- **错误后果**：隐式状态遮蔽真源；编译验证请输出到 `/tmp`。
-
-### 仓库位于同步区内
-
-- **现象**：仓库根出现 `*.sync-conflict-*` 文件（最近一次 2026-01-27）。
-- **真相**：`~/Install` 由 syncthing 共享给 3 台设备，`elpa/`、`eln-cache/`、`history`、`recentf` 等运行态也在其中。
-- **错误后果**：把动态产物写进仓库会引发跨机冲突；清理冲突文件前先确认差异。
-
-### 密钥与外部数据在仓库外
-
-- **现象**：gptel 等配置可用，但仓库里搜不到 key。
-- **真相**：密钥统一放在 `~/Install/configs/llms/*.txt`；仓库根的 `english-words.txt`（370,105 词，已入库）被 `init-completion.el` 当作 ispell 备用词典引用。
-- **错误后果**：误删根目录数据文件会破坏补全；新增密钥不要写进 `.el`。
+- **batch 环境测不到 org / note**：无 X 时 `init-org`/`init-note` 整块被跳过，"没反应"不等于"没问题" —— learnings #1
+- **batch 加载会启动 server**：会与日用 daemon 抢 socket，测试要另指定 `server-name` —— learnings #2
+- **snippet 改了或新增了却不出现**：`.yas-compiled-snippets.el` 缓存被无条件加载、不比对 mtime —— learnings #3
+- **改动只在重启后生效**：daemon 里跑的是旧版本代码 —— learnings #4
+- **输入法行为分三层，改之前先定位**：RIME 数据目录 / emacs-rime 的 predicate / 跑的是哪份配置 —— learnings #5
+- **升级包之后 vterm / rime 打不开**：原生模块不在包内容里，升级后要在**新包目录**里重编 —— learnings #6
+- **不要在源码目录留 `.elc`**：同名 `.elc` 会被优先加载，遮蔽真源 —— learnings #7
+- **仓库位于同步区内**：`~/Install` 由 syncthing 共享，运行态入库会引发跨机冲突 —— learnings #8
+- **密钥与外部数据在仓库外**：密钥在 `~/Install/configs/llms/*.txt`，别写进 `.el` —— learnings #9
 
 ## 索引
 
-| 文档 | 职责 |
-|---|---|
-| `AGENTS.md`（本文件） | 项目宪法：边界、加载拓扑、约定、验证、隐性知识 |
-| [user-lisp/AGENTS.md](user-lisp/AGENTS.md) | 模块地图、加载依赖、目录级隐性知识 |
+| 文档 | 职责 | AI 何时读 |
+|---|---|---|
+| `AGENTS.md`（本文件） | 项目宪法：边界、加载拓扑、约定、验证、隐性知识速查 | 进入项目即读 |
+| [user-lisp/AGENTS.md](user-lisp/AGENTS.md) | 模块地图、加载依赖、目录级局部陷阱 | 改 `user-lisp/` 下模块前 |
+| [docs/learnings.md](docs/learnings.md) | **经验库正本**：会改变后续判断的可迁移规则 | 排查同类问题前、新经验写入时 |
 | [PORT-EMACS31.md](PORT-EMACS31.md) | **进行中的迁移**（Emacs 31 移植 + 搬到 `~/.config/emacs`、chemacs 退役）：决议、证据、施工面、待办与验收判据、回退面。动本目录前先读它 |
