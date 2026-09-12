@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.11 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；31 线改「双 worktree + 符号链接门牌」、`gwp-scratch` 定为冻结的 30 保底轨（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.20 的施工（S0–S5，判据事前冻结，待开窗口执行）**
+> 版本：V1.12 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**S0–S4 已执行（搬迁 + daily worktree + 门牌已换，验收全绿）；剩 §3.20 的 S5 收尾与人工手点五条；GitHub 分支归属待裁决**
 > 角色：本区域的**过程档案与执行计划**——记「当时为什么这么定」（决议来路、证据、施工、验收、回退）。目标与原则的正本在区域层： [../docs/framework.md](../docs/framework.md)（框架）＋ [../AGENTS.md](../AGENTS.md)（入口与纪律）；本文与框架冲突时以框架为准，并回来改本文。
 > 关联：[../AGENTS.md](../AGENTS.md)（区域入口）｜ [../docs/framework.md](../docs/framework.md)（区域框架）｜ [../docs/registry.md](../docs/registry.md)（现状登记处）｜ [AGENTS.md](AGENTS.md)（仓库宪法）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md)
 
@@ -370,12 +370,28 @@ mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
 - GitHub 备份：31 库推 `dev`／`daily`；30 库推 `master` 并打 `gwp30-frozen-20260912`（分支归属见开放决定 1）；
 - 文档回环：`docs/registry.md` 三条轨表按实测回改、区域 `AGENTS.md` 删掉施工窗口行、本文件状态列更新、区域 `docs/learnings.md` 补一条（门牌与 worktree 落地后的实际表现）。
 
+**执行记录（2026-09-12 18:0x–18:3x，S0–S4 已完成）**
+
+| 步 | 结果 | 证据 |
+|---|---|---|
+| S0 | 卡死的 magit 钩子链已清（`kill 2367165 2367164`；提交早已落盘）；用户在 18:19／18:20 自行退掉 `gwp-dev` 与 `gwp`／`gwp-new`，两轨 state 正常落盘，无未保存内容 | `emacsclient -s gwp-dev` 超时 → 链消失；`~/.local/state/emacs[-dev]/auto-save-list/` 清空、`bm-repository`／`recentf` 有退出写入 |
+| S1 | 活动仓库搬到 `emacs-dev/`；`~/Incoming/dev-emacs` 与 `~/Incoming/accept.sh` 的 `DEV=` 改到新路径；`remote remove stable`、`branch -D master`（其提交都在 `dev` 历史里） | 新路径下起 `--socket gwp-dev2 --daemon=gwp-dev2`；`user-emacs-directory` = `…/emacs-dev/`、`package-user-dir` = `~/.cache/emacs-dev/elpa/`、`server-name` = `gwp-dev2`；配置树 `git status` 干净 |
+| S2 | `daily` 分支 = dev tip `a88b4b0`；`emacs-daily` worktree 建在同目录 | `worktree list` 恰两项；两处 `status --porcelain` 空；与旧部署副本之差仅 4 个 `.md` |
+| S3 | 隔离实例（socket `gwp-daily-check`，用绝对 `--init-directory`）验收全绿 | `accept.sh` 18 项全过（落点全在生产 XDG；配置树零新增；无 `elpa/`／`eln-cache/`／`straight/`／`state/`）；eln 计数 821→821 |
+| S4 | yadm 交还所有权（`bd05e33` 移出 127 个索引条目；`0ea1df6` ignore 加 `.config/emacs`）→ 旧副本移到 `~/Incoming/emacs-config-deploy-20260912` → 门牌指向 `emacs-daily` | 门牌下起裸 `emacs --daemon`：`user-emacs-directory` 原始值 `~/.config/emacs/`、`file-truename` = `…/emacs-daily/`；`accept.sh gwp gwp --log …` **全绿且启动日志零错误**；eln 计数仍 821；worktree 零新增 |
+
+**现场发现（都与“怎么调 Emacs”有关，已落到工具与区域经验）**
+
+1. `~/.local/bin/emacsclient` 是 wrapper（`-a emacs -c -s gwp`）：带 `-e` 的探针也会建 frame、缺 server 时还会启动新的 GUI Emacs。本轮因此弹过窗口、留下两次启动崩溃（`/usr/bin/emacs-31.1`，SIGSEGV，systemd 存了两份 15M core）与陈旧 socket 文件。wrapper 已改为“带 `-e`／`--eval` 时不建 frame、不回退启动”。
+2. 这套配置启动后 **server 就绪要 30–90 秒**（本轮实测 9s／35s／75s）；探针要轮询到就绪，单步超时不小于 20s。
+3. 实例退出（含 `kill-emacs`）可能留下陈旧 socket 文件；调用前先判 `[ -S /run/user/1000/emacs/<名> ]`，退出后清理。
+
 **开放决定（未裁决，不得替用户决定）**
 
 | # | 决定 | 现状与建议 |
 |---|---|---|
 | 1 | GitHub 分支归属 | 建议 `master` 归 30 保底（打 tag 冻结）、31 只推 `dev`／`daily`；替代方案是给保底另开一个远端库 |
-| 2 | S4 的时机 | 需要用户在场并退掉 `gwp`／`gwp-new`；可先走完 S0–S3，把 S4 留到有窗口时 |
+| 2 | ~~S4 的时机~~ | ✅ 2026-09-12 已执行（用户当时无 31 实例在跑）；剩下的人工验收是 §6.1 手点五条 |
 | 3 | 旧部署副本保留多久 | 建议留到日常使用数天无异常；删除是不可逆动作，需单独确认 |
 
 ## 四、施工面（我的工作面，日用零接触）
@@ -501,3 +517,4 @@ mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912 && \
 - **2026-09-12 V1.7**：新增证据 **3.18** —— 默认切到 `~/.config/emacs`（加法先行、减法随后，两个 yadm 提交分开以保护另外两台机器）；三处载体定型（日常/开发/保底）；保底通道那两个坑（GUI 下 init 先于 `--eval`；`server-force-delete` 不重置 Lisp 侧状态）。同步：**决议 2 订正**（新家是 yadm 管的**部署产物**，不再是"git 仓库本身"；开发在 dev 改、单向部署过来）、决议 3 标已执行、待办 4 标已由更简单方式完成；`AGENTS.md` 加载拓扑改写为三处载体；`docs/learnings.md` 加第 10 条（state 目录里的 custom.el 缺 cookie，且每台机器各犯一次）。
 - **2026-09-12 V1.9／V1.10**：目标与原则的正本上移到区域层（区域 `docs/framework.md`）；本文件退为**过程档案与执行计划**（头部与 §二 声明，§二 改名「历史决议索引」）；§3.19 施工计划标为已废止（其 P0/P1/P2 建立在「`gwp-scratch` 是仓库本体」这个错误模型上），新增 §3.20 当前施工计划占位；§四、§十一 中“dev worktree”的旧说法按活动仓库本体纠正。
 - **2026-09-12 V1.11**：§3.20 落成——七项已核实前提、S0–S5 施工步骤与逐步判据、逐步回退面、三条开放决定；步骤编号与 §3.19 的 P0/P1/P2 显式脱钩。其中 S0（清 magit 卡死钩子、退 `gwp-dev`）与 S3（先修 `accept.sh` 的 `user-emacs-directory` 断言）是实测发现的必做前置。
+- **2026-09-12 V1.12**：§3.20 追加**执行记录（S0–S4）**——搬迁、建 daily、隔离验收、yadm 交还与门牌切换均已执行并附判据证据（`accept.sh` 18 项全绿、eln 计数不变、worktree 零新增）；新增“现场发现”三条（emacsclient wrapper 会弹窗/起实例、启动就绪 30–90s、陈旧 socket 文件）；开放决定 2 标已完成，1／3 仍待用户裁决。`accept.sh` 同步修改：`user-emacs-directory` 断言改用 `expand-file-name`。
