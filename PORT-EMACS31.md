@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.3 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1、2 完成；演化轨收敛到 31 单轨；体验清单 batch 部分全绿（53 ✅ / 0 ❌）——剩 5 条手点项（§6.1）等你点**
+> 版本：V1.4 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1、2 完成；演化轨 31 单轨、清单 batch 全绿；日用轨 2026-09-12 那场"基本没法用"已止血修好（见 3.12）——剩 5 条手点项（§6.1）与切换**
 > 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
 > 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
 
@@ -111,6 +111,26 @@
 
 结论：**31 上这两条错由构造消失**（内置件就够，且演化轨的 straight 树是新的）。日用轨的修法（**未执行，需用户点头**）：**A** 在日用实例里 `M-x straight-pull-all` + `straight-rebuild-all`（只牵动 3 个 straight 包，但包树在同步区、会传给其他机器）；**B** 不修，等切换（期间 magit-todos 不可用、magit 每次启动带一条 ⛔）；**C** 走 elpa 路线（要改稳定轨配置，最不划算）。
 
+### 3.12 日用轨 2026-09-12 那次"基本没法用"的真实原因与修复（已执行，可回退）
+
+症状（用户报）：从 Plasma 起 Emacs 后被报错刷屏、`M-x` 撞上 —— 截图里是 `*Warnings*` 的 magit/transient 提示 + 回显区 `Error running timer 'auto-revert-buffers': (void-function incf)`。
+
+根因（两条叠加）：
+
+1. **上一轮验证误装的 13 个包住进了 `~/.emacs.d/elpa`，而它们必然会被激活**：Emacs 启动早期会按默认 `user-emacs-directory`（`~/.emacs.d`）先跑一遍包激活，而 chemacs 切目录发生在 `init.el` 里、晚于这一步 —— 于是那 13 个包永久挂在 `load-path` 上、且排在仓库 `elpa` **前面**（实测 13 条；`magit`/`vertico` 都解析到 `~/.emacs.d/elpa/`）。日用实例实际加载的是 **magit 4.7.1**（新代码，`magit-autorevert.el:263` 直接调裸 `(incf ...)`，指望 compat 提供 backport），而 `compat` 解析到的是仓库 straight 里 2025-06 的老货（既无 `incf` 也无 `static-when`）→ 每个 auto-revert 周期一次 `void-function incf`。
+2. 老账：仓库 straight 树停在 2025-06/08（transient 0.9.4、compat 无 `static-when`），而 elpa 的 magit 是 2026-01（要求 transient ≥ 0.13）→ 顶上那条 ⛔ Emergency；magit-todos 要 `static-when` → 起步即断（用户截图里那行）。
+
+修复（2026-09-12，用户点头后执行；只动包树与一个目录，**未改配置**）：
+
+- `~/.emacs.d/elpa` → **`~/.emacs.d/_moved-accidents/elpa`**（回退：mv 回来）。实测：新实例里该目录的 load-path 条目归零、magit/vertico 回落仓库版本、timer 报错归零；顺手摘掉了运行实例里那条坏 advice。
+- straight 更新（在用户正在跑的实例里做）：`compat` → `d931c9d`（31.0.0.2，带 `incf`/`static-when`）、`transient` → `03c8ccc`（0.13.8，新布局 `lisp/transient.el`，构建产物已含 `.elc` + autoloads）；连带新构建 `cond-let` 1.1.4、`llama` 1.0.5 —— 前者必须先把 straight 的 recipe 缓存更新（`straight-pull-recipe-repositories`），否则旧 recipe 里没有 cond-let，会报 `Could not find package cond-let`。回退点：transient `aa32e0d`（v0.9.4）、compat `97f24af`（2025-06-20）。
+- 日用树也补上了 `highlight` 的 autoloads（dev 树上次修过，日用一直缺）。
+- 验证：干净探针实例里 `transient=0.13.8`、`compat=31.0.0.2`、`static-when`/`incf` 均在、`magit`/`magit-section`/`magit-todos` 加载**零警告**、启动日志零错误行、timer 报错 0 次。
+
+**留给其他机器的检查**（同类污染）：`ls ~/.emacs.d/elpa`（有包目录就是同一类事故）；`git -C <仓库>/straight/repos/transient log -1`（还是 `aa32e0d` 就是那棵老树）。
+
+**对迁移的意义**：这是"chemacs + 目录即身份"的又一个结构性缺陷 —— 只要 `~/.emacs.d` 里躺着包，它们就永久参与 `load-path`，且**优先级高于**真正的配置目录。落到 `~/.config/emacs` + 显式 state/cache 之后，这类"影子包树"从机制上消失。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
@@ -194,6 +214,7 @@
 
 - 不动 `server-socket-dir`；不改 systemd/autostart；
 - 不在稳定轨直接改**配置**（一切在施工面）；只动文档可以，但会让 `master` 前进 → **必须顺手 `dev rebase`**；
+- 不让 `~/.emacs.d/elpa` 再次出现（chemacs 的目录切换晚于启动期的包激活，那里躺着的包会永久参与 `load-path` 且优先级更高，见 3.12）；
 - 不在清单通过前升级系统 Emacs；
 - 不用"整目录 copy/mv 工作树"做提升或搬家（丢 diff、丢历史、把 legacy 与运行态一起带过去）；
 - 不重推"chemacs 是否值得"（已裁决：退役）；
@@ -212,4 +233,4 @@
 - **2026-09-11 建立**：目标、决议、证据、施工面、状态映射、待办与判据、回退面、旧账、禁做项。
 - **2026-09-12 V1.1**：待办 1、2 完成并验收；新增决议 9、10；新增证据 3.7（31 的 user-lisp 自动处理）、3.8（`--dump-file`）、3.9（custom-file 不自动加载等）；施工面表更新；映射表补两项防御性落点。
 - **2026-09-12 V1.2**：按一轮整体复核订正——①决议 10 改为"环境按轨隔离"（原 V1.1 让两轨共用包树，会在待办 5 重编模块时弄坏日用），②新增决议 11 与证据 3.10（提升路径的分支拓扑，cherry-pick 方案被证伪，已按"文档走 master + dev rebase"修好并验证可 ff），③3.4 用实测替换"模块必然失效"的推断（rime 模块两版都能加载调用、版本也一致；只差真实交互），④3.9 补 eshell 不自建目录、启动联网的真实边界、`.eln` 名字含路径哈希，⑤待办 4 明确"干净 checkout 而非 mv 工作树"并加上"其他机器迁移前不删旧目录"，⑥旧账 1 标记已修，⑦`accept.sh` 增加 `--defaults` 模式与启动日志错误全列，⑧新增"尚未裁决的开放决策"一节（包策略、化石包、其他机器）。
-- **2026-09-12 V1.3**：按用户指令"dev 要新，兼容不是它的目标"收敛为 **31 单轨**——①新增决议 12、决议 8 标记被取代，`dev-emacs` 默认 31.1（`--system` 才跑系统那份）、`accept.sh` 去掉 `--expect-31`；②新增证据 3.11（30.2 侧被生态拖住的两条报错与 straight 化石树，及三种修法）；③新增 `~/Incoming/checklist.sh` + `checklist.el`（53 断言 + 4 观察项）并把 batch 部分记为全绿，手点清单落到 §6.1；④施工面表与 4.1 验收记录同步。
+- **2026-09-12 V1.4**：新增证据 3.12 —— 日用轨那场"基本没法用"的真实原因（`~/.emacs.d/elpa` 里上一轮误装的包因 chemacs 切目录晚于启动期包激活而永久参与 load-path，压住了仓库包；叠上 straight 树停在 2025-06/08）与修复记录（park 误装目录、straight 更新 compat/transient 及其依赖 cond-let/llama、补 highlight autoloads、干净探针验证全绿、回退点）；§九 增加"不让 `~/.emacs.d/elpa` 再次出现"。
