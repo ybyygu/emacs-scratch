@@ -13,8 +13,8 @@
 | # | 决议 | 依据 |
 |---|---|---|
 | 1 | 目标是"31 下可用"，不是"把包都升了" | 用户原话：`emacs 31 下我的配置可正常用` |
-| 2 | 落点 `~/.config/emacs`，实体目录，就是 git 仓库本身 | XDG 标准；`/usr/bin/emacs` 自动认；用户确认"看着挺舒服" |
-| 3 | chemacs 退役：删 `~/.emacs.d`（stub）、`~/.emacs-profiles.el`、`~/.local/bin/emacs` wrapper | doom 已弃用，chemacs 当初只为它存在；它只切 `user-emacs-directory`，管不了包树/二进制/状态 |
+| 2 | 落点 `~/.config/emacs`。~~实体目录，就是 git 仓库本身~~ → **订正（2026-09-12）**：它是**部署产物**，由 yadm 管理；开发在其源头 `~/Incoming/emacs-dev` 进行，改完再部署过来（单向） | XDG 标准；`/usr/bin/emacs` 自动认（但前提是 `~/.emacs.d` 不存在，见 3.18）；用户确认"看着挺舒服" |
+| 3 | chemacs 退役：删 `~/.emacs.d`（stub）、`~/.emacs-profiles.el`、`~/.local/bin/emacs` wrapper | doom 已弃用，chemacs 当初只为它存在；它只切 `user-emacs-directory`，管不了包树/二进制/状态。**✅ 2026-09-12 已执行**（整目录删，不只是删文件，见 3.18） |
 | 4 | socket 名保持 `gwp`；**不改 `server-socket-dir`** | `~/.local/share/applications/gwp-emacsclient.desktop` 按名字找 Emacs；改 socket 目录会让 `emacsclient` 失联 |
 | 5 | 状态按机器（XDG），配置按 git | 见第五节映射表；配置审计第 1 条（状态出同步区）的落实 |
 | 6 | 双轨：`~/Incoming/emacs-dev` 施工 → 验证 → 提升；用**独立克隆**而非 worktree | worktree 会把 dev 书签写进同步区 `.git/worktrees/`，跨机变坏引用 |
@@ -224,6 +224,37 @@
 
 **验证**：清单在系统 31.1-2 上跑 **54 ✅ / 0 ❌ / 5 ⓘ**（退出码 0）；日用实例经 chemacs 加载正常（`user-emacs-directory` 指仓库、`server-name` = `gwp`）。
 
+### 3.18 2026-09-12 收尾：默认切到新家，三处载体定型
+
+用户要求"默认就要是 31"（不是以后切）—— 于是把原待办 4 换成一个更简单的做法：**加法先行，再做减法**，不分阶段搬运行态。
+
+**加法（yadm `61f4b1c`，127 文件）**
+
+1. **新家**：`git -C ~/Incoming/emacs-dev archive c7772c4 | tar -x -C ~/.config/emacs` —— 用 `git archive` 而不是 copy/mv，天然排除 `.elc`、autoloads 与运行态（实测 122 文件 / 5 符号链接 / 4.8M，零垃圾）
+2. **包树**：从 dev 的 cache 复制 `elpa`（132 目录 / 50M）+ `straight`（218M）；**不搬 eln-cache**（`.eln` 文件名含源路径，搬了也不匹配）
+3. **运行态**：从旧仓拷 `history`/`recentf`/`bookmarks`/`bm-repository`/`custom.el`/`tramp`/`projects`/`.org-id-locations`/`transient/`/`eshell/` → `~/.local/state/emacs/`
+4. **受控预热**：**813 个 `.eln` / 46M，137 秒，池排空、零 `.tmp` 残留、无崩溃**
+
+**减法（yadm `2792183`，7 文件删除）**：`~/.emacs.d`（整目录）、`~/.emacs-profiles.el`、`~/.local/bin/emacs`、`~/.config/autostart/emacs.desktop`（用户确认不用开机自启）。**两个提交分开**，是为了让另外两台机器"先拿到新家、再失去旧家"。
+
+**为什么必须整目录删（源码依据）**：`startup.el` 的 `startup--xdg-or-homedot` 注释原文 —— `Prefer the XDG location only if the .emacs.d location does not exist`，判定就是 `(file-exists-p "~/.emacs.d/")`。只删 `init.el` 会让它选中空壳、起一个**无配置的裸 Emacs**，比不删更糟。
+
+**三处载体（定型）**
+
+| 用途 | 配置目录 | 二进制 | socket | 入口 |
+|---|---|---|---|---|
+| 日常（默认） | `~/.config/emacs`（部署产物，源在 dev） | `/usr/bin/emacs`（31） | `gwp` | 系统默认「Emacs」图标 |
+| 开发 | `~/Incoming/emacs-dev` | 系统 31 | `gwp-dev` | 「Emacs 31 · 开发版」 |
+| 保底（苟活版） | `~/Install/configs/emacs/gwp-scratch` | `~/Incoming/emacs-30.2`（本地解包） | `gwp30` | 「Emacs 30 · 保底」→ `~/Incoming/emacs30-fallback` |
+
+**保底通道的两个坑（实测）**
+
+- 它原先靠 chemacs 的 profile 提供 `server-name`；chemacs 退役后必须由启动脚本给。
+- 但 **GUI 启动时 init 先于 `--eval` 执行**（batch 恰好相反），所以 init-core 的 `(server-start)` 会先用默认名建出 `server` socket；而 `server-force-delete` 只删 socket 文件、不动 Lisp 侧状态，其后的 `server-start` 会直接跳过。**正解**：`server-force-stop` + `server-force-delete` + 改名 + 重启。
+- 结论：**默认与保底必须用不同 socket 名**，否则 `emacsclient` 连到谁全靠运气。
+
+**验证**：裸 `emacs` → 31.1 + `~/.config/emacs/`；清单在新家跑 **53 ✅ / 1 ❌ / 5 ⓘ**（唯一失败是 `Z-01` 的前提不成立 —— 它假设配置树是 git 仓；已改为"非 git 仓时判本次运行无新写文件"）；启动日志零错误。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
@@ -265,7 +296,7 @@
 | 1 | 施工面写 `early-init.el`；`init.el` 补 `lexical-binding` cookie、去掉它自己的 `(setq custom-file …)`；启动器与 `early-init.el` 共用同一份定义 | 30.2 与 31.1 各跑一次：state/cache 真落到新家；`git status` 显示施工面**零新增文件**；`server-name` = `gwp` | ✅ 2026-09-12（两版 daemon + 两版有 X 全量 init；`accept.sh` 全绿；`accept.sh --defaults` 验默认值） |
 | 2 | 把"新克隆跑不起来"的根补进 git：4 个 `user-lisp/*.el` 符号链接、`site-lisp/org-zotero` | 干净克隆后能起，无 `site-lisp` 目录错误 | ✅ 2026-09-12（`/tmp/fresh-clone` 实测能起；`site-lisp/treesit-jump/` 故意不并入：上游仓库、无人引用） |
 | 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | ✅ 2026-09-12（`checklist.sh` 收在 **54 ✅ / 0 ❌ / 5 ⓘ**，日志零错误；§6.1 的 5 条手点项经用户逐项确认**全部通过**。包树作业后再跑一次仍全绿） |
-| 4 | 切换准备：备份 `~/.emacs.d`、`~/.emacs-profiles.el`、`~/.local/bin/emacs` → 快照目录；**从批准的 git 提交做干净 checkout 到 `~/.config/emacs`**（不是 `mv` 整个工作树——旧树里有 elpa/straight/eln-cache/history/recentf/legacy 目录，搬过去等于把要清理的东西原样带进新家）；把当前仓库内的运行态拷进 `~/.local/state/emacs/`；旧路径留 README 指向新家（**其他机器还没迁移完之前，不要删同步区的旧目录**） | 备份可解包复原；`emacs` 裸命令直接起新配置；新家目录里只有代码；旧路径只剩 README | ⏳ |
+| 4 | ~~切换准备：备份…干净 checkout 到 `~/.config/emacs`…旧路径留 README~~ | ~~备份可解包复原；`emacs` 裸命令直接起新配置~~ | ✅ **2026-09-12 已由一种更简单的方式完成**（见 3.18）：新家从 dev 的 `c7772c4` 干净 checkout 后入库 yadm，随后拆掉 chemacs/wrapper/profiles，默认直接落到新家。旧路径未留 README —— 它现在仍有职责（保底通道的配置目录） |
 | 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | 🟡 **2026-09-12 大部分完成**：用户已升系统包到 31.1-2、日用转本地 30.2、`dev-emacs` 改用系统包、解包树退役（见 3.17）；清单在 31.1-2 上全绿。剩“全量 native 编译留日志”（只做了升级过的那批的受控预热） |
 | 6 | 提升路径：`dev` → push `github` → 用户点头 → 稳定库 `git merge --ff-only` → 重启 → 跑清单 | 提升前后 `git log` 线性；不满意可 `git reset --hard <tag>` | ⏳ 拓扑已修好（见 3.10 与决议 11），可按原计划做 |
 
@@ -343,3 +374,4 @@
   - 同日后续（同一版内继续记）：4 个自写 user-lisp 模式补 `lexical-binding` cookie（dev `ce03c27`）；把启动路径上以源码加载的 11 个包补上 `.elc`（特意用 30.2 编，避免给"先切配置后装 31"那段埋雷）；`custom.el` 补 cookie（31 的 Customize 自己会写）；`early-init.el` 显式 `package-enable-at-startup nil` 消掉 straight 的 `Warning (straight)`（dev `b023f87`），启动日志的 cookie 告警归零；清单 wrapper 增加"告警汇总（只列不判失败）"一段，避免这类告警再被漏掉；§7 新增"双管理器"决策行。
 - **2026-09-12 V1.5**：①新增证据 **3.13**（演化轨包树：判据修正、清扫账目、影子包逐个定案、闭包内外分流升级）、**3.14**（升级暴露的两处真故障：vterm 原生模块、bm 状态文件里的截断标记）、**3.15**（09:49 那次崩溃的完整链条与"退出时编译在飞"这一前提、受控预热做法、用户决定不上报上游）、**3.16**（`~/.emacs.d/elpa` 复活机制、验证过的两变量配方、清理与迁移后验收要点）；②待办 3 收口（清单 **54 ✅ / 0 ❌ / 5 ⓘ**；§6.1 五条手点用户逐项确认通过）；③§4 施工面与 §4.1 验收记录更新（清单条数、本轮复跑、日用轨未触碰的证据）；④§七"包策略/双管理器/化石包清理"三行按实测更新；⑤§九加两条旧账（`~/.emacs.d/elpa` 复活、`~/.emacs.d` 残留）、§十加三条禁做项（脚本包路径、原生模块重编、退出时编译在飞）。
 - **2026-09-12 V1.6**：新增证据 **3.17** —— 系统包位归 31（用户升到 31.1-2）后的新分工：日用轨改走本地解包 30.2、开发轨用系统包、两轨各自可点图标启动；记下三条硬事实（desktop 那条链被 systemd 生成器解析成绝对路径，改 wrapper 无效；wrapper 的跨机回退与"别删本地 30 树"；换二进制不触发 native 重编、跨版本 emacsclient 可用）。同步：决议 7 标记履约结束、§3.5 回退弹药、§4 施工面表、待办 5 状态、§八 回退面、§十一 施工面清单。
+- **2026-09-12 V1.7**：新增证据 **3.18** —— 默认切到 `~/.config/emacs`（加法先行、减法随后，两个 yadm 提交分开以保护另外两台机器）；三处载体定型（日常/开发/保底）；保底通道那两个坑（GUI 下 init 先于 `--eval`；`server-force-delete` 不重置 Lisp 侧状态）。同步：**决议 2 订正**（新家是 yadm 管的**部署产物**，不再是"git 仓库本身"；开发在 dev 改、单向部署过来）、决议 3 标已执行、待办 4 标已由更简单方式完成；`AGENTS.md` 加载拓扑改写为三处载体；`docs/learnings.md` 加第 10 条（state 目录里的 custom.el 缺 cookie，且每台机器各犯一次）。

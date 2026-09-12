@@ -57,3 +57,9 @@
 - **现象**：gptel 等配置可用，但仓库里搜不到 key。
 - **真相**：密钥统一放在 `~/Install/configs/llms/*.txt`；仓库根的 `english-words.txt`（370,105 词，已入库）被 `init-completion.el` 当作 ispell 备用词典引用。
 - **错误后果**：误删根目录数据文件会破坏补全；新增密钥不要写进 `.el`。
+
+## 10. state 目录里的 custom.el 缺 lexical-binding cookie
+
+- **现象**：31 启动时报 `Warning (files): Missing 'lexical-binding' cookie in "…/state/emacs/custom.el"`（30.2 不报）。
+- **真相**：`custom.el` 住在**按机器**的 state 目录（`~/.local/state/emacs/`），不在部署产物里 —— 所以每台机器各有一份、各自可能缺 cookie（新建或从别处拷贝后要手工补一行 `;;; -*- lexical-binding: t -*-`）。
+- **错误后果**：把它当成配置错误去翻 `.el`；或以为“在 dev 那台补过就够了”（换机器会再犯一次）。**Customize 自己保存不会抹掉它**：`custom-save-all` 是就地编辑原文件（`find-file-noselect`），不是重写。

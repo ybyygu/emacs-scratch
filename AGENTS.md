@@ -26,17 +26,28 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 
 ## 加载拓扑
 
+**2026-09-12 起，本项目有三处载体**（详见 [PORT-EMACS31.md](PORT-EMACS31.md)）：
+
+| 用途 | 配置目录 | 二进制 | socket | 入口 |
+|---|---|---|---|---|
+| **日常（默认）** | `~/.config/emacs`（**部署产物**，源在 `~/Incoming/emacs-dev`） | 系统 `/usr/bin/emacs`（31） | `gwp` | 系统默认「Emacs」图标 / 裸 `emacs` |
+| 开发 | `~/Incoming/emacs-dev` | 系统 31 | `gwp-dev` | 「Emacs 31 · 开发版」图标 |
+| **保底（苟活版）** | **本目录** | `~/Incoming/emacs-30.2`（本地解包） | `gwp30` | 「Emacs 30 · 保底」图标 → `~/Incoming/emacs30-fallback` |
+
+本目录**不再是裸 `emacs` 的落点**：chemacs、`~/.emacs-profiles.el`、`~/.local/bin/emacs` wrapper 已于 2026-09-12 退役，默认改由 `~/.config/emacs` 承接。
+
+**跑本目录这份配置（保底通道）必须用 `~/Incoming/emacs30-fallback`**，不要直接敲 `emacs` —— 后者现在是 31，会与本目录的 30 生态错配（且 31 会去扫 `user-lisp/`，见「隐性知识」）。
+
+**加载链（三处共用同一份 `init.el`，只是入口不同）**：
+
 ```
-~/.local/bin/emacs               # 入口 wrapper，EMACS_PROFILE 默认 gwp（yadm 管理）
-  └─ chemacs2 → ~/.emacs-profiles.el
-       profile gwp → 本目录为 user-emacs-directory，server socket = gwp
-         └─ init.el
-              ├─ load-path：site-lisp/ 及其子目录、user-lisp/
-              ├─ package.el（USTC 镜像）→ custom.el
-              ├─ init-defaults → init-core → init-general → init-meow → init-edit
-              │    → init-ui → init-dired → init-workspace
-              ├─ 有图形界面时：init-org → init-note        （init-eaf 已注释）
-              └─ init-develop → init-completion → init-chemistry → init-bindings（必须最后）
+init.el
+  ├─ load-path：site-lisp/ 及其子目录、user-lisp/
+  ├─ package.el（USTC 镜像）→ custom.el（落在各轨的 state 目录）
+  ├─ init-defaults → init-core → init-general → init-meow → init-edit
+  │    → init-ui → init-dired → init-workspace
+  ├─ 有图形界面时：init-org → init-note        （init-eaf 已注释）
+  └─ init-develop → init-completion → init-chemistry → init-bindings（必须最后）
 ```
 
 `init-no-x-flag` 为 t（无 X / 远程终端）时，跳过 `init-org`、`init-note`，且不自动安装包。
