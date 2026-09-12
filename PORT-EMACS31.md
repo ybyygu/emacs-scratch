@@ -1,6 +1,6 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.6 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；系统包位已归 31（31.1-2），日用轨改走本地解包 30.2，两轨各自可切换（见 3.17）；演化轨 31 单轨、包树已清扫并在 31 下升级、eln 已预热、清单 54 ✅ / 0 ❌ / 5 ⓘ；剩待办 4（切换准备）、5（收尾部分）、6（提升）**
+> 版本：V1.8 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；本轮把 31 线改成「双 worktree + 符号链接门牌」，并把 `gwp-scratch` 定为**冻结的 30 保底轨**（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.19 的施工（P0/P1/P2）**
 > 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
 > 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
 
@@ -17,13 +17,15 @@
 | 3 | chemacs 退役：删 `~/.emacs.d`（stub）、`~/.emacs-profiles.el`、`~/.local/bin/emacs` wrapper | doom 已弃用，chemacs 当初只为它存在；它只切 `user-emacs-directory`，管不了包树/二进制/状态。**✅ 2026-09-12 已执行**（整目录删，不只是删文件，见 3.18） |
 | 4 | socket 名保持 `gwp`；**不改 `server-socket-dir`** | `~/.local/share/applications/gwp-emacsclient.desktop` 按名字找 Emacs；改 socket 目录会让 `emacsclient` 失联 |
 | 5 | 状态按机器（XDG），配置按 git | 见第五节映射表；配置审计第 1 条（状态出同步区）的落实 |
-| 6 | 双轨：`~/Incoming/emacs-dev` 施工 → 验证 → 提升；用**独立克隆**而非 worktree | worktree 会把 dev 书签写进同步区 `.git/worktrees/`，跨机变坏引用 |
+| 6 | 双轨：`~/Incoming/emacs-dev` 施工 → 验证 → 提升；用**独立克隆**而非 worktree | worktree 会把 dev 书签写进同步区 `.git/worktrees/`，跨机变坏引用。**2026-09-12 由决议 13 取代**（改用 worktree，见 3.19） |
 | 7 | 31 先用**解包的 31.1** 跑施工面，系统包留到最后一步 | 零系统风险；回退弹药在 pacman 缓存。**2026-09-12 已履约并结束**：用户把系统包升到 31.1-2，解包版退役（见 3.17） |
 | 8 | ~~保持 30.2 兼容~~ → **已由决议 12 取代**：不再把"能在 30.2 上跑"当判据 | 用户 2026-09-12：dev 要新，兼容不是它的目标 |
 | 9 | 演化轨用 Emacs 自带的 `--init-directory` 起 | 标准机制；`-Q` 会关掉 `init-file-user`，反而测不到真实启动路径（31 的 user-lisp 自动处理只在真实启动下发生，见 3.7） |
 | 10 | **环境按轨隔离**：演化轨用 `~/.cache/emacs-dev/` + `~/.local/state/emacs-dev/`；`early-init.el` 的默认值仍是生产那套 XDG 路径 | 待办 5 要给 31 重编 rime/vterm 的 `.so`，那些文件就写在包目录里——两轨共用一棵树，等于"给 31 重编"顺手弄坏日用 30.2。隔离后两轨只在"提升"那一刻交割快照 |
 | 11 | 文档提交走稳定库 `master`；实现提交走 `dev`；`master` 一前进就 `dev rebase`；**`dev` 在提升前不推远端** | 这样 `merge --ff-only` 永远成立（实测：cherry-pick 文档进 dev 不能让 master 成为祖先，见 3.10） |
 | 12 | **演化轨以新为准**：`dev-emacs` 默认解包的 31.1（没有版本开关，`--system` 才跑系统那份）；脚本与清单都按单版本（31）写；配置不再为 30.2 让步 | 用户 2026-09-12 原话"dev 要新，兼容不是它的目标"；且 30.2 侧已开始被生态拖住（见 3.11） |
+| 13 | **31 线改成「双 worktree + 门牌」**：`emacs-dev/`（`dev`，唯一开发点）、`emacs-daily/`（`daily`，日用快照，只接受 fast-forward）、`~/.config/emacs` → 符号链接 → `emacs-daily/`；发布 = `merge --ff-only` + 重启 + 验收；yadm 交还 `~/.config/emacs` 的内容所有权 | 用户 2026-09-12 判断：工作树替掉"部署副本 + 提升链"；daily 上的 hotfix 还能自然回流 dev（见 3.19） |
+| 14 | **`gwp-scratch` 降级为冻结的 30 保底轨**：`master` 打 tag 冻结，不接收任何 merge；**作废决议 11**（dev 随 master rebase）与待办 6（提升链） | 保底的价值就是"老、稳、够用"；一旦跟随 31 演进就失去救命意义；且它跑 30.2，本就与"以新为准"相抵（见 3.19） |
 
 ## 三、已取得的证据（不要重做）
 
@@ -255,11 +257,43 @@
 
 **验证**：裸 `emacs` → 31.1 + `~/.config/emacs/`；清单在新家跑 **53 ✅ / 1 ❌ / 5 ⓘ**（唯一失败是 `Z-01` 的前提不成立 —— 它假设配置树是 git 仓；已改为"非 git 仓时判本次运行无新写文件"）；启动日志零错误。
 
+### 3.19 2026-09-12 下半场：31 线改成「双 worktree + 符号链接门牌」
+
+**动因（用户判断）**：原来的两层部署（dev 改 → `git archive` + yadm 部署副本 → 再计划"提升"进稳定库）是三层复制，每层都要人为同步；而 Git worktree 本身就能表达"同一份代码的两个时间点"。日用回退交给 `daily` 分支，daily 上的 hotfix 还能自然回流 dev。同时 `gwp-scratch` 卸下"31 稳定库"身份，专职做 30 保底——决议 12 之后，它是最后一个还在为 30.2 让步的地方。
+
+**新决议**：见决议表 13、14。要点：`emacs-dev/`（`dev`，唯一开发点）＋ `emacs-daily/`（`daily`，日用快照，只接受 fast-forward）＋ `~/.config/emacs` → 符号链接 → `emacs-daily/`；发布 = `git -C emacs-daily merge --ff-only <已验证提交>` + 重启 + 验收；`gwp-scratch` 的 `master` 打 tag 冻结。
+
+**动手前的现状核实（2026-09-12 17:00）**：
+
+| 项 | 实测 | 意义 |
+|---|---|---|
+| 已部署内容 vs dev HEAD | `diff -r --exclude=.git` **逐字相同**（0 差异） | `daily` 的起点就是 dev 当前 tip，不需要回退到某个更早的已验证提交 |
+| 体验清单（dev 轨） | **54 ✅ / 0 ❌ / 5 ⓘ**，退出码 0，启动日志零错误行 | 迁移基线的绿色状态 |
+| yadm 跟踪面 | `~/.config/emacs` 下 **127 个文件**（`61f4b1c` 入库、`58f5fb6` 最后一次部署） | 换门牌前必须显式交还所有权（区域经验库第 3 条） |
+| 日用实例实际加载的包 | `package-user-dir` = `~/.cache/emacs/elpa/`；magit/transient/compat/vterm/rime 全部解析到 `~/.cache/emacs/*` | 包树搬迁已在 3.18 完成，本轮不碰包树 |
+| socket 现状 | `gwp`(日用 31.1)／`gwp-dev`(2265220)／`gwp30`(保底 30.2)／`gwp-new`(新家预览) 四个并存 | P1 切换前需要用户退掉 `gwp` 与 `gwp-new` |
+| `master` 在本轮施工期间前进 | `d15c1bc ybyygu: 添加配置架构方案讨论`（702 行，`ai-chats/20260912-chat-配置升级.md`） | 该提交是**文档**：cherry-pick 进 `dev`，不 rebase（保住文档已引用的 `fc31352` 哈希） |
+| 外层目录 `~/Install/configs/emacs/` | 自身是一个 git 仓库（只跟踪两个 `.note`，无远端），另有一堆遗留目录 | 按 fractal-docs 给它建区域入口（`AGENTS.md`）与区域经验库（`docs/learnings.md`），并把两个 worktree 加进它的 `.gitignore` |
+
+**施工计划（三段，判据事前冻结）**：
+
+- **P0 建骨架（不触碰任何运行实例）**：`git fetch ~/Incoming/emacs-dev +refs/heads/dev:refs/heads/dev` → `git worktree add .../emacs-dev dev` → cherry-pick `d15c1bc` → `git branch daily <dev tip>` → `git worktree add .../emacs-daily daily` → 改 `~/Incoming/dev-emacs` 的 `DEV=`。
+  **闸门 G1**：`diff -r --exclude=.git ~/Incoming/emacs-dev .../emacs-dev` 为空；`.../emacs-daily` 与 `~/.config/emacs` 的差异**只允许 `.md`**（用 `git -C .../emacs-daily diff --name-only fc31352 daily | grep -v '\.md$'` 断言为空）；`checklist.sh` 全绿；两个 worktree `git status --porcelain` 为空。
+- **P1 切换日用（需要用户在场五分钟）**：用户退掉 `gwp` 与 `gwp-new` → `yadm rm -r --cached .config/emacs` + 提交 ＋ `~/.config/yadm/ignore` 加 `.config/emacs` → `mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912` → `ln -s <emacs-daily> ~/.config/emacs` → 重启实例。
+  **闸门 G2**：`accept.sh gwp gwp` 全绿（15 项落点 + socket 名 + 版本 + 启动日志零错误 + 配置树零新增）；§6.1 手点五条复验；`git -C emacs-daily status --porcelain` 为空。
+- **P2 收尾（可延后）**：`systemctl --user daemon-reload`（清掉已删 autostart 留下的 stale 单元）＋停掉无 socket 归属的瞬态实例；观察 native 是否重编，必要时对 daily 受控预热并等池排空；`git push github master dev daily` ＋ tag `gwp30-frozen-20260912`（把中断的异地备份接回来）；旧克隆 `~/Incoming/emacs-dev` 改名留几天再删；文档回环。
+
+**待实测（不写进经验库，先记这里）**：
+
+1. **门牌是否让路径保持不变**：若 Emacs 不把 `~/.config/emacs` 解析成真路径，`.eln` 就以 `~/.config/emacs/...` 为键、命中现有缓存（不触发重编）；若解析成真路径，配置自身那 ~28 个 `.el` 要重编一次。两种都能接受，但要实测确认（对照 `user-emacs-directory` 与 `(file-truename user-emacs-directory)`）。
+2. **worktree 元数据在同步区里的跨机表现**：`.git/worktrees/*` 与 worktree 里的 `.git` 文件都含绝对路径；三台机器路径相同（`/home/ybyygu/...`），预期可用但未实测。用户已明确"其他机器不太需要考虑"。
+3. **daily worktree 的"零新增文件"**：清单的 Z-01/Z-02/Z-03 断言要在 daily 侧也成立（本轮先靠 `git status` 观察）。
+
 ## 四、施工面（我的工作面，日用零接触）
 
 | 路径 | 内容 |
 |---|---|
-| `~/Incoming/emacs-dev/` | 配置的**独立克隆**，branch `dev`；remote `stable`=旧库、`github`=私有库（**提升前不推**）。树里只有代码 |
+| `~/Install/configs/emacs/emacs-dev/` | 配置的 **dev worktree**（P0 之后，见 3.19；此前临时还在 `~/Incoming/emacs-dev` 那个独立克隆里）。remote `github`=私有库。树里只有代码 |
 | `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。**默认就是解包的 31.1**（本轨以新为准，没有版本开关）；`--system` 跑系统装的那份；`--socket NAME` 已有 dev 实例时另起一个。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`（不允许被 env 覆盖，也拒绝 `gwp`）；31.1 的 `--dump-file` 自动取 |
 | `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本固定 31 + **启动日志错误全列** + 仓库零新增文件） |
 | `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、59 条（54 条二值断言 + 5 条观察项），顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
@@ -298,7 +332,7 @@
 | 3 | 体验清单：batch 能验的全部跑通（socket 名、`emacsclient -s gwp`、rime 谓词、附件目录左窗、denote、agenda 路径、snippet 展开、gptel 后端）；交互项列成短清单交用户点 | 清单全绿；交互项由用户确认 | ✅ 2026-09-12（`checklist.sh` 收在 **54 ✅ / 0 ❌ / 5 ⓘ**，日志零错误；§6.1 的 5 条手点项经用户逐项确认**全部通过**。包树作业后再跑一次仍全绿） |
 | 4 | ~~切换准备：备份…干净 checkout 到 `~/.config/emacs`…旧路径留 README~~ | ~~备份可解包复原；`emacs` 裸命令直接起新配置~~ | ✅ **2026-09-12 已由一种更简单的方式完成**（见 3.18）：新家从 dev 的 `c7772c4` 干净 checkout 后入库 yadm，随后拆掉 chemacs/wrapper/profiles，默认直接落到新家。旧路径未留 README —— 它现在仍有职责（保底通道的配置目录） |
 | 5 | 31 落地：复跑清单（含 rime/vterm **真实交互**）→ 需要时重编模块 → 全量 native 编译留日志 → 出报告 → 用户决定切系统包（`pacman -Syu emacs-wayland`） | 模块可用；清单全绿；回退命令已验证 | 🟡 **2026-09-12 大部分完成**：用户已升系统包到 31.1-2、日用转本地 30.2、`dev-emacs` 改用系统包、解包树退役（见 3.17）；清单在 31.1-2 上全绿。剩“全量 native 编译留日志”（只做了升级过的那批的受控预热） |
-| 6 | 提升路径：`dev` → push `github` → 用户点头 → 稳定库 `git merge --ff-only` → 重启 → 跑清单 | 提升前后 `git log` 线性；不满意可 `git reset --hard <tag>` | ⏳ 拓扑已修好（见 3.10 与决议 11），可按原计划做 |
+| 6 | ~~提升路径：`dev` → push `github` → 稳定库 `merge --ff-only`~~ **已退役**（决议 14）：31 线的发布改由 `daily` 承担（决议 13），这里只剩"把 `dev`／`daily` 推到 GitHub 备份"这一件事 | `git push github master dev daily` 成功 | ⛔ 2026-09-12 退役，由 3.19 接替 |
 
 ### 6.1 手点清单（5 条，2026-09-12 已全部通过）
 
@@ -347,7 +381,7 @@
 ## 十、不要做的事
 
 - 不动 `server-socket-dir`；不改 systemd/autostart；
-- 不在稳定轨直接改**配置**（一切在施工面）；只动文档可以，但会让 `master` 前进 → **必须顺手 `dev rebase`**；
+- **改动只在 `emacs-dev/`**：`emacs-daily/` 不开发（hotfix 例外且须立刻回流），`gwp-scratch`（master）冻结、不接收 merge——本条取代原“稳定轨只改文档、改完顺手 `dev rebase`”（决议 13/14）；
 - 不让 `~/.emacs.d/elpa` 再次出现（chemacs 的目录切换晚于启动期的包激活，那里躺着的包会永久参与 `load-path` 且优先级更高，见 3.12）；
 - 不在清单通过前升级系统 Emacs；
 - 不用"整目录 copy/mv 工作树"做提升或搬家（丢 diff、丢历史、把 legacy 与运行态一起带过去）；
@@ -360,10 +394,10 @@
 
 ## 十一、新会话怎么接着干
 
-1. 读本文件 + `AGENTS.md` + `user-lisp/AGENTS.md`；
-2. 确认施工面还在（`~/Incoming/emacs-dev`、`~/Incoming/dev-emacs`、`~/Incoming/dev-emacs-gui`、`~/Incoming/emacs-30.2`、`~/Incoming/accept.sh`、`~/Incoming/checklist.sh`、快照目录；桌面项 `~/.local/share/applications/emacs-31dev.desktop`）；顺手 `git -C ~/Incoming/emacs-dev fetch stable && git merge-base --is-ancestor stable/master dev`，确认提升路径仍然可 ff；
-3. 从"六、待办"里**第一个未完成项**继续，判据照表；做一步就更新本文件的"状态"列；
-4. 需要用户决策的只有：切换时机（第 4/5 步）、体验清单的交互项、以及 §七 那几个开放决策。
+1. 读 `~/Install/configs/emacs/AGENTS.md`（**区域宪法**）+ 本文件 + 仓库 `AGENTS.md` + `user-lisp/AGENTS.md`；
+2. 确认三处载体与工具还在：`git -C ~/Install/configs/emacs/gwp-scratch worktree list`（应见 gwp-scratch／emacs-dev／emacs-daily），`~/Incoming/{dev-emacs,dev-emacs-gui,emacs30-fallback,emacs-30.2,accept.sh,checklist.sh}`，桌面项 `~/.local/share/applications/{emacs-31dev,emacs-30-fallback,gwp-emacsclient}.desktop`；
+3. 从“六、待办”里**第一个未完成项**继续，判据照表；做一步就更新本文件的“状态”列；
+4. 待办 6 已退役（决议 14），剩下的动作是 **3.19 的 P0／P1／P2**。需要用户决策的：P1 切换时机与手点验收、§七 那几个开放决策。
 
 ## 更新记录
 
@@ -374,4 +408,5 @@
   - 同日后续（同一版内继续记）：4 个自写 user-lisp 模式补 `lexical-binding` cookie（dev `ce03c27`）；把启动路径上以源码加载的 11 个包补上 `.elc`（特意用 30.2 编，避免给"先切配置后装 31"那段埋雷）；`custom.el` 补 cookie（31 的 Customize 自己会写）；`early-init.el` 显式 `package-enable-at-startup nil` 消掉 straight 的 `Warning (straight)`（dev `b023f87`），启动日志的 cookie 告警归零；清单 wrapper 增加"告警汇总（只列不判失败）"一段，避免这类告警再被漏掉；§7 新增"双管理器"决策行。
 - **2026-09-12 V1.5**：①新增证据 **3.13**（演化轨包树：判据修正、清扫账目、影子包逐个定案、闭包内外分流升级）、**3.14**（升级暴露的两处真故障：vterm 原生模块、bm 状态文件里的截断标记）、**3.15**（09:49 那次崩溃的完整链条与"退出时编译在飞"这一前提、受控预热做法、用户决定不上报上游）、**3.16**（`~/.emacs.d/elpa` 复活机制、验证过的两变量配方、清理与迁移后验收要点）；②待办 3 收口（清单 **54 ✅ / 0 ❌ / 5 ⓘ**；§6.1 五条手点用户逐项确认通过）；③§4 施工面与 §4.1 验收记录更新（清单条数、本轮复跑、日用轨未触碰的证据）；④§七"包策略/双管理器/化石包清理"三行按实测更新；⑤§九加两条旧账（`~/.emacs.d/elpa` 复活、`~/.emacs.d` 残留）、§十加三条禁做项（脚本包路径、原生模块重编、退出时编译在飞）。
 - **2026-09-12 V1.6**：新增证据 **3.17** —— 系统包位归 31（用户升到 31.1-2）后的新分工：日用轨改走本地解包 30.2、开发轨用系统包、两轨各自可点图标启动；记下三条硬事实（desktop 那条链被 systemd 生成器解析成绝对路径，改 wrapper 无效；wrapper 的跨机回退与"别删本地 30 树"；换二进制不触发 native 重编、跨版本 emacsclient 可用）。同步：决议 7 标记履约结束、§3.5 回退弹药、§4 施工面表、待办 5 状态、§八 回退面、§十一 施工面清单。
+- **2026-09-12 V1.8**：新增决议 **13、14** 与证据 **3.19** —— 31 线改成「双 worktree + 符号链接门牌」（`emacs-dev`／`emacs-daily`，`~/.config/emacs` 只是门牌），`gwp-scratch` 降级为冻结的 30 保底轨；**作废决议 11、退役待办 6**（提升链）；记下动手前的七项现状核实、P0/P1/P2 施工计划与 G1/G2 闸门、三项待实测。同步：`AGENTS.md` 拆成「区域宪法（外层）+ 仓库宪法（31 线）」，区域经验库（`~/Install/configs/emacs/docs/learnings.md`）建立，代码级经验库加第 11 条。
 - **2026-09-12 V1.7**：新增证据 **3.18** —— 默认切到 `~/.config/emacs`（加法先行、减法随后，两个 yadm 提交分开以保护另外两台机器）；三处载体定型（日常/开发/保底）；保底通道那两个坑（GUI 下 init 先于 `--eval`；`server-force-delete` 不重置 Lisp 侧状态）。同步：**决议 2 订正**（新家是 yadm 管的**部署产物**，不再是"git 仓库本身"；开发在 dev 改、单向部署过来）、决议 3 标已执行、待办 4 标已由更简单方式完成；`AGENTS.md` 加载拓扑改写为三处载体；`docs/learnings.md` 加第 10 条（state 目录里的 custom.el 缺 cookie，且每台机器各犯一次）。
