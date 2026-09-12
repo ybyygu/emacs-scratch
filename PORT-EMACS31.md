@@ -87,6 +87,8 @@
 - `.eln` 文件名含**源文件路径**的哈希（同内容不同路径 → 不同 `.eln`）：包树一搬，`eln-cache` 必然失效重编；缓存目录名 `<ver>-<hash>` 只含版本与编译器指纹，与路径无关；
 - **eshell 不自建目录**：实测空 state 目录下 `eshell-write-history` 静默不写（`file-writable-p` 为 nil，只 message 一句）→ 显式建 `eshell/`；`transient`（`transient--pp-to-file` 里 `make-directory`）与 `auto-save-list`（`files.el` 里 `make-directory`）都自建，不用管；
 - 启动的联网边界（核实过，别把"不联网"说大）：`package-installed-p 'use-package` 为 t（内置，那行 `package-install` 不会跑）；straight 的引导只在 `straight/repos/straight.el/bootstrap.el` 缺失时联网；`:ensure` 只在**缺包**时联网。也就是说：**归档刷新确实只在显式命令里发生，但"缺件"仍会联网**——新机器或换包时的联网是 bootstrap 行为，不是日常行为；
+- **31 的 `package-initialize` 不再把 `package-enable-at-startup` 置 nil**（30.2 会）→ 新版 straight 引导时会发 `Warning (straight)`（判定条件：`(and (featurep 'package) package-enable-at-startup)` 且 `package-user-dir` 里有包）。处置：`early-init.el` 里显式 `(setq package-enable-at-startup nil)` —— 与我们"init.el 显式激活"的语义相符，启动末那次自动激活本来也被 `package--activated` 跳过，**无行为变化**；
+- **`byte-recompile-directory` 在裸 `-Q --batch` 里编不了带依赖的包**（会报 `Cannot open load file: dash/avy/…`）：要在**加载了配置的环境**里编（dev 轨：`dev-emacs --system --batch --eval '(setq init-no-x-flag t)' -l early-init.el -l init.el`），否则只留一堆失败；
 - **搬包树之前必须先关掉所有还在用它的实例**（2026-09-12 实测踩到）：实例在启动时就把 `package-user-dir` 记死了，包树一搬，它会在「第一个碰到的延迟加载」上报 `Cannot open load file: ... vertico-repeat` 这类随机名字的错（本例：`init-completion.el` 给 `vertico-repeat` 挂了 `minibuffer-setup` 钩子，按 M-x 才去找那个文件）；更坑的是 `kill-emacs` 的钩子也会进 minibuffer，于是**连退出都被同一个错误挡住**。处置：临时把旧路径符号链接到新树，让它跑完退出钩子，再拆掉链接、按新路径重起（`kill -KILL` 也可，代价是丢掉未保存内容）。
 
 ### 3.10 提升路径的分支拓扑（实测纠正）
@@ -189,6 +191,7 @@
 | 决策 | 现状 | 为何要定 |
 |---|---|---|
 | **包策略**：冻结已验证集合，还是继续跟 MELPA 最新 | 未裁决；`~/Incoming/emacs-pkg-snapshots/2026-09-11/manifest-30.2.txt` 只是施工快照，不是正式输入 | 换机器/重建包树时，"跟新"会悄悄漂移；"冻结"要求一份写进仓库的清单（package.el 包版本 + straight 仓库 commit）。当前启动的联网边界是：归档刷新确实只在显式命令里，但**缺件会联网 bootstrap**（见 3.9） |
+| **双管理器**：一棵树里 package.el 与 straight 并存（205 个 elpa 包 + 几个 straight 包），同一包可能有两份（典型：`transient` 有 elpa 0.12.0 与 straight 0.13.8；`compat` 曾有 elpa 31.0.0.2 与 straight 2025-06 老货 —— 后者已咬过我们一次，见 3.11/3.12） | 未裁决；当前靠 load-path 顺序（straight 的构建目录在前）决定谁胜，`early-init.el` 现已显式置 `package-enable-at-startup nil` 消掉 straight 的告警 | 31 之后可以简化：31 **内置** transient 0.13.3，若把 elpa 与 straight 的 transient 都退役，同名包冲突面就小一块。"哪个管理器管哪些包"应由这条决策一次说清（straight 目前只用于 GitHub 直装的少数包） |
 | **化石包清理**：如 `highlight`（无人 `require`）、`names`、以及 53 个多版本包 | 未动（`AGENTS.md` 不许擅自清点） | 待办 5 要全量 native 编译，化石会一起被编译、浪费启动与排错精力 |
 | **其他机器**：各自跑什么版本、路径是否一致、绝对路径的符号链接是否都解得开 | 未知（缓存目录名不能作证据，见 3.1） | 每台机器都要重编模块、重建包树；协调成本还没算过 |
 
@@ -234,3 +237,4 @@
 - **2026-09-12 V1.1**：待办 1、2 完成并验收；新增决议 9、10；新增证据 3.7（31 的 user-lisp 自动处理）、3.8（`--dump-file`）、3.9（custom-file 不自动加载等）；施工面表更新；映射表补两项防御性落点。
 - **2026-09-12 V1.2**：按一轮整体复核订正——①决议 10 改为"环境按轨隔离"（原 V1.1 让两轨共用包树，会在待办 5 重编模块时弄坏日用），②新增决议 11 与证据 3.10（提升路径的分支拓扑，cherry-pick 方案被证伪，已按"文档走 master + dev rebase"修好并验证可 ff），③3.4 用实测替换"模块必然失效"的推断（rime 模块两版都能加载调用、版本也一致；只差真实交互），④3.9 补 eshell 不自建目录、启动联网的真实边界、`.eln` 名字含路径哈希，⑤待办 4 明确"干净 checkout 而非 mv 工作树"并加上"其他机器迁移前不删旧目录"，⑥旧账 1 标记已修，⑦`accept.sh` 增加 `--defaults` 模式与启动日志错误全列，⑧新增"尚未裁决的开放决策"一节（包策略、化石包、其他机器）。
 - **2026-09-12 V1.4**：新增证据 3.12 —— 日用轨那场"基本没法用"的真实原因（`~/.emacs.d/elpa` 里上一轮误装的包因 chemacs 切目录晚于启动期包激活而永久参与 load-path，压住了仓库包；叠上 straight 树停在 2025-06/08）与修复记录（park 误装目录、straight 更新 compat/transient 及其依赖 cond-let/llama、补 highlight autoloads、干净探针验证全绿、回退点）；§九 增加"不让 `~/.emacs.d/elpa` 再次出现"。
+  - 同日后续（同一版内继续记）：4 个自写 user-lisp 模式补 `lexical-binding` cookie（dev `ce03c27`）；把启动路径上以源码加载的 11 个包补上 `.elc`（特意用 30.2 编，避免给"先切配置后装 31"那段埋雷）；`custom.el` 补 cookie（31 的 Customize 自己会写）；`early-init.el` 显式 `package-enable-at-startup nil` 消掉 straight 的 `Warning (straight)`（dev `b023f87`），启动日志的 cookie 告警归零；清单 wrapper 增加"告警汇总（只列不判失败）"一段，避免这类告警再被漏掉；§7 新增"双管理器"决策行。
