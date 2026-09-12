@@ -1,8 +1,8 @@
 # 个人 Emacs 配置 — 仓库宪法
 
-> 版本：V2.1 ｜ 更新：2026-09-12 ｜ 创建：2026-09-10
-> 角色：本仓库的宪法与 AI 协作入口——管的是「默认轨 + 开发轨」那份配置代码 ｜ 给接手这份配置的 AI，以及未来的自己
-> 关联：**区域级**地图（三条轨、发布纪律、路径与回退）在 [../AGENTS.md](../AGENTS.md)——pi 会自动加载父目录那份，本文件不重复 ｜ [../docs/registry.md](../docs/registry.md)（现状：版本、二进制、socket）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md) ｜ [PORT-EMACS31.md](PORT-EMACS31.md)
+> 版本：V2.2 ｜ 更新：2026-09-12 ｜ 创建：2026-09-10
+> 角色：本仓库的宪法与 AI 协作入口——管的是活动那份配置代码（开发轨产生改动、日用轨接收已接受的快照）｜ 给接手这份配置的 AI，以及未来的自己
+> 关联：**区域级**框架（动机、目标、原则、目标架构）在 [../docs/framework.md](../docs/framework.md)；区域入口、纪律与导航在 [../AGENTS.md](../AGENTS.md)——pi 会自动加载父目录那份，本文件不重复 ｜ [../docs/registry.md](../docs/registry.md)（现状：版本、二进制、socket）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md) ｜ [PORT-EMACS31.md](PORT-EMACS31.md)
 
 ## 职责三要素
 
@@ -19,7 +19,8 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 | 对象 | 状态 |
 |---|---|
 | `early-init.el`、`init.el`、`user-lisp/*.el`、`snippets/` | **唯一真源**，可直接修改（`early-init.el` 定死状态与缓存落点，`init.el` 是装配入口，实现在 `user-lisp/`） |
-| 本仓库的三个 worktree | `emacs-dev/`（`dev`，**改动只在这里**）、`emacs-daily/`（`daily`，日用快照，只接受 fast-forward）、`gwp-scratch/`（仓库本体 ＋ 冻结的保底轨配置） |
+| 本仓库的两个 worktree | `emacs-dev/`（`dev`，**改动只在这里**）、`emacs-daily/`（`daily`，日用快照，只接受 fast-forward） |
+| 保底轨目录 `gwp-scratch/` | **独立仓库**（自带 `.git`，`master` 冻结）：不属于本仓库，不接收本仓库的 merge |
 | `~/.config/emacs` | 指向 `emacs-daily` 的**符号链接**：门牌，不是真源；在里面手改等于改 daily |
 | `elpa/`、`straight/`、`eln-cache/`、运行态 | **已不在仓库里**：包树与缓存落 `~/.cache/emacs[-dev]/`，运行态落 `~/.local/state/emacs[-dev]/`（由 `early-init.el` 定死，路径表见 [../AGENTS.md](../AGENTS.md)） |
 | `gwp-scratch.note`、`gwp-scratch.note_archive` | **不属于本项目**。旧的 literate 源码，已停用：不读、不写、不比对、不回收 |
@@ -29,8 +30,8 @@ ybyygu 提供需求、使用体验与方向取舍；AI 负责读代码、做最�
 
 区域级地图（三条轨、socket、发布与回退）在 [../AGENTS.md](../AGENTS.md)。本文件只记与代码有关的部分；**版本号（系统 Emacs、解包树、socket 名）是会浮动的现状，登记在 [../docs/registry.md](../docs/registry.md)，本文件不写**。
 
-- 本仓库的两处载体是**同一分支的不同提交**：`emacs-dev/`（`dev`，演化）与 `emacs-daily/`（`daily`，发布快照）；`~/.config/emacs` 只是后者的符号链接。
-- 保底轨跑的是另一个目录（`gwp-scratch/`）里的**冻结老配置**（没有 `early-init.el`），不在本文件范围内；要动它先读 [../gwp-scratch/AGENTS.md](../gwp-scratch/AGENTS.md)。
+- 本仓库的两处载体是**同一分支的不同提交**：`emacs-dev/`（`dev`，演化）与 `emacs-daily/`（`daily`，发布快照）；`~/.config/emacs` 只是后者的符号链接。**施工窗口未关闭**：`emacs-daily/` 与那道门牌是目标形态，现状见 [../docs/registry.md](../docs/registry.md)，进度见 [PORT-EMACS31.md](PORT-EMACS31.md)。
+- 保底轨跑的是旁边那个**独立仓库**（`gwp-scratch/`，自带 `.git`）里的**冻结老配置**（没有 `early-init.el`），不在本文件范围内；要动它先读 [../gwp-scratch/AGENTS.md](../gwp-scratch/AGENTS.md)。
 - 加载链（两处载体共用这一份代码）：
 
 ```
@@ -61,7 +62,7 @@ init.el
 - **一次一个具体问题**：改动范围由这个问题决定，不顺手扩展。
 - **包管理**：默认用 `:ensure`（package.el + USTC 镜像，**只此一份**，https）；只有需要 GitHub 直装时才用 `:straight`（当前仅 3 处）。新增依赖不要开辟第三条路。**启动不联网**：归档刷新只在 `M-x gwp::package-refresh-archives`（`user-lisp/init-core.el`）里发生。新机器、或新增 `:ensure` 包后报 “unavailable”，先跑这条命令再重启；`~/.cache/emacs/elpa/archives/*/archive-contents` 的 mtime 就是归档新鲜度。
 - **提交**：中文 commit，写清"为什么改、对使用有什么影响"；GitHub `ybyygu/emacs-scratch` 是 private 备份仓库，不 rebase / force-push 已推送历史。
-- **文档回环**：装配结构、模块职责、维护约定变化时，同步本文件与 [user-lisp/AGENTS.md](user-lisp/AGENTS.md)；**区域级**事实（载体、路径、socket、发布方式）变化时改 [../AGENTS.md](../AGENTS.md)；普通修复不更新文档。
+- **文档回环**：装配结构、模块职责、维护约定变化时，同步本文件与 [user-lisp/AGENTS.md](user-lisp/AGENTS.md)；**区域级**目标或原则变化先改 [../docs/framework.md](../docs/framework.md)，载体、路径、socket 等现状值改 [../docs/registry.md](../docs/registry.md)，纪律与导航改 [../AGENTS.md](../AGENTS.md)；普通修复不更新文档。
 - **经验落点**：先判范围——**代码级**（Emacs 行为、snippet、包）写 [docs/learnings.md](docs/learnings.md)，**区域级**（载体、所有权、发布、同步区）写 [../docs/learnings.md](../docs/learnings.md)；两份正本各自独立，本文件的「隐性知识」节只同步代码级摘要（条目编号与代码级正本一致）；`user-lisp/` 的目录级陷阱留在它自己的蓝图里。
 - **验证**：见下节。
 
@@ -96,7 +97,8 @@ init.el
 | 文档 | 职责 | AI 何时读 |
 |---|---|---|
 | `AGENTS.md`（本文件） | 仓库宪法：边界、载体与加载链、约定、验证、隐性知识速查 | 进入仓库即读 |
-| [../AGENTS.md](../AGENTS.md) | **区域宪法**：三条轨、发布纪律、路径与回退、遗留物声明 | 涉及发布、回退、搬迁、其它轨时 |
+| [../docs/framework.md](../docs/framework.md) | **区域框架**：动机、目标、设计原则、目标架构、成功标准、边界 | 做取舍、判定"这事能不能做"时 |
+| [../AGENTS.md](../AGENTS.md) | **区域入口**：载体角色、可执行纪律、导航、遗留物声明 | 涉及发布、回退、搬迁、其它轨时 |
 | [../docs/registry.md](../docs/registry.md) | **现状登记处**：版本、二进制、socket、启动器与桌面项 | 换版本、改入口、核对"现在跑的是哪个" |
 | [user-lisp/AGENTS.md](user-lisp/AGENTS.md) | 模块地图、加载依赖、目录级局部陷阱 | 改 `user-lisp/` 下模块前 |
 | [docs/learnings.md](docs/learnings.md) | **代码级经验库正本**：Emacs 行为、batch 盲区、snippet 缓存、原生模块… | 排查同类问题前、新经验写入时 |

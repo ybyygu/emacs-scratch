@@ -1,14 +1,16 @@
 # Emacs 31 移植 + 标准路径迁移 · 交接文档
 
-> 版本：V1.8 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；本轮把 31 线改成「双 worktree + 符号链接门牌」，并把 `gwp-scratch` 定为**冻结的 30 保底轨**（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.19 的施工（P0/P1/P2）**
-> 角色：本轮迁移的唯一入口。新会话先读本文件与 `AGENTS.md`，**不要重推已有结论**。
-> 上游：`AGENTS.md`（项目宪法）、`user-lisp/AGENTS.md`（模块地图）
+> 版本：V1.9 ｜ 更新：2026-09-12 ｜ 创建：2026-09-11 ｜ 状态：**待办 1–3 完成；默认已切到 `~/.config/emacs`（31.1-2）、chemacs 退役（3.18）；31 线改「双 worktree + 符号链接门牌」、`gwp-scratch` 定为冻结的 30 保底轨（3.19）——提升链（决议 11／待办 6）随之退役；剩待办 5 的 native 尾巴与 3.19 的施工**
+> 角色：本区域的**过程档案与执行计划**——记「当时为什么这么定」（决议来路、证据、施工、验收、回退）。目标与原则的正本在区域层： [../docs/framework.md](../docs/framework.md)（框架）＋ [../AGENTS.md](../AGENTS.md)（入口与纪律）；本文与框架冲突时以框架为准，并回来改本文。
+> 关联：[../AGENTS.md](../AGENTS.md)（区域入口）｜ [../docs/framework.md](../docs/framework.md)（区域框架）｜ [../docs/registry.md](../docs/registry.md)（现状登记处）｜ [AGENTS.md](AGENTS.md)（仓库宪法）｜ [user-lisp/AGENTS.md](user-lisp/AGENTS.md) ｜ [docs/learnings.md](docs/learnings.md)
 
 ## 一、目标（一句话）
 
 让这份配置在 **Emacs 31** 下与今天**体验一致或更好**，并把配置搬到标准路径 **`~/.config/emacs`**，退役 chemacs。
 
 ## 二、已定决议（不再讨论）
+
+> 本节是**过程来路**：记录当时选了什么、为什么。哪些约束至今仍然生效，由区域框架裁决（[../docs/framework.md](../docs/framework.md)）；被后续决议取代的条目保留原文并标注取代关系。
 
 | # | 决议 | 依据 |
 |---|---|---|
@@ -277,6 +279,8 @@
 
 **施工计划（三段，判据事前冻结）**：
 
+> ⚠️ **下列 P0/P1/P2 写在「`gwp-scratch` 是仓库本体、31 线是它的 worktree」这个模型上，该模型已被否定**（见 [../docs/framework.md](../docs/framework.md) §三：活动仓库本体是 `emacs-dev`，`emacs-daily` 是它的 worktree，`gwp-scratch` 是独立仓库）。按旧 P0 执行会把保底仓库拉进活动线。先按区域框架重写施工计划，再动手；已核实 `~/Incoming/emacs-dev` 工作树干净、且其代码与已部署内容逐字相同，可整体搬迁。
+
 - **P0 建骨架（不触碰任何运行实例）**：`git fetch ~/Incoming/emacs-dev +refs/heads/dev:refs/heads/dev` → `git worktree add .../emacs-dev dev` → cherry-pick `d15c1bc` → `git branch daily <dev tip>` → `git worktree add .../emacs-daily daily` → 改 `~/Incoming/dev-emacs` 的 `DEV=`。
   **闸门 G1**：`diff -r --exclude=.git ~/Incoming/emacs-dev .../emacs-dev` 为空；`.../emacs-daily` 与 `~/.config/emacs` 的差异**只允许 `.md`**（用 `git -C .../emacs-daily diff --name-only fc31352 daily | grep -v '\.md$'` 断言为空）；`checklist.sh` 全绿；两个 worktree `git status --porcelain` 为空。
 - **P1 切换日用（需要用户在场五分钟）**：用户退掉 `gwp` 与 `gwp-new` → `yadm rm -r --cached .config/emacs` + 提交 ＋ `~/.config/yadm/ignore` 加 `.config/emacs` → `mv ~/.config/emacs ~/Incoming/emacs-config-deploy-20260912` → `ln -s <emacs-daily> ~/.config/emacs` → 重启实例。
@@ -293,7 +297,7 @@
 
 | 路径 | 内容 |
 |---|---|
-| `~/Install/configs/emacs/emacs-dev/` | 配置的 **dev worktree**（P0 之后，见 3.19；此前临时还在 `~/Incoming/emacs-dev` 那个独立克隆里）。remote `github`=私有库。树里只有代码 |
+| `~/Install/configs/emacs/emacs-dev/` | 配置的**活动仓库本体与主工作树**（3.19 施工目标；此前在 `~/Incoming/emacs-dev`，那里是自带 `.git` 的仓库本体，不是谁的工作树）。remote `github`=私有库。树里只有代码 |
 | `~/Incoming/dev-emacs` | 演化轨启动器（**在克隆外**，不进仓库）。**默认就是解包的 31.1**（本轨以新为准，没有版本开关）；`--system` 跑系统装的那份；`--socket NAME` 已有 dev 实例时另起一个。它导出隔离环境：`GWP_CACHE_DIR=~/.cache/emacs-dev/`、`GWP_STATE_DIR=~/.local/state/emacs-dev/`、`GWP_SERVER_NAME=gwp-dev`（不允许被 env 覆盖，也拒绝 `gwp`）；31.1 的 `--dump-file` 自动取 |
 | `~/Incoming/accept.sh` | 验收脚本两用：`accept.sh --defaults` 验 `early-init.el` 的**默认落点**（生产 XDG 路径，不带覆盖）；`accept.sh gwp-dev gwp-dev [--log 启动日志]` 验运行中的实例（15 项落点 + socket 名 + 版本固定 31 + **启动日志错误全列** + 仓库零新增文件） |
 | `~/Incoming/checklist.sh`（+ `checklist.el`） | **体验清单（batch 可验部分）**：自加载配置（复现 GUI 启动的模块集合）、59 条（54 条二值断言 + 5 条观察项），顺带把启动日志里的错误行全列；用 `--socket gwp-check` 起独立实例，不抢 `gwp`/`gwp-dev` |
@@ -394,10 +398,10 @@
 
 ## 十一、新会话怎么接着干
 
-1. 读 `~/Install/configs/emacs/AGENTS.md`（**区域宪法**）+ 本文件 + 仓库 `AGENTS.md` + `user-lisp/AGENTS.md`；
-2. 确认三处载体与工具还在：`git -C ~/Install/configs/emacs/gwp-scratch worktree list`（应见 gwp-scratch／emacs-dev／emacs-daily），`~/Incoming/{dev-emacs,dev-emacs-gui,emacs30-fallback,emacs-30.2,accept.sh,checklist.sh}`，桌面项 `~/.local/share/applications/{emacs-31dev,emacs-30-fallback,gwp-emacsclient}.desktop`；
+1. 读 `~/Install/configs/emacs/AGENTS.md`（区域入口与纪律）+ `~/Install/configs/emacs/docs/framework.md`（区域框架：目标与原则）+ 本文件 + 仓库 `AGENTS.md` + `user-lisp/AGENTS.md`；
+2. 确认三处载体与工具还在：`~/Incoming/{dev-emacs,dev-emacs-gui,emacs30-fallback,emacs-30.2,accept.sh,checklist.sh}`，桌面项 `~/.local/share/applications/{emacs-31dev,emacs-30-fallback,gwp-emacsclient}.desktop`；31 线的 worktree 用活动仓库自己的 `git worktree list` 核对（目标形态恰两项：`emacs-dev`／`emacs-daily`；`gwp-scratch` 是独立仓库，不会出现在该列表里）；
 3. 从“六、待办”里**第一个未完成项**继续，判据照表；做一步就更新本文件的“状态”列；
-4. 待办 6 已退役（决议 14），剩下的动作是 **3.19 的 P0／P1／P2**。需要用户决策的：P1 切换时机与手点验收、§七 那几个开放决策。
+4. 待办 6 已退役（决议 14），剩下的动作是 3.19 的施工——**先按区域框架重写施工计划**（旧 P0/P1/P2 建立在已被否定的仓库模型上，见 §3.19 开头的警示），再动手。需要用户决策的：切换时机与手点验收、§七 那几个开放决策。
 
 ## 更新记录
 
